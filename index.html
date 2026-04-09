@@ -1151,7 +1151,7 @@ createApp({
       try { const s = await getDoc(doc(db, 'settings', 'announcement')); if (s.exists()) announcementLines.value = s.data().lines || []; } catch(e) {}
       try { const s = await getDoc(doc(db, 'settings', 'logo')); if (s.exists()) logoUrl.value = s.data().url || ''; } catch(e) {}
       try { const s = await getDoc(doc(db, 'settings', 'payment')); if (s.exists()) adminNumbers.value = s.data(); } catch(e) {}
-      try { const s = await getDoc(doc(db, 'admin', 'settings')); if (s.exists()) socials.value = s.data(); }. catch(e) {}
+      try { const s = await getDoc(doc(db, 'admin', 'settings')); if (s.exists()) socials.value = s.data(); } catch(e) {}
       try {
         const s = await getDoc(doc(db, 'settings', 'rounds'));
         if (s.exists() && s.data().list) { rounds.value = s.data().list; }
