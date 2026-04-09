@@ -10,14 +10,191 @@
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Noto+Sans+Bengali:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css"/>
 <link rel="stylesheet" href="assets/css/style.css">
+<style>
+.qty-btn{width:34px;height:34px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:#fff;font-size:18px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.15s;flex-shrink:0;}
+.qty-btn:active{transform:scale(0.9);}
+.qty-btn:disabled{opacity:0.3;cursor:not-allowed;}
+.qty-display{min-width:38px;text-align:center;font-size:18px;font-weight:800;}
+
+/* ── Book Sheet FAB ── */
+.book-sheet-fab{
+  position:fixed;
+  bottom:calc(var(--nav-height) + env(safe-area-inset-bottom) + 20px);
+  right:20px;
+  width:64px;
+  height:64px;
+  background:linear-gradient(145deg,#f97316,#ea580c);
+  color:#fff;
+  border:none;
+  border-radius:50%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:3px;
+  z-index:500;
+  box-shadow:0 4px 18px rgba(249,115,22,0.5), 0 0 0 5px rgba(249,115,22,0.15);
+  cursor:pointer;
+  transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  font-family:inherit;
+}
+.book-sheet-fab:active{transform:scale(0.9);}
+.book-sheet-fab.fab-hidden{
+  transform:translateY(120%);
+  opacity:0;
+  pointer-events:none;
+}
+/* ── Book Sheet Popup ── */
+.bs-overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,0.72);
+  backdrop-filter:blur(8px);
+  z-index:2100;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:16px;
+}
+.bs-popup{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:24px;
+  width:100%;
+  max-width:370px;
+  max-height:88vh;
+  overflow-y:auto;
+  padding:18px;
+  position:relative;
+}
+.bs-header{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:14px;
+}
+.bs-nav-btn{
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  width:32px;height:32px;
+  color:#fff;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;
+  flex-shrink:0;
+  transition:all 0.15s;
+}
+.bs-nav-btn:disabled{opacity:0.28;cursor:not-allowed;}
+.bs-nav-btn:not([disabled]):active{background:rgba(108,99,255,0.25);}
+.bs-round-info{
+  flex:1;
+  text-align:center;
+}
+.bs-round-label{font-size:13px;font-weight:800;color:#fff;}
+.bs-round-time{font-size:11px;color:var(--primary);font-weight:600;margin-top:2px;}
+.bs-close-btn{
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  width:32px;height:32px;
+  color:var(--text-muted);
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+  font-size:14px;
+}
+.bs-section-label{font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:8px;letter-spacing:0.5px;}
+.bs-amounts{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px;}
+.bs-amt-btn{
+  background:var(--surface2);
+  border:1.5px solid var(--border);
+  border-radius:10px;
+  color:var(--text-muted);
+  font-size:12px;font-weight:700;
+  padding:6px 12px;
+  cursor:pointer;
+  transition:all 0.15s;
+  font-family:inherit;
+}
+.bs-amt-btn.active{background:rgba(249,115,22,0.15);border-color:#f97316;color:#f97316;}
+.bs-amt-btn:active{transform:scale(0.95);}
+
+.bs-legend{display:flex;gap:12px;margin-bottom:10px;}
+.bs-leg{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text-muted);}
+.bs-leg-dot{width:10px;height:10px;border-radius:50%;}
+
+.bs-sheets-grid{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:8px;
+  margin-bottom:14px;
+}
+.bs-sheet{
+  aspect-ratio:1;
+  border-radius:50%;
+  background:var(--surface2);
+  border:1.5px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;color:var(--text-muted);
+  cursor:pointer;
+  transition:all 0.15s;
+}
+.bs-sheet:active{transform:scale(0.9);}
+.bs-sheet.selected{
+  background:rgba(249,115,22,0.18);
+  border-color:#f97316;
+  color:#f97316;
+}
+.bs-sheet.taken{
+  background:rgba(239,68,68,0.1);
+  border-color:rgba(239,68,68,0.35);
+  color:#f87171;
+  cursor:not-allowed;
+  opacity:0.7;
+}
+.bs-footer{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding-top:12px;
+  border-top:1px solid var(--border);
+}
+.bs-stat{
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:8px 10px;
+  flex:1;
+  text-align:center;
+}
+.bs-stat-label{font-size:10px;color:var(--text-muted);font-weight:600;}
+.bs-stat-val{font-size:15px;font-weight:800;color:#fff;margin-top:2px;}
+.bs-book-btn{
+  background:linear-gradient(135deg,#f97316,#ea580c);
+  border:none;
+  border-radius:12px;
+  color:#fff;
+  font-size:13px;font-weight:800;
+  padding:12px 18px;
+  cursor:pointer;
+  flex:1.4;
+  font-family:inherit;
+  transition:all 0.2s;
+}
+.bs-book-btn:disabled{background:#2a2a40;color:var(--text-dim);cursor:not-allowed;}
+.bs-book-btn:not(:disabled):active{transform:scale(0.97);}
+
+.pop-enter-active{transition:all 0.3s ease-out;}
+.pop-leave-active{transition:all 0.2s ease-in;}
+.pop-enter-from,.pop-leave-to{opacity:0;transform:scale(0.92) translateY(20px);}
+</style>
 </head>
 <body>
 <div id="app" v-cloak>
 
-  <!-- ── TOAST ── -->
   <div id="toast-el" class="toast-msg"></div>
 
-  <!-- ═══════ POPUP MODAL ═══════ -->
+  <!-- POPUP MODAL -->
   <transition name="pop">
     <div v-if="popup.show" class="modal-overlay" style="align-items:center;z-index:2000;" @click.self="closePopup">
       <div style="background:var(--surface);border-radius:28px;padding:32px 24px;width:92%;max-width:360px;border:1px solid var(--border);text-align:center;box-shadow:0 24px 80px rgba(0,0,0,0.5);">
@@ -49,7 +226,7 @@
     </div>
   </transition>
 
-  <!-- ═══════ PURCHASE MODAL ═══════ -->
+  <!-- PURCHASE MODAL -->
   <transition name="pop">
     <div v-if="purchaseModal.show" class="modal-overlay" @click.self="purchaseModal.show=false">
       <div class="modal-sheet" @click.stop>
@@ -67,7 +244,6 @@
           </button>
         </div>
 
-        <!-- Step 1: Package -->
         <div style="margin-bottom:16px;">
           <div style="font-size:12px;font-weight:700;color:var(--text-muted);display:flex;align-items:center;gap:8px;margin-bottom:10px;"><span class="step-circle">1</span> Select Package</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
@@ -79,7 +255,23 @@
           </div>
         </div>
 
-        <!-- Step 2: Sheet Info -->
+        <div style="margin-bottom:16px;">
+          <div style="font-size:12px;font-weight:700;color:var(--text-muted);display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+            <span class="step-circle" style="background:#22c55e;">Q</span> Quantity
+            <span v-if="purchaseModal.selectedPkg" style="margin-left:auto;font-size:12px;color:var(--primary);font-weight:700;">Total: ৳{{ (purchaseModal.selectedPkg.price * purchaseModal.quantity) }}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:10px 14px;">
+            <button class="qty-btn" @click="purchaseModal.quantity > 1 && purchaseModal.quantity--" :disabled="purchaseModal.quantity <= 1">−</button>
+            <span class="qty-display">{{ purchaseModal.quantity }}</span>
+            <button class="qty-btn" @click="purchaseModal.quantity < 20 && purchaseModal.quantity++" :disabled="purchaseModal.quantity >= 20">+</button>
+            <div style="margin-left:auto;display:flex;gap:6px;">
+              <button v-for="q in [1,5,10,20]" :key="q" @click="purchaseModal.quantity=q"
+                style="padding:4px 10px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid;"
+                :style="{background:purchaseModal.quantity===q?'var(--primary)':'transparent',borderColor:purchaseModal.quantity===q?'var(--primary)':'var(--border)',color:purchaseModal.quantity===q?'#fff':'var(--text-muted)'}">{{ q }}</button>
+            </div>
+          </div>
+        </div>
+
         <div style="margin-bottom:16px;">
           <div style="font-size:12px;font-weight:700;color:var(--text-muted);display:flex;align-items:center;gap:8px;margin-bottom:10px;"><span class="step-circle">2</span> Sheet Info</div>
           <select v-model="purchaseModal.playerId" class="round-select">
@@ -88,7 +280,6 @@
           </select>
         </div>
 
-        <!-- Step 3: Round Info -->
         <div style="margin-bottom:16px;">
           <div style="font-size:12px;font-weight:700;color:var(--text-muted);display:flex;align-items:center;gap:8px;margin-bottom:10px;"><span class="step-circle" style="background:#f97316;">3</span> Round Info</div>
           <select v-model="purchaseModal.selectedRound" class="round-select">
@@ -97,7 +288,6 @@
           </select>
         </div>
 
-        <!-- Step 4: Payment -->
         <div style="margin-bottom:20px;">
           <div style="font-size:12px;font-weight:700;color:var(--text-muted);display:flex;align-items:center;gap:8px;margin-bottom:10px;"><span class="step-circle">4</span> Payment Method</div>
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
@@ -171,9 +361,13 @@
         </div>
 
         <div style="border-top:1px solid var(--border);padding-top:16px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <span style="color:var(--text-muted);font-size:13px;">{{ purchaseModal.selectedPkg ? purchaseModal.selectedPkg.name : '—' }} × {{ purchaseModal.quantity }}</span>
+            <span style="font-size:14px;font-weight:700;color:var(--text-muted);">৳{{ purchaseModal.selectedPkg ? purchaseModal.selectedPkg.price * purchaseModal.quantity : 0 }}</span>
+          </div>
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
             <span style="color:var(--text-muted);font-size:14px;">Total Payable</span>
-            <span style="font-size:22px;font-weight:800;color:var(--primary);">৳{{ purchaseModal.selectedPkg?purchaseModal.selectedPkg.price:0 }}</span>
+            <span style="font-size:22px;font-weight:800;color:var(--primary);">৳{{ purchaseModal.selectedPkg ? purchaseModal.selectedPkg.price * purchaseModal.quantity : 0 }}</span>
           </div>
           <button @click="handlePurchaseBuy" class="btn-primary" style="width:100%;" :disabled="purchaseModal.verifying||!purchaseModal.selectedPkg||!purchaseModal.playerId||!purchaseModal.selectedRound">
             <span v-if="purchaseModal.verifying" class="spinner"></span>
@@ -189,7 +383,7 @@
     </div>
   </transition>
 
-  <!-- ═══════ ANNOUNCEMENT MODAL ═══════ -->
+  <!-- ANNOUNCEMENT MODAL -->
   <transition name="pop">
     <div v-if="announcementModal" class="modal-overlay" style="z-index:1500;" @click.self="announcementModal=false">
       <div class="modal-sheet" @click.stop>
@@ -221,7 +415,88 @@
     </div>
   </transition>
 
-  <!-- ═══════ HOME PAGE ═══════ -->
+  <!-- ══════════════════════════════════════════
+       BOOK SHEET POPUP MODAL
+  ══════════════════════════════════════════ -->
+  <transition name="pop">
+    <div v-if="bookSheetModal.show" class="bs-overlay" @click.self="closeBookSheet">
+      <div class="bs-popup" @click.stop>
+
+        <!-- Header: Prev / Round Info / Next / Close -->
+        <div class="bs-header">
+          <button class="bs-nav-btn" @click="bsChangeRound(-1)" :disabled="bookSheetModal.roundIndex === 0">
+            <i class="fa-solid fa-chevron-left" style="font-size:12px;"></i>
+          </button>
+          <div class="bs-round-info">
+            <div class="bs-round-label">{{ bsCurrentRound.label }} Round</div>
+            <div class="bs-round-time">{{ bsCurrentRound.time }}</div>
+          </div>
+          <button class="bs-nav-btn" @click="bsChangeRound(1)" :disabled="bookSheetModal.roundIndex === bsRounds.length - 1">
+            <i class="fa-solid fa-chevron-right" style="font-size:12px;"></i>
+          </button>
+          <button class="bs-close-btn" @click="closeBookSheet">
+            <i class="fa-solid fa-xmark" style="font-size:13px;"></i>
+          </button>
+        </div>
+
+        <!-- Amount Selection -->
+        <div class="bs-section-label">SELECT AMOUNT</div>
+        <div class="bs-amounts">
+          <button
+            v-for="amt in bsAmounts" :key="amt"
+            class="bs-amt-btn"
+            :class="{ active: bookSheetModal.selectedAmt === amt }"
+            @click="bookSheetModal.selectedAmt = amt">
+            ৳{{ amt }}
+          </button>
+        </div>
+
+        <!-- Legend -->
+        <div class="bs-legend">
+          <div class="bs-leg"><div class="bs-leg-dot" style="background:#f97316;"></div> Selected</div>
+          <div class="bs-leg"><div class="bs-leg-dot" style="background:rgba(239,68,68,0.5);"></div> Taken</div>
+          <div class="bs-leg"><div class="bs-leg-dot" style="background:var(--surface2);border:1.5px solid rgba(255,255,255,0.1);"></div> Available</div>
+        </div>
+
+        <!-- Sheet Grid (1–10) -->
+        <div class="bs-section-label">SELECT SHEET NO</div>
+        <div class="bs-sheets-grid">
+          <div
+            v-for="n in 10" :key="n"
+            class="bs-sheet"
+            :class="{
+              selected: bookSheetModal.selectedSheets.includes(n),
+              taken: bsTakenSheets.includes(n)
+            }"
+            @click="bsToggleSheet(n)">
+            {{ n }}
+          </div>
+        </div>
+
+        <!-- Footer: stats + Book Now -->
+        <div class="bs-footer">
+          <div class="bs-stat">
+            <div class="bs-stat-label">Total Sheet</div>
+            <div class="bs-stat-val">{{ bookSheetModal.selectedSheets.length }}</div>
+          </div>
+          <div class="bs-stat">
+            <div class="bs-stat-label">Total Amount</div>
+            <div class="bs-stat-val">৳{{ (bookSheetModal.selectedSheets.length * (bookSheetModal.selectedAmt || 0)) }}</div>
+          </div>
+          <button
+            class="bs-book-btn"
+            :disabled="bookSheetModal.selectedSheets.length === 0 || !bookSheetModal.selectedAmt || bookSheetModal.booking"
+            @click="handleBookSheet">
+            <span v-if="bookSheetModal.booking" class="spinner"></span>
+            <span v-else>Book Now <i class="fa-solid fa-arrow-right" style="margin-left:4px;font-size:11px;"></i></span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </transition>
+
+  <!-- HOME PAGE -->
   <div style="display:flex;flex-direction:column;height:100vh;">
     <header class="app-header" style="position:sticky;top:0;flex-shrink:0;">
       <div style="padding:12px 16px;display:flex;justify-content:space-between;align-items:center;">
@@ -265,22 +540,13 @@
         <div class="sk-block sk-banner"></div>
         <div class="sk-block sk-checkin"></div>
         <div class="sk-grid">
-          <div class="sk-block sk-grid-item"></div>
-          <div class="sk-block sk-grid-item"></div>
-          <div class="sk-block sk-grid-item"></div>
-          <div class="sk-block sk-grid-item"></div>
+          <div class="sk-block sk-grid-item"></div><div class="sk-block sk-grid-item"></div>
+          <div class="sk-block sk-grid-item"></div><div class="sk-block sk-grid-item"></div>
         </div>
         <div class="sk-block sk-section-title" style="margin-bottom:12px;"></div>
-        <div class="sk-cards-2">
-          <div class="sk-block sk-card-tall"></div>
-          <div class="sk-block sk-card-tall"></div>
-        </div>
+        <div class="sk-cards-2"><div class="sk-block sk-card-tall"></div><div class="sk-block sk-card-tall"></div></div>
         <div class="sk-block sk-section-title" style="margin-bottom:12px;"></div>
-        <div class="sk-cards-3">
-          <div class="sk-block sk-card-short"></div>
-          <div class="sk-block sk-card-short"></div>
-          <div class="sk-block sk-card-short"></div>
-        </div>
+        <div class="sk-cards-3"><div class="sk-block sk-card-short"></div><div class="sk-block sk-card-short"></div><div class="sk-block sk-card-short"></div></div>
       </div>
 
       <div v-else>
@@ -420,26 +686,29 @@
     </main>
   </div>
 
-  <!-- ═══════ BOTTOM NAV ═══════ -->
+  <!-- BOTTOM NAV -->
   <div class="nav-bar" :class="{'nav-hidden':navHidden}">
     <div style="display:grid;grid-template-columns:repeat(5,1fr);height:60px;">
-      <a href="index.html" class="nav-item active">
-        <i class="fa-solid fa-house"></i><span>Home</span>
-      </a>
-      <div @click="goProtected('add-money.html')" class="nav-item">
-        <i class="fa-solid fa-wallet"></i><span>Deposit</span>
-      </div>
+      <a href="index.html" class="nav-item active"><i class="fa-solid fa-house"></i><span>Home</span></a>
+      <div @click="goProtected('add-money.html')" class="nav-item"><i class="fa-solid fa-wallet"></i><span>Deposit</span></div>
       <a href="live.html" class="nav-item nav-live" style="flex-direction:row;font-size:12px;gap:3px;padding:0!important;margin:8px 6px;touch-action:manipulation;">
         <span class="live-dot"></span><span style="font-size:12px;font-weight:800;">LIVE</span>
       </a>
-      <div @click="goProtected('orders.html')" class="nav-item">
-        <i class="fa-solid fa-receipt"></i><span>Orders</span>
-      </div>
-      <div @click="goProtected('account.html')" class="nav-item">
-        <i class="fa-solid fa-user"></i><span>Account</span>
-      </div>
+      <div @click="goProtected('orders.html')" class="nav-item"><i class="fa-solid fa-receipt"></i><span>Orders</span></div>
+      <div @click="goProtected('account.html')" class="nav-item"><i class="fa-solid fa-user"></i><span>Account</span></div>
     </div>
   </div>
+
+  <!-- ══════════════════════════════════════════
+       BOOK SHEET FLOATING BUTTON
+  ══════════════════════════════════════════ -->
+ <button
+  class="book-sheet-fab"
+  :class="{ 'fab-hidden': navHidden || bookSheetModal.show || purchaseModal.show || announcementModal || popup.show }"
+  @click="openBookSheet">
+  <i class="fa-solid fa-layer-group" style="font-size:22px;"></i>
+  <span style="font-size:9px;font-weight:800;letter-spacing:0.3px;text-transform:uppercase;">Sheet</span>
+</button>
 
 </div>
 
@@ -448,12 +717,10 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, collection, getDocs, query, where, addDoc, updateDoc, increment, runTransaction, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { createApp, ref, onMounted, nextTick } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
+import { createApp, ref, computed, onMounted, nextTick } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
 
 const EPS_PAYMENT_URL = "https://pg.eps.com.bd/PaymentLink?id=D37C6FF8";
-let PAYMENT_SCRIPT_URL = null;
-let PAYMENT_CLIENT_KEY = null;
-let PAYMENT_CONFIG_READY = false;
+let PAYMENT_SCRIPT_URL = null, PAYMENT_CLIENT_KEY = null, PAYMENT_CONFIG_READY = false;
 const FIRESTORE_REST_BASE = `https://firestore.googleapis.com/v1/projects/h24-online/databases/(default)/documents`;
 
 async function loadPaymentConfig() {
@@ -505,60 +772,190 @@ createApp({
     const rounds = ref([]);
     const sheetOptions = ref([]);
 
-    const popup = ref({ show: false, type: '', title: '', msg: '', btnText: 'OK', confirm: null });
-    const purchaseModal = ref({
-      show: false, product: {}, packages: [], selectedPkg: null,
-      playerId: '', selectedRound: '', payMethod: 'wallet',
-      gateway: 'bkash', trxId: '', epsRef: '', verifying: false
-    });
-
     const iconMap = {
       facebook: 'fa-brands fa-facebook-f', instagram: 'fa-brands fa-instagram',
       tiktok: 'fa-brands fa-tiktok', youtube: 'fa-brands fa-youtube',
       telegram: 'fa-brands fa-telegram', whatsapp: 'fa-brands fa-whatsapp'
     };
 
+    const popup = ref({ show: false, type: '', title: '', msg: '', btnText: 'OK', confirm: null });
+    const purchaseModal = ref({
+      show: false, product: {}, packages: [], selectedPkg: null,
+      quantity: 1, playerId: '', selectedRound: '', payMethod: 'wallet',
+      gateway: 'bkash', trxId: '', epsRef: '', verifying: false
+    });
+
+    // ══════════════════════════════════════════
+    // BOOK SHEET STATE
+    // ══════════════════════════════════════════
+    const bsAmounts = [10, 30, 50, 100, 200, 300, 400, 500];
+
+    // Static round list (also populated from Firestore rounds ref)
+    const bsRounds = computed(() => {
+      if (rounds.value && rounds.value.length > 0) {
+        return rounds.value.map(r => {
+          const parts = r.label.split(' - ');
+          return { label: parts[0] || r.label, time: parts[1] || '' };
+        });
+      }
+      // Fallback
+      return [
+        {label:'1st',time:'03:00 PM'},{label:'2nd',time:'03:20 PM'},{label:'3rd',time:'03:40 PM'},
+        {label:'4th',time:'04:00 PM'},{label:'5th',time:'04:20 PM'},{label:'6th',time:'04:40 PM'},
+        {label:'7th',time:'05:00 PM'},{label:'8th',time:'05:20 PM'},{label:'9th',time:'05:40 PM'},
+        {label:'10th',time:'06:00 PM'},{label:'11th',time:'06:20 PM'},{label:'12th',time:'06:40 PM'},
+        {label:'13th',time:'07:00 PM'},{label:'14th',time:'07:20 PM'},{label:'15th',time:'07:40 PM'},
+        {label:'16th',time:'08:00 PM'},{label:'17th',time:'08:20 PM'},{label:'18th',time:'08:40 PM'},
+        {label:'19th',time:'09:00 PM'},{label:'20th',time:'09:20 PM'},{label:'21st',time:'09:40 PM'},
+        {label:'22nd',time:'10:00 PM'},{label:'23rd',time:'10:20 PM'},{label:'24th',time:'10:40 PM'},
+        {label:'25th',time:'11:00 PM'},{label:'26th',time:'11:20 PM'},{label:'27th',time:'11:40 PM'},
+        {label:'28th',time:'12:00 AM'},
+      ];
+    });
+
+    const bookSheetModal = ref({
+      show: false,
+      roundIndex: 0,
+      selectedAmt: null,
+      selectedSheets: [],
+      takenSheetsMap: {},
+      booking: false,
+    });
+
+    const bsCurrentRound = computed(() => bsRounds.value[bookSheetModal.value.roundIndex] || { label: '1st', time: '03:00 PM' });
+
+    const bsTakenSheets = computed(() => bookSheetModal.value.takenSheetsMap[bookSheetModal.value.roundIndex] || []);
+
+    const openBookSheet = () => {
+      if (!isLoggedIn.value) { goPage('login.html'); return; }
+      bookSheetModal.value = {
+        show: true,
+        roundIndex: 0,
+        selectedAmt: null,
+        selectedSheets: [],
+        takenSheetsMap: {},
+        booking: false,
+      };
+      loadTakenSheets(0);
+    };
+
+    const closeBookSheet = () => { bookSheetModal.value.show = false; };
+
+    const bsChangeRound = (dir) => {
+      const bsm = bookSheetModal.value;
+      const newIdx = bsm.roundIndex + dir;
+      if (newIdx < 0 || newIdx >= bsRounds.value.length) return;
+      bsm.roundIndex = newIdx;
+      bsm.selectedSheets = [];
+      loadTakenSheets(newIdx);
+    };
+
+    const loadTakenSheets = async (roundIdx) => {
+      try {
+        const roundLabel = bsRounds.value[roundIdx]?.label;
+        if (!roundLabel) return;
+        const q = query(
+          collection(db, 'sheetBookings'),
+          where('roundLabel', '==', roundLabel),
+          where('status', '!=', 'cancelled')
+        );
+        const snap = await getDocs(q);
+        const taken = [];
+        snap.forEach(d => {
+          const sheets = d.data().sheets || [];
+          sheets.forEach(s => { if (!taken.includes(s)) taken.push(s); });
+        });
+        bookSheetModal.value.takenSheetsMap = {
+          ...bookSheetModal.value.takenSheetsMap,
+          [roundIdx]: taken
+        };
+      } catch (e) {}
+    };
+
+    const bsToggleSheet = (n) => {
+      if (bsTakenSheets.value.includes(n)) return;
+      const bsm = bookSheetModal.value;
+      const idx = bsm.selectedSheets.indexOf(n);
+      if (idx >= 0) { bsm.selectedSheets.splice(idx, 1); }
+      else { bsm.selectedSheets.push(n); }
+    };
+
+    const handleBookSheet = async () => {
+      const bsm = bookSheetModal.value;
+      if (!bsm.selectedAmt || bsm.selectedSheets.length === 0) return;
+      const uid = localStorage.getItem('userId');
+      const totalPrice = bsm.selectedAmt * bsm.selectedSheets.length;
+      const roundLabel = bsCurrentRound.value.label;
+      const roundTime = bsCurrentRound.value.time;
+
+      if (userBalance.value < totalPrice) {
+        showPopup('error', 'Low Balance', `৳${totalPrice} প্রয়োজন কিন্তু আপনার ব্যালেন্স ৳${userBalance.value}।`, 'Deposit');
+        return;
+      }
+
+      showPopup('confirm', 'Confirm Booking',
+        `${roundLabel} Round (${roundTime})\nSheet: ${bsm.selectedSheets.sort((a,b)=>a-b).join(', ')}\nTotal: ৳${totalPrice}`,
+        'Confirm',
+        async () => {
+          popup.value.show = false;
+          bsm.booking = true;
+          try {
+            await runTransaction(db, async (t) => {
+              const uRef = doc(db, 'users', uid);
+              const uDoc = await t.get(uRef);
+              if ((uDoc.data().balance || 0) < totalPrice) throw new Error('Low Balance');
+              t.update(uRef, { balance: uDoc.data().balance - totalPrice });
+              t.set(doc(collection(db, 'sheetBookings')), {
+                userId: uid,
+                roundLabel,
+                roundTime,
+                sheets: [...bsm.selectedSheets],
+                amountPerSheet: bsm.selectedAmt,
+                totalAmount: totalPrice,
+                status: 'pending',
+                createdAt: serverTimestamp(),
+              });
+            });
+            bsm.show = false;
+            showPopup('success', 'বুকিং সফল! 🎉',
+              `${roundLabel} Round-এ ${bsm.selectedSheets.length}টি Sheet বুক হয়েছে। মোট: ৳${totalPrice}`,
+              'OK');
+          } catch (e) {
+            if (e.message === 'Low Balance') { showPopup('error', 'Low Balance', 'ব্যালেন্স পর্যাপ্ত নয়।', 'Deposit'); }
+            else { showPopup('error', 'Error', 'বুকিং হয়নি। আবার চেষ্টা করুন।'); }
+          } finally { bsm.booking = false; }
+        }
+      );
+    };
+    // ══════════════════════════════════════════
+
     let toastTimer = null;
     const showToast = (msg, duration = 2200) => {
       const el = document.getElementById('toast-el');
       if (!el) return;
-      el.textContent = msg;
-      el.classList.add('show');
+      el.textContent = msg; el.classList.add('show');
       clearTimeout(toastTimer);
       toastTimer = setTimeout(() => el.classList.remove('show'), duration);
     };
 
     const goPage = (url) => { window.location.href = url; };
-    const goProtected = (url) => {
-      if (!isLoggedIn.value) { window.location.href = 'login.html'; return; }
-      window.location.href = url;
-    };
-
+    const goProtected = (url) => { if (!isLoggedIn.value) { window.location.href = 'login.html'; return; } window.location.href = url; };
     const openSocialLink = (url) => {
       if (!url) return '#';
       if (url.startsWith('http://') || url.startsWith('https://')) return url;
-      if (url.startsWith('whatsapp://')) {
-        const m = url.match(/phone=(\d+)/);
-        return m ? `https://wa.me/${m[1]}` : 'https://wa.me';
-      }
+      if (url.startsWith('whatsapp://')) { const m = url.match(/phone=(\d+)/); return m ? `https://wa.me/${m[1]}` : 'https://wa.me'; }
       if (url.startsWith('tg://')) return url.replace('tg://resolve?domain=', 'https://t.me/');
       return 'https://' + url;
     };
-
-    const showPopup = (type, title, msg, btnText = 'OK', confirm = null) => {
-      popup.value = { show: true, type, title, msg, btnText, confirm };
-    };
+    const showPopup = (type, title, msg, btnText = 'OK', confirm = null) => { popup.value = { show: true, type, title, msg, btnText, confirm }; };
     const closePopup = () => {
       if (popup.value.btnText === 'Deposit') { popup.value.show = false; goPage('add-money.html'); }
       else if (popup.value.btnText === 'Orders') { popup.value.show = false; goPage('orders.html'); }
       else { popup.value.show = false; }
     };
-
     const imgError = (e) => { e.target.src = 'https://placehold.co/400x400/1c1c28/6c63ff?text=H24'; };
-    const getMinPrice = (item) => {
-      if (item.packages && item.packages.length > 0) return Math.min(...item.packages.map(p => p.price));
-      return item.price || 0;
-    };
+    const getMinPrice = (item) => { if (item.packages && item.packages.length > 0) return Math.min(...item.packages.map(p => p.price)); return item.price || 0; };
+    const copyNum = (num) => { if (num) { navigator.clipboard.writeText(num).catch(()=>{}); showToast('✅ Copied: ' + num); } };
 
     const handleBannerClick = (banner) => {
       if (!banner) return;
@@ -575,7 +972,7 @@ createApp({
       purchaseModal.value = {
         show: true, product: item,
         packages: item.packages && item.packages.length > 0 ? item.packages : [{ name: 'Default', price: item.price || 0 }],
-        selectedPkg: null, playerId: '', selectedRound: '',
+        selectedPkg: null, quantity: 1, playerId: '', selectedRound: '',
         payMethod: 'wallet', gateway: 'bkash', trxId: '', epsRef: '', verifying: false
       };
     };
@@ -583,10 +980,6 @@ createApp({
     const handleEpsPurchaseRedirect = () => {
       if (!purchaseModal.value.selectedPkg) { showPopup('error','Select Package','Please choose a package first.'); return; }
       window.open(EPS_PAYMENT_URL, '_blank');
-    };
-
-    const copyNum = (num) => {
-      if (num) { navigator.clipboard.writeText(num).catch(()=>{}); showToast('✅ Copied: ' + num); }
     };
 
     const addReferralCommission = async (buyerUid, orderPrice) => {
@@ -634,29 +1027,34 @@ createApp({
       if (!pm.playerId) return showPopup('error', 'Missing Info', 'Sheet No দিন।');
       if (!pm.selectedRound) return showPopup('error', 'Select Round', 'Round select করুন।');
       const uid = localStorage.getItem('userId');
+      const qty = pm.quantity || 1;
+      const totalPrice = pm.selectedPkg.price * qty;
+
       const orderData = {
         userId: uid, packageName: pm.selectedPkg.name, price: pm.selectedPkg.price,
+        quantity: qty, totalPrice,
         playerId: pm.playerId, sheetInfo: pm.playerId,
         selectedRound: pm.selectedRound, roundInfo: pm.selectedRound,
         productName: pm.product.name, category: pm.product.category,
         createdAt: serverTimestamp()
       };
+
       if (pm.payMethod === 'wallet') {
-        if (userBalance.value < pm.selectedPkg.price) return showPopup('error', 'Low Balance', 'Insufficient balance.', 'Deposit');
-        showPopup('confirm', 'Confirm Purchase', `Deduct ৳${pm.selectedPkg.price} from wallet?`, 'Confirm', async () => {
+        if (userBalance.value < totalPrice) return showPopup('error', 'Low Balance', 'Insufficient balance.', 'Deposit');
+        showPopup('confirm', 'Confirm Purchase', `Deduct ৳${totalPrice} from wallet? (${qty} × ৳${pm.selectedPkg.price})`, 'Confirm', async () => {
           popup.value.show = false;
           purchaseModal.value.show = false;
           try {
             await runTransaction(db, async (t) => {
               const uRef = doc(db, 'users', uid);
               const uDoc = await t.get(uRef);
-              if (uDoc.data().balance < pm.selectedPkg.price) throw 'Low Balance';
-              t.update(uRef, { balance: uDoc.data().balance - pm.selectedPkg.price });
+              if (uDoc.data().balance < totalPrice) throw 'Low Balance';
+              t.update(uRef, { balance: uDoc.data().balance - totalPrice });
               t.set(doc(collection(db, 'orders')), { ...orderData, status: 'pending', paymentMethod: 'wallet' });
             });
-            await addReferralCommission(uid, pm.selectedPkg.price);
-            await updateTurnoverProgress(uid, pm.selectedPkg.price);
-            showPopup('success', 'Order Placed!', 'Your order is pending for delivery.', 'Orders');
+            await addReferralCommission(uid, totalPrice);
+            await updateTurnoverProgress(uid, totalPrice);
+            showPopup('success', 'Order Placed!', `${qty}টি অর্ডার pending এ আছে।`, 'Orders');
           } catch (e) { showPopup('error', 'Failed', 'Transaction failed. Try again.'); }
         });
       } else if (pm.payMethod === 'direct') {
@@ -664,28 +1062,27 @@ createApp({
         pm.verifying = true;
         try {
           const trxId = pm.trxId.trim().toUpperCase();
-          const price = pm.selectedPkg.price;
           let verifyOk = false, verifyMsg = '';
           try {
             const txSnap = await getDoc(doc(db, 'transactions', trxId));
             if (txSnap.exists()) {
               const txData = txSnap.data();
               if (txData.status === 'used') { verifyMsg = 'এই TrxID আগেই ব্যবহার হয়েছে।'; }
-              else if (Number(txData.amount) !== price) { verifyMsg = `Amount মিলছে না।`; }
+              else if (Number(txData.amount) !== totalPrice) { verifyMsg = `Amount মিলছে না। Expected ৳${totalPrice}.`; }
               else { await updateDoc(doc(db, 'transactions', trxId), { status: 'used', usedBy: uid, usedAt: serverTimestamp() }); verifyOk = true; }
             }
           } catch (fe) {}
           if (!verifyOk && !verifyMsg && PAYMENT_CONFIG_READY && PAYMENT_SCRIPT_URL) {
             try {
-              const vRes = await fetch(`${PAYMENT_SCRIPT_URL}?trxID=${trxId}&apiKey=${PAYMENT_CLIENT_KEY}&amount=${price}`);
+              const vRes = await fetch(`${PAYMENT_SCRIPT_URL}?trxID=${trxId}&apiKey=${PAYMENT_CLIENT_KEY}&amount=${totalPrice}`);
               if (vRes.ok) { const vData = await vRes.json(); verifyOk = vData.status === 'success'; verifyMsg = vData.message || ''; }
             } catch (fe) {}
           }
           if (verifyOk) {
             await addDoc(collection(db, 'orders'), { ...orderData, status: 'processing', paymentMethod: pm.gateway + '_auto', trxId, isAutoVerified: true });
-            await addReferralCommission(uid, price);
+            await addReferralCommission(uid, totalPrice);
             pm.show = false;
-            showPopup('success', 'Payment Verified! ✅', 'আপনার অর্ডার সম্পন্ন হয়েছে।', 'Orders');
+            showPopup('success', 'Payment Verified! ✅', `${qty}টি অর্ডার সম্পন্ন হয়েছে।`, 'Orders');
           } else { showPopup('error', 'Verification Failed ❌', verifyMsg || 'TrxID মিলছে না।'); }
         } catch (e) { showPopup('error', 'Error', 'Connection failed. Try again.'); }
         finally { pm.verifying = false; }
@@ -743,18 +1140,13 @@ createApp({
           localStorage.setItem('userId', user.uid);
           updateDoc(doc(db, 'users', user.uid), { isOnline: true, lastSeen: serverTimestamp() }).catch(()=>{});
           onSnapshot(doc(db, 'users', user.uid), (d) => {
-            if (d.exists()) {
-              userBalance.value = d.data().balance || 0;
-              userAvatar.value = d.data().photoURL || 'https://i.pravatar.cc/150?img=12';
-              userData.value = d.data();
-            }
+            if (d.exists()) { userBalance.value = d.data().balance || 0; userAvatar.value = d.data().photoURL || 'https://i.pravatar.cc/150?img=12'; userData.value = d.data(); }
           });
           const today = new Date().toISOString().slice(0, 10);
           getDoc(doc(db, 'checkins', `${user.uid}_${today}`)).then(s => { checkInClaimed.value = s.exists(); }).catch(()=>{});
         } else { isLoggedIn.value = false; }
       });
 
-      // Load settings
       try { const s = await getDoc(doc(db, 'settings', 'notice')); if (s.exists()) noticeMessage.value = s.data().text; } catch(e) {}
       try { const s = await getDoc(doc(db, 'settings', 'announcement')); if (s.exists()) announcementLines.value = s.data().lines || []; } catch(e) {}
       try { const s = await getDoc(doc(db, 'settings', 'logo')); if (s.exists()) logoUrl.value = s.data().url || ''; } catch(e) {}
@@ -766,8 +1158,6 @@ createApp({
         const ss = await getDoc(doc(db, 'settings', 'sheetInfo'));
         if (ss.exists() && ss.data().list) { sheetOptions.value = ss.data().list; }
       } catch(e) {}
-
-      // Load products
       try {
         const prodSnap = await getDocs(collection(db, 'products'));
         prodSnap.forEach(d => {
@@ -801,10 +1191,14 @@ createApp({
       socials, iconMap, adminNumbers, announcementLines, announcementModal,
       checkInClaimed, navHidden, rounds, sheetOptions,
       popup, purchaseModal,
-      goPage, goProtected, openSocialLink, showToast,
+      goPage, goProtected, openSocialLink,
       showPopup, closePopup, imgError, getMinPrice,
       handleBannerClick, openPurchase, handlePurchaseBuy, handleEpsPurchaseRedirect,
-      claimDailyBonus, copyNum
+      claimDailyBonus, copyNum,
+      // Book Sheet
+      bsAmounts, bsRounds, bsCurrentRound, bsTakenSheets,
+      bookSheetModal, openBookSheet, closeBookSheet,
+      bsChangeRound, bsToggleSheet, handleBookSheet,
     };
   }
 }).mount('#app');

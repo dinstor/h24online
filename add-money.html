@@ -33,16 +33,42 @@
             <div style="font-size:20px;font-weight:800;margin-bottom:4px;">Instant Deposit</div>
             <div style="font-size:13px;color:var(--text-muted);">Choose your payment method</div>
           </div>
+
           <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:8px;">Enter Amount</div>
           <div style="position:relative;margin-bottom:16px;">
             <span style="position:absolute;left:16px;top:50%;transform:translateY(-50%);font-size:16px;font-weight:700;color:var(--text-muted);">৳</span>
             <input v-model="addAmount" type="number" class="input-field" style="padding-left:34px;font-size:20px;font-weight:700;" placeholder="0">
           </div>
-          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px;">
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;">
             <button v-for="a in quickAmounts" :key="a" @click="addAmount=a"
               style="background:var(--surface2);border:1px solid;border-radius:10px;padding:8px 4px;font-size:13px;font-weight:700;cursor:pointer;"
               :style="{borderColor:addAmount==a?'var(--primary)':'var(--border)',color:addAmount==a?'var(--primary)':'var(--text-muted)'}">{{ a }}</button>
           </div>
+
+          <!-- Deposit Bonus Section -->
+          <div style="background:linear-gradient(135deg,rgba(34,197,94,0.08),rgba(34,197,94,0.03));border:1px solid rgba(34,197,94,0.2);border-radius:16px;padding:16px;margin-bottom:16px;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+              <i class="fa-solid fa-gift" style="color:#4ade80;font-size:16px;"></i>
+              <span style="font-weight:800;font-size:13px;color:#4ade80;">Deposit Bonus</span>
+              <span style="margin-left:auto;background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700;color:#4ade80;">AUTO ADD</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <div v-for="tier in bonusTiers" :key="tier.min"
+                   style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:10px;transition:all 0.2s;"
+                   :style="{background: isActiveTier(tier) ? 'rgba(34,197,94,0.15)' : 'transparent', border: isActiveTier(tier) ? '1px solid rgba(34,197,94,0.4)' : '1px solid transparent'}">
+                <span style="font-size:12px;color:var(--text-muted);">৳{{ tier.min }}{{ tier.max ? '–'+tier.max : '+' }}</span>
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <span style="font-size:13px;font-weight:800;" :style="{color: isActiveTier(tier) ? '#4ade80' : 'var(--text-muted)'}">+{{ tier.pct }}% Bonus</span>
+                  <span v-if="isActiveTier(tier)" style="font-size:10px;background:#4ade80;color:#000;border-radius:4px;padding:1px 5px;font-weight:800;">YOU</span>
+                </div>
+              </div>
+            </div>
+            <div v-if="bonusAmount > 0" style="margin-top:12px;padding:10px;background:rgba(34,197,94,0.12);border-radius:10px;text-align:center;">
+              <span style="font-size:12px;color:rgba(255,255,255,0.6);">আপনি পাবেন: </span>
+              <span style="font-size:16px;font-weight:800;color:#4ade80;">+৳{{ bonusAmount }} Bonus</span>
+            </div>
+          </div>
+
           <button @click="step=2" class="btn-primary" style="width:100%;" :disabled="!addAmount||addAmount<=0">
             Next Step <i class="fa-solid fa-arrow-right" style="margin-left:4px;"></i>
           </button>
@@ -93,6 +119,12 @@
           <div style="font-weight:700;font-size:16px;text-transform:capitalize;">{{ addMethod }} — ৳{{ addAmount }}</div>
         </div>
 
+        <!-- Bonus reminder -->
+        <div v-if="bonusAmount > 0" style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.25);border-radius:12px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;gap:8px;">
+          <i class="fa-solid fa-gift" style="color:#4ade80;"></i>
+          <span style="font-size:13px;color:#4ade80;font-weight:700;">+৳{{ bonusAmount }} Bonus অটো যোগ হবে!</span>
+        </div>
+
         <!-- EPS -->
         <div v-if="addMethod==='eps'">
           <div class="eps-card" style="margin-bottom:14px;" @click="window.open('https://pg.eps.com.bd/PaymentLink?id=D37C6FF8','_blank')">
@@ -131,7 +163,7 @@
           <div v-if="addSuccess" style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:14px;padding:16px;text-align:center;margin-bottom:12px;">
             <i class="fa-solid fa-check-circle" style="color:#4ade80;font-size:32px;margin-bottom:8px;display:block;"></i>
             <div style="font-weight:700;color:#4ade80;">Deposit Successful!</div>
-            <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">৳{{ addAmount }} আপনার ওয়ালেটে যোগ হয়েছে।</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">৳{{ addAmount }} + ৳{{ bonusAmount }} Bonus আপনার ওয়ালেটে যোগ হয়েছে।</div>
           </div>
           <button v-if="!addSuccess" @click="verifyAddMoney" class="btn-primary" style="width:100%;" :disabled="addLoading">
             <span v-if="addLoading" class="spinner"></span>
@@ -148,7 +180,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, doc, getDoc, collection, addDoc, updateDoc, increment, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { createApp, ref, onMounted } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
+import { createApp, ref, computed, onMounted } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
 
 const FIRESTORE_REST_BASE = `https://firestore.googleapis.com/v1/projects/h24-online/databases/(default)/documents`;
 let PAYMENT_SCRIPT_URL = null, PAYMENT_CLIENT_KEY = null, PAYMENT_CONFIG_READY = false;
@@ -178,6 +210,27 @@ const fireApp = initializeApp(firebaseConfig);
 const auth = getAuth(fireApp);
 const db = getFirestore(fireApp);
 
+// Deposit bonus tiers
+const BONUS_TIERS = [
+  { min: 50,   max: 500,  pct: 5   },
+  { min: 501,  max: 1000, pct: 7.5 },
+  { min: 1001, max: 1500, pct: 10  },
+  { min: 1501, max: 2000, pct: 12.5},
+  { min: 3000, max: 4999, pct: 15  },
+  { min: 5000, max: null, pct: 20  },
+];
+
+function calcBonus(amount) {
+  const a = Number(amount);
+  if (!a || a < 50) return { pct: 0, bonus: 0 };
+  for (const t of BONUS_TIERS) {
+    if (a >= t.min && (t.max === null || a <= t.max)) {
+      return { pct: t.pct, bonus: Math.floor(a * t.pct / 100) };
+    }
+  }
+  return { pct: 0, bonus: 0 };
+}
+
 createApp({
   setup() {
     const step = ref(1);
@@ -190,6 +243,14 @@ createApp({
     const addSuccess = ref(false);
     const adminNumbers = ref({ bkash: '', nagad: '', rocket: '' });
     const quickAmounts = ref([100, 300, 500, 1000]);
+    const bonusTiers = ref(BONUS_TIERS);
+
+    const bonusAmount = computed(() => calcBonus(addAmount.value).bonus);
+    const isActiveTier = (tier) => {
+      const a = Number(addAmount.value);
+      if (!a) return false;
+      return a >= tier.min && (tier.max === null || a <= tier.max);
+    };
 
     let toastTimer = null;
     const showToast = (msg) => {
@@ -217,7 +278,8 @@ createApp({
         const uid = localStorage.getItem('userId');
         await addDoc(collection(db, 'deposits'), {
           userId: uid, method: 'eps', amount: Number(addAmount.value),
-          epsRef: addEpsRef.value.trim(), status: 'pending', type: 'eps_pending', createdAt: serverTimestamp()
+          epsRef: addEpsRef.value.trim(), status: 'pending', type: 'eps_pending',
+          bonusAmount: bonusAmount.value, createdAt: serverTimestamp()
         });
         addSuccess.value = true;
       } catch(e) { addError.value = 'Server error. Try again.'; }
@@ -230,6 +292,8 @@ createApp({
       addLoading.value = true; addError.value = '';
       const trxId = addTrxId.value.trim().toUpperCase();
       const depositAmount = Number(addAmount.value);
+      const bonus = calcBonus(depositAmount).bonus;
+      const totalCredit = depositAmount + bonus;
       const uid = localStorage.getItem('userId');
       try {
         try {
@@ -243,14 +307,13 @@ createApp({
               if (!freshSnap.exists()) throw new Error('Transaction not found');
               if (freshSnap.data().status === 'used') throw new Error('ALREADY_USED');
               t.update(doc(db, 'transactions', trxId), { status: 'used', usedBy: uid, usedAt: serverTimestamp() });
-              t.update(doc(db, 'users', uid), { balance: increment(depositAmount) });
+              t.update(doc(db, 'users', uid), { balance: increment(totalCredit) });
             });
-            await addDoc(collection(db, 'deposits'), { userId: uid, method: addMethod.value, amount: depositAmount, trxId, status: 'approved', type: 'verified', createdAt: serverTimestamp() }).catch(()=>{});
-            await addDoc(collection(db, 'turnovers'), { userId: uid, type: 'deposit', label: `Deposit Turnover (৳${Math.ceil(depositAmount * 0.5)})`, required: Math.ceil(depositAmount * 0.5), done: 0, status: 'active', createdAt: serverTimestamp() }).catch(()=>{});
+            await _postDepositDocs(uid, depositAmount, bonus, trxId);
             addSuccess.value = true;
             return;
           }
-        } catch(fbErr) {
+        } catch (fbErr) {
           if (fbErr.message === 'ALREADY_USED') { addError.value = '⚠️ এই Transaction ID আগেই ব্যবহার হয়েছে।'; return; }
         }
         if (!PAYMENT_CONFIG_READY || !PAYMENT_SCRIPT_URL) { addError.value = '❌ Payment verification system setup হয়নি।'; return; }
@@ -258,13 +321,34 @@ createApp({
         if (!vRes.ok) { addError.value = '❌ Server error।'; return; }
         const vData = await vRes.json();
         if (vData.status === 'success') {
-          await updateDoc(doc(db, 'users', uid), { balance: increment(depositAmount) });
-          await addDoc(collection(db, 'deposits'), { userId: uid, method: addMethod.value, amount: depositAmount, trxId, status: 'approved', type: 'verified', createdAt: serverTimestamp() });
-          await addDoc(collection(db, 'turnovers'), { userId: uid, type: 'deposit', label: `Deposit Turnover (৳${Math.ceil(depositAmount * 0.5)})`, required: Math.ceil(depositAmount * 0.5), done: 0, status: 'active', createdAt: serverTimestamp() });
+          await updateDoc(doc(db, 'users', uid), { balance: increment(totalCredit) });
+          await _postDepositDocs(uid, depositAmount, bonus, trxId);
           addSuccess.value = true;
         } else { addError.value = '❌ ' + (vData.message || 'Verification failed.'); }
       } catch(e) { addError.value = '❌ Internet connection error।'; }
       finally { addLoading.value = false; }
+    };
+
+    const _postDepositDocs = async (uid, depositAmount, bonus, trxId) => {
+      try {
+        await addDoc(collection(db, 'deposits'), {
+          userId: uid, method: addMethod.value, amount: depositAmount,
+          bonusAmount: bonus, totalCredit: depositAmount + bonus,
+          trxId, status: 'approved', type: 'verified', createdAt: serverTimestamp()
+        });
+        // Turnover = 50% of deposit (not bonus)
+        await addDoc(collection(db, 'turnovers'), {
+          userId: uid, type: 'deposit',
+          label: `Deposit Turnover (৳${Math.ceil(depositAmount * 0.5)})`,
+          required: Math.ceil(depositAmount * 0.5), done: 0, status: 'active', createdAt: serverTimestamp()
+        });
+        if (bonus > 0) {
+          await addDoc(collection(db, 'balanceLogs'), {
+            userId: uid, type: 'deposit_bonus', amount: bonus,
+            note: `Deposit Bonus (${calcBonus(depositAmount).pct}%)`, createdAt: serverTimestamp()
+          });
+        }
+      } catch(e) {}
     };
 
     onMounted(async () => {
@@ -273,7 +357,11 @@ createApp({
       try { const s = await getDoc(doc(db, 'settings', 'amounts')); if (s.exists() && s.data().depositAmounts) quickAmounts.value = s.data().depositAmounts; } catch(e) {}
     });
 
-    return { step, addAmount, addMethod, addTrxId, addEpsRef, addError, addLoading, addSuccess, adminNumbers, quickAmounts, addSelectMethod, submitEpsDeposit, verifyAddMoney, copyNum };
+    return {
+      step, addAmount, addMethod, addTrxId, addEpsRef, addError, addLoading, addSuccess,
+      adminNumbers, quickAmounts, bonusTiers, bonusAmount, isActiveTier,
+      addSelectMethod, submitEpsDeposit, verifyAddMoney, copyNum
+    };
   }
 }).mount('#app');
 </script>

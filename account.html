@@ -69,6 +69,60 @@
     </div>
   </transition>
 
+  <!-- Transfer Modal -->
+  <transition name="pop">
+    <div v-if="transferModal.show" class="modal-overlay" @click.self="transferModal.show=false">
+      <div class="modal-sheet">
+        <span class="modal-handle"></span>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+          <div style="width:50px;height:50px;background:rgba(108,99,255,0.15);border-radius:14px;display:flex;align-items:center;justify-content:center;">
+            <i class="fa-solid fa-right-left" style="font-size:20px;color:var(--primary);"></i>
+          </div>
+          <div style="flex:1;">
+            <div style="font-weight:800;font-size:17px;">Balance Transfer</div>
+            <div style="font-size:12px;color:var(--text-muted);">Available: <span style="color:var(--primary);font-weight:700;">৳{{ userBalance }}</span></div>
+          </div>
+          <button @click="transferModal.show=false" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);flex-shrink:0;">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <div style="margin-bottom:14px;">
+          <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:8px;">Receiver UID</div>
+          <input v-model="transferModal.receiverUid" class="input-field" placeholder="Receiver এর UID দিন" style="letter-spacing:1px;">
+          <div style="font-size:11px;color:var(--text-dim);margin-top:6px;"><i class="fa-solid fa-circle-info" style="margin-right:4px;"></i>Receiver এর Account > UID থেকে কপি করুন</div>
+        </div>
+
+        <div style="margin-bottom:14px;">
+          <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:8px;">Amount</div>
+          <div style="position:relative;">
+            <span style="position:absolute;left:16px;top:50%;transform:translateY(-50%);font-size:16px;font-weight:700;color:var(--text-muted);">৳</span>
+            <input v-model="transferModal.amount" type="number" class="input-field" style="padding-left:34px;font-size:20px;font-weight:700;" placeholder="0">
+          </div>
+        </div>
+
+        <div v-if="transferModal.amount >= 10" style="background:rgba(108,99,255,0.08);border:1px solid rgba(108,99,255,0.2);border-radius:12px;padding:12px;font-size:12px;margin-bottom:14px;line-height:1.8;">
+          <div style="display:flex;justify-content:space-between;"><span style="color:var(--text-muted);">Transfer Amount:</span><span style="font-weight:700;">৳{{ transferModal.amount }}</span></div>
+          <div style="display:flex;justify-content:space-between;"><span style="color:var(--text-muted);">Turnover Added:</span><span style="color:#fb923c;font-weight:700;">৳{{ Math.ceil(transferModal.amount * 0.5) }}</span></div>
+        </div>
+
+        <div style="background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.2);border-radius:12px;padding:12px;font-size:12px;color:rgba(249,115,22,0.9);margin-bottom:20px;line-height:1.7;">
+          <i class="fa-solid fa-circle-info" style="margin-right:6px;"></i> সর্বনিম্ন ৳10 Transfer করা যাবে। প্রতিটি Transfer এ ৫০% Turnover যোগ হবে।
+        </div>
+
+        <div v-if="transferModal.error" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:12px;padding:12px;font-size:13px;color:#f87171;margin-bottom:16px;">{{ transferModal.error }}</div>
+        <div v-if="transferModal.success" style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:12px;padding:12px;font-size:13px;color:#4ade80;margin-bottom:16px;text-align:center;">
+          <i class="fa-solid fa-check-circle" style="margin-right:6px;"></i>{{ transferModal.success }}
+        </div>
+
+        <button @click="submitTransfer" style="width:100%;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;font-weight:700;border:none;border-radius:14px;padding:14px 24px;font-family:inherit;cursor:pointer;font-size:14px;" :disabled="transferModal.loading">
+          <span v-if="transferModal.loading" class="spinner"></span>
+          <span v-else><i class="fa-solid fa-right-left" style="margin-right:8px;"></i>Transfer Balance</span>
+        </button>
+      </div>
+    </div>
+  </transition>
+
   <!-- Turnover Modal -->
   <transition name="pop">
     <div v-if="turnoverModal" class="modal-overlay" style="z-index:1500;" @click.self="turnoverModal=false">
@@ -153,7 +207,15 @@
         <div style="font-size:20px;font-weight:800;margin-bottom:4px;" class="gradient-text">{{ userData.name||'Guest' }}</div>
         <div style="font-size:13px;color:var(--text-muted);">{{ userData.email||'' }}</div>
         <div v-if="userData.phone" style="font-size:12px;color:var(--text-dim);margin-top:2px;"><i class="fa-solid fa-phone" style="margin-right:4px;"></i>{{ userData.phone }}</div>
-        <div style="display:inline-flex;align-items:center;gap:5px;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.3);border-radius:20px;padding:3px 10px;margin-top:8px;">
+
+        <!-- UID Badge -->
+        <div @click="copyUID" style="display:inline-flex;align-items:center;gap:6px;background:rgba(108,99,255,0.12);border:1px solid rgba(108,99,255,0.3);border-radius:20px;padding:5px 12px;margin-top:10px;cursor:pointer;" class="card-hover">
+          <i class="fa-solid fa-fingerprint" style="font-size:12px;color:var(--primary);"></i>
+          <span style="font-size:12px;font-weight:700;color:var(--primary);letter-spacing:1px;">UID: {{ userUID }}</span>
+          <i class="fa-regular fa-copy" style="font-size:11px;color:var(--text-muted);"></i>
+        </div>
+
+        <div style="display:inline-flex;align-items:center;gap:5px;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.3);border-radius:20px;padding:3px 10px;margin-top:8px;margin-left:6px;">
           <span style="width:6px;height:6px;background:var(--green);border-radius:50%;display:inline-block;animation:pulse-green 2s infinite;"></span>
           <span style="font-size:11px;color:#4ade80;font-weight:600;">Online</span>
         </div>
@@ -164,12 +226,15 @@
         <div style="position:absolute;top:-20px;right:-20px;width:100px;height:100px;background:rgba(255,255,255,0.08);border-radius:50%;"></div>
         <div style="font-size:12px;font-weight:700;opacity:0.7;letter-spacing:1px;margin-bottom:4px;">AVAILABLE BALANCE</div>
         <div style="font-size:36px;font-weight:900;margin-bottom:12px;">৳{{ userBalance }}</div>
-        <div style="display:flex;gap:10px;">
+        <div style="display:flex;gap:8px;">
           <a href="add-money.html" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);border-radius:10px;padding:8px 0;color:#fff;font-size:12px;font-weight:700;cursor:pointer;flex:1;display:flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;">
             <i class="fa-solid fa-plus" style="font-size:11px;"></i> Deposit
           </a>
           <button @click="withdrawModal.show=true" style="background:rgba(249,115,22,0.25);border:1px solid rgba(249,115,22,0.5);border-radius:10px;padding:8px 0;color:#fed7aa;font-size:12px;font-weight:700;cursor:pointer;flex:1;display:flex;align-items:center;justify-content:center;gap:6px;">
             <i class="fa-solid fa-arrow-up-from-bracket" style="font-size:11px;"></i> Withdraw
+          </button>
+          <button @click="transferModal.show=true" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:10px;padding:8px 0;color:#e0e0ff;font-size:12px;font-weight:700;cursor:pointer;flex:1;display:flex;align-items:center;justify-content:center;gap:6px;">
+            <i class="fa-solid fa-right-left" style="font-size:11px;"></i> Transfer
           </button>
         </div>
       </div>
@@ -206,9 +271,14 @@
             <i class="fa-solid fa-envelope" style="color:var(--accent);width:16px;"></i>
             <span style="font-size:14px;">{{ userData.email||'—' }}</span>
           </div>
-          <div style="display:flex;align-items:center;gap:10px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
             <i class="fa-solid fa-phone" style="color:var(--green);width:16px;"></i>
             <span style="font-size:14px;" :style="{color:userData.phone?'var(--text)':'var(--text-dim)'}">{{ userData.phone||'Not added' }}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <i class="fa-solid fa-fingerprint" style="color:var(--primary);width:16px;"></i>
+            <span style="font-size:13px;font-weight:700;color:var(--primary);letter-spacing:1px;">{{ userUID }}</span>
+            <button @click="copyUID" style="margin-left:auto;background:transparent;border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-size:10px;color:var(--text-muted);cursor:pointer;">Copy UID</button>
           </div>
         </div>
       </div>
@@ -280,6 +350,7 @@ createApp({
     const userBalance = ref(0);
     const userAvatar = ref('https://i.pravatar.cc/150?img=12');
     const userData = ref({});
+    const userUID = ref('———');
     const supportPin = ref('---');
     const stats = ref({ totalSpent: 0, totalOrders: 0, weeklySpent: 0 });
     const activeTurnovers = ref([]);
@@ -287,6 +358,7 @@ createApp({
     const turnoverModal = ref(false);
     const turnoverTab = ref('active');
     const withdrawModal = ref({ show: false, amount: '', gateway: 'bkash', accountNumber: '', loading: false, error: '' });
+    const transferModal = ref({ show: false, receiverUid: '', amount: '', loading: false, error: '', success: '' });
 
     let toastTimer = null;
     const showToast = (msg) => {
@@ -296,6 +368,13 @@ createApp({
       el.classList.add('show');
       clearTimeout(toastTimer);
       toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+    };
+
+    const copyUID = () => {
+      if (userUID.value && userUID.value !== '———') {
+        navigator.clipboard.writeText(userUID.value).catch(()=>{});
+        showToast('✅ UID Copied!');
+      }
     };
 
     const accountMenu = computed(() => [
@@ -370,6 +449,65 @@ createApp({
       } finally { wm.loading = false; }
     };
 
+    const submitTransfer = async () => {
+      const tm = transferModal.value;
+      tm.error = ''; tm.success = '';
+      const amount = Number(tm.amount);
+      if (!tm.receiverUid || tm.receiverUid.trim().length < 4) { tm.error = 'সঠিক Receiver UID দিন।'; return; }
+      if (!amount || amount < 10) { tm.error = 'সর্বনিম্ন ৳10 Transfer করুন।'; return; }
+      if (amount > userBalance.value) { tm.error = 'আপনার ব্যালেন্স পর্যাপ্ত নয়।'; return; }
+      const senderUid = localStorage.getItem('userId');
+      if (tm.receiverUid.trim() === senderUid) { tm.error = 'নিজেকে Transfer করা যাবে না।'; return; }
+      tm.loading = true;
+      try {
+        // Find receiver by UID
+        const receiverSnap = await getDocs(query(collection(db, 'users'), where('uid', '==', tm.receiverUid.trim())));
+        if (receiverSnap.empty) { tm.error = 'এই UID দিয়ে কোনো ব্যবহারকারী পাওয়া যায়নি।'; tm.loading = false; return; }
+        const receiverDoc = receiverSnap.docs[0];
+        const receiverFirestoreId = receiverDoc.id;
+
+        await runTransaction(db, async (t) => {
+          const sRef = doc(db, 'users', senderUid);
+          const rRef = doc(db, 'users', receiverFirestoreId);
+          const sDoc = await t.get(sRef);
+          if (sDoc.data().balance < amount) throw new Error('Low Balance');
+          t.update(sRef, { balance: sDoc.data().balance - amount });
+          t.update(rRef, { balance: increment(amount) });
+        });
+
+        // Add transfer record
+        await addDoc(collection(db, 'transfers'), {
+          senderUid: senderUid, receiverUid: tm.receiverUid.trim(),
+          amount, status: 'completed', createdAt: serverTimestamp()
+        });
+
+        // Turnover for sender (50% of transfer amount)
+        const turnoverAmt = Math.ceil(amount * 0.5);
+        await addDoc(collection(db, 'turnovers'), {
+          userId: senderUid, type: 'transfer',
+          label: `Transfer Turnover (৳${turnoverAmt})`,
+          required: turnoverAmt, done: 0, status: 'active', createdAt: serverTimestamp()
+        });
+
+        // Log for both
+        await addDoc(collection(db, 'balanceLogs'), {
+          userId: senderUid, type: 'transfer_out', amount: -amount,
+          note: `Transfer to ${tm.receiverUid.trim()}`, createdAt: serverTimestamp()
+        });
+        await addDoc(collection(db, 'balanceLogs'), {
+          userId: receiverFirestoreId, type: 'transfer_in', amount,
+          note: `Transfer from ${senderUid.substring(0,8)}`, createdAt: serverTimestamp()
+        });
+
+        tm.success = `✅ ৳${amount} সফলভাবে Transfer হয়েছে!`;
+        tm.receiverUid = ''; tm.amount = '';
+        await fetchTurnovers();
+      } catch(e) {
+        if (e.message === 'Low Balance') tm.error = 'ব্যালেন্স পর্যাপ্ত নয়।';
+        else tm.error = 'Transfer ব্যর্থ হয়েছে। আবার চেষ্টা করুন।';
+      } finally { tm.loading = false; }
+    };
+
     const handleLogout = async () => {
       if (!confirm('আপনি কি নিশ্চিত লগআউট করতে চান?')) return;
       const uid = localStorage.getItem('userId');
@@ -383,6 +521,7 @@ createApp({
       onAuthStateChanged(auth, (user) => {
         if (!user) { window.location.href = 'login.html'; return; }
         localStorage.setItem('userId', user.uid);
+        userUID.value = user.uid.substring(0, 12).toUpperCase();
         updateDoc(doc(db, 'users', user.uid), { isOnline: true, lastSeen: serverTimestamp() }).catch(()=>{});
         onSnapshot(doc(db, 'users', user.uid), (d) => {
           if (d.exists()) {
@@ -399,9 +538,11 @@ createApp({
     });
 
     return {
-      userBalance, userAvatar, userData, supportPin, stats,
+      userBalance, userAvatar, userData, userUID, supportPin, stats,
       activeTurnovers, completedTurnovers, turnoverModal, turnoverTab,
-      withdrawModal, submitWithdraw, accountMenu, handleLogout
+      withdrawModal, submitWithdraw,
+      transferModal, submitTransfer,
+      accountMenu, handleLogout, copyUID
     };
   }
 }).mount('#app');
