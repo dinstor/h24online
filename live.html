@@ -1,14 +1,143 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title></title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=0, viewport-fit=cover">
+<title>Live — H24 ONLINE</title>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Noto+Sans+Bengali:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
 </head>
-
 <body>
-  
-</body>
+<div id="app" v-cloak>
+  <div id="toast-el" class="toast-msg"></div>
+  <div style="display:flex;flex-direction:column;height:100vh;background:var(--bg);">
+    <header class="app-header">
+      <div style="padding:14px 16px;display:flex;align-items:center;gap:12px;">
+        <a href="index.html" style="background:var(--surface2);border:none;border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);text-decoration:none;">
+          <i class="fa-solid fa-arrow-left"></i>
+        </a>
+        <div style="flex:1;">
+          <div style="font-weight:800;font-size:16px;display:flex;align-items:center;gap:8px;">
+            <span class="badge badge-live">● LIVE</span> Live Stream
+          </div>
+        </div>
+      </div>
+    </header>
 
+    <main class="page-scroll" style="padding:0;">
+      <div v-if="liveLoading" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh;">
+        <div class="spinner" style="width:44px;height:44px;border-top-color:var(--red);border-width:3px;margin-bottom:16px;"></div>
+        <div style="font-size:13px;color:var(--text-muted);">লাইভ লোড হচ্ছে...</div>
+      </div>
+
+      <div v-else>
+        <!-- Live is ON -->
+        <div v-if="liveUrl">
+          <div style="background:linear-gradient(135deg,#1a0505,#2d0808,#1a0505);padding:40px 24px 32px;text-align:center;position:relative;overflow:hidden;">
+            <div style="position:absolute;top:-40px;left:-40px;width:160px;height:160px;background:radial-gradient(circle,rgba(239,68,68,0.15) 0%,transparent 70%);pointer-events:none;"></div>
+            <div style="position:absolute;bottom:-40px;right:-40px;width:160px;height:160px;background:radial-gradient(circle,rgba(239,68,68,0.1) 0%,transparent 70%);pointer-events:none;"></div>
+            <div style="position:relative;display:inline-block;margin-bottom:20px;">
+              <div style="width:80px;height:80px;background:rgba(239,68,68,0.2);border:2px solid rgba(239,68,68,0.5);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto;">
+                <i class="fa-solid fa-video" style="font-size:34px;color:#ef4444;"></i>
+              </div>
+              <div style="position:absolute;inset:-8px;border-radius:50%;border:2px solid rgba(239,68,68,0.3);animation:pulse-ring 1.8s ease-out infinite;"></div>
+            </div>
+            <div style="font-size:22px;font-weight:900;margin-bottom:8px;">🔴 Live চলছে!</div>
+            <div style="font-size:13px;color:rgba(255,255,255,0.6);line-height:1.6;margin-bottom:28px;">নিচের বাটনে ট্যাপ করে লাইভ দেখুন</div>
+            <button @click="goLive" style="display:flex;align-items:center;justify-content:center;gap:12px;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;font-weight:800;font-size:17px;padding:18px 32px;border-radius:18px;width:100%;box-shadow:0 8px 32px rgba(239,68,68,0.4);touch-action:manipulation;border:none;cursor:pointer;font-family:inherit;">
+              <i class="fa-solid fa-play" style="font-size:16px;"></i> এখনই দেখুন
+            </button>
+            <div style="margin-top:12px;font-size:11px;color:rgba(255,255,255,0.35);">Chrome Browser-এ open হবে</div>
+          </div>
+          <div style="padding:16px;">
+            <div style="background:var(--surface);border:1px solid rgba(239,68,68,0.2);border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+              <div style="width:38px;height:38px;background:rgba(239,68,68,0.12);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <i class="fa-solid fa-link" style="font-size:14px;color:#ef4444;"></i>
+              </div>
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:11px;color:var(--text-muted);margin-bottom:2px;">Live Link</div>
+                <div style="font-size:12px;color:#fff;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ liveUrl }}</div>
+              </div>
+              <button @click="copyLiveUrl" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;color:var(--text-muted);cursor:pointer;flex-shrink:0;">
+                <i class="fa-regular fa-copy"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- No Live -->
+        <div v-else style="padding:24px 16px;">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:48px 24px;text-align:center;">
+            <div style="width:80px;height:80px;background:rgba(239,68,68,0.08);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+              <i class="fa-solid fa-video-slash" style="font-size:34px;color:var(--text-dim);"></i>
+            </div>
+            <div style="font-size:18px;font-weight:800;margin-bottom:8px;">এখন লাইভ নেই</div>
+            <div style="font-size:13px;color:var(--text-muted);line-height:1.6;">লাইভ শুরু হলে নোটিফিকেশন পাবেন।<br>আমাদের সোশ্যাল মিডিয়া ফলো করুন।</div>
+          </div>
+        </div>
+
+        <!-- Social Follow -->
+        <div style="padding:0 16px 16px;">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:20px;">
+            <div style="font-size:13px;font-weight:800;margin-bottom:4px;">H24 Online ফলো করুন</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">লাইভ events মিস করবেন না!</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+              <a v-for="(url,platform) in socials" :key="platform" :href="openSocialLink(url)" target="_blank"
+                 style="display:flex;align-items:center;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:12px 14px;text-decoration:none;color:#fff;font-size:13px;font-weight:600;touch-action:manipulation;">
+                <div style="width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"
+                     :style="{background: platform==='facebook'?'rgba(24,119,242,0.2)':platform==='whatsapp'?'rgba(37,211,102,0.2)':platform==='instagram'?'rgba(225,48,108,0.2)':platform==='youtube'?'rgba(255,0,0,0.2)':platform==='telegram'?'rgba(0,136,204,0.2)':'rgba(108,99,255,0.2)'}">
+                  <i :class="iconMap[platform]||'fa-brands fa-link'"
+                     :style="{color: platform==='facebook'?'#1877f2':platform==='whatsapp'?'#25d366':platform==='instagram'?'#e1306c':platform==='youtube'?'#ff0000':platform==='telegram'?'#0088cc':'var(--primary)'}"
+                     style="font-size:15px;"></i>
+                </div>
+                <span style="text-transform:capitalize;">{{ platform }}</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { createApp, ref, onMounted } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
+
+const firebaseConfig = { apiKey:"AIzaSyCZWRcCP0hXTkfQoRhqxczgdD6cw5kp39c", authDomain:"h24-online.firebaseapp.com", projectId:"h24-online", storageBucket:"h24-online.firebasestorage.app", messagingSenderId:"808524719613", appId:"1:808524719613:web:7f1abe9e70a346c3376594" };
+const fireApp = initializeApp(firebaseConfig);
+const db = getFirestore(fireApp);
+
+createApp({
+  setup() {
+    const liveUrl = ref('');
+    const liveLoading = ref(true);
+    const socials = ref({});
+    const iconMap = { facebook: 'fa-brands fa-facebook-f', instagram: 'fa-brands fa-instagram', tiktok: 'fa-brands fa-tiktok', youtube: 'fa-brands fa-youtube', telegram: 'fa-brands fa-telegram', whatsapp: 'fa-brands fa-whatsapp' };
+
+    const goLive = () => { if (liveUrl.value) window.location.href = liveUrl.value; };
+    const copyLiveUrl = () => {
+      if (liveUrl.value) { navigator.clipboard.writeText(liveUrl.value).catch(()=>{}); }
+    };
+    const openSocialLink = (url) => {
+      if (!url) return '#';
+      if (url.startsWith('http://') || url.startsWith('https://')) return url;
+      if (url.startsWith('whatsapp://')) { const m = url.match(/phone=(\d+)/); return m ? `https://wa.me/${m[1]}` : 'https://wa.me'; }
+      if (url.startsWith('tg://')) return url.replace('tg://resolve?domain=', 'https://t.me/');
+      return 'https://' + url;
+    };
+
+    onMounted(async () => {
+      try { const s = await getDoc(doc(db, 'settings', 'live')); if (s.exists()) liveUrl.value = s.data().url || ''; } catch(e) {}
+      try { const s = await getDoc(doc(db, 'admin', 'settings')); if (s.exists()) socials.value = s.data(); } catch(e) {}
+      liveLoading.value = false;
+    });
+    return { liveUrl, liveLoading, socials, iconMap, goLive, copyLiveUrl, openSocialLink };
+  }
+}).mount('#app');
+</script>
+</body>
 </html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=0, viewport-fit=cover">
+<title>Refer & Earn — H24 ONLINE</title>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Noto+Sans+Bengali:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<div id="app" v-cloak>
+  <div id="toast-el" class="toast-msg"></div>
+  <div style="display:flex;flex-direction:column;height:100vh;">
+    <header class="app-header">
+      <div style="padding:14px 16px;display:flex;align-items:center;gap:12px;">
+        <a href="account.html" style="background:var(--surface2);border:none;border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);text-decoration:none;">
+          <i class="fa-solid fa-arrow-left"></i>
+        </a>
+        <div style="font-weight:800;font-size:17px;">Refer & Earn</div>
+      </div>
+    </header>
+    <main class="page-scroll" style="padding:16px;">
+      <div style="background:linear-gradient(135deg,#6c63ff,#ff6b9d);border-radius:20px;padding:24px;text-align:center;margin-bottom:20px;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:-30px;right:-30px;width:120px;height:120px;background:rgba(255,255,255,0.08);border-radius:50%;"></div>
+        <div style="font-size:40px;margin-bottom:10px;">🎁</div>
+        <div style="font-size:20px;font-weight:900;margin-bottom:6px;">Refer & Earn 10%</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.85);line-height:1.6;">বন্ধুকে রেফার করুন। তারা যেকোনো প্রোডাক্ট কিনলে আপনি ১০% কমিশন পাবেন।</div>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-bottom:20px;">
+        <div class="ref-stat"><div style="font-size:11px;color:var(--text-muted);font-weight:600;margin-bottom:4px;">Total Referrals</div><div style="font-size:24px;font-weight:900;color:var(--primary);">{{ referralStats.totalRefs }}</div></div>
+        <div class="ref-stat"><div style="font-size:11px;color:var(--text-muted);font-weight:600;margin-bottom:4px;">Commission Earned</div><div style="font-size:24px;font-weight:900;color:var(--green);">৳{{ referralStats.totalEarned }}</div></div>
+      </div>
+
+      <div style="margin-bottom:20px;">
+        <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;">আপনার রেফারেল লিংক</div>
+        <div class="ref-link-box">
+          <span style="font-size:12px;color:var(--primary);font-weight:600;word-break:break-all;">{{ referralLink }}</span>
+          <button @click="copyReferralLink" style="background:var(--primary);border:none;border-radius:10px;padding:8px 14px;color:#fff;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;">
+            <i class="fa-regular fa-copy" style="margin-right:4px;"></i>Copy
+          </button>
+        </div>
+      </div>
+
+      <div style="margin-bottom:20px;">
+        <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;">শেয়ার করুন</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <a :href="'https://api.whatsapp.com/send?text=H24 Online-এ যোগ দিন! '+encodeURIComponent(referralLink)" target="_blank"
+             style="background:#25d366;color:#fff;border-radius:14px;padding:12px;display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;font-weight:700;font-size:13px;">
+            <i class="fa-brands fa-whatsapp" style="font-size:18px;"></i> WhatsApp
+          </a>
+          <button @click="shareReferral" style="background:var(--surface2);border:1px solid var(--border);color:#fff;border-radius:14px;padding:12px;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;font-weight:700;font-size:13px;width:100%;">
+            <i class="fa-solid fa-share-nodes" style="font-size:16px;"></i> Share
+          </button>
+        </div>
+      </div>
+
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:20px;">
+        <div style="font-weight:800;font-size:15px;margin-bottom:16px;">কিভাবে কাজ করে?</div>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div v-for="(step,i) in steps" :key="i" style="display:flex;gap:12px;align-items:flex-start;">
+            <div :style="{background:step.bg}" style="width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:800;" :style2="{color:step.color}">{{ i+1 }}</div>
+            <div><div style="font-weight:700;font-size:14px;margin-bottom:2px;">{{ step.title }}</div><div style="font-size:12px;color:var(--text-muted);">{{ step.desc }}</div></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { createApp, ref, computed, onMounted } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
+
+const firebaseConfig = { apiKey:"AIzaSyCZWRcCP0hXTkfQoRhqxczgdD6cw5kp39c", authDomain:"h24-online.firebaseapp.com", projectId:"h24-online", storageBucket:"h24-online.firebasestorage.app", messagingSenderId:"808524719613", appId:"1:808524719613:web:7f1abe9e70a346c3376594" };
+const fireApp = initializeApp(firebaseConfig);
+const auth = getAuth(fireApp);
+const db = getFirestore(fireApp);
+
+createApp({
+  setup() {
+    const userId = ref('');
+    const referralStats = ref({ totalRefs: 0, totalEarned: 0 });
+    const referralLink = computed(() => `${window.location.origin}/index.html?ref=${userId.value.substring(0, 8)}`);
+    const steps = [
+      { title: 'রেফারেল লিংক শেয়ার করুন', desc: 'বন্ধু বা পরিবারকে আপনার ইউনিক লিংক পাঠান', bg: 'rgba(108,99,255,0.15)', color: 'var(--primary)' },
+      { title: 'তারা অ্যাপে যোগ দিন', desc: 'আপনার লিংক দিয়ে রেজিস্ট্রেশন করলে স্বয়ংক্রিয়ভাবে লিংক হবে', bg: 'rgba(255,107,157,0.15)', color: 'var(--accent)' },
+      { title: '১০% কমিশন পান', desc: 'তারা যেকোনো প্রোডাক্ট কিনলে আপনার ওয়ালেটে ১০% কমিশন যোগ হবে', bg: 'rgba(34,197,94,0.15)', color: 'var(--green)' },
+    ];
+    let toastTimer = null;
+    const showToast = (msg) => {
+      const el = document.getElementById('toast-el');
+      if (!el) return;
+      el.textContent = msg; el.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+    };
+    const copyReferralLink = () => {
+      navigator.clipboard.writeText(referralLink.value).catch(()=>{});
+      showToast('✅ লিংক কপি হয়েছে!');
+    };
+    const shareReferral = async () => {
+      if (navigator.share) { try { await navigator.share({ title: 'H24 Online', text: 'H24 Online-এ যোগ দিন!', url: referralLink.value }); } catch(e) {} }
+      else copyReferralLink();
+    };
+    onMounted(() => {
+      onAuthStateChanged(auth, async (user) => {
+        if (!user) { window.location.href = 'login.html'; return; }
+        userId.value = user.uid;
+        try {
+          const snap = await getDoc(doc(db, 'referrals', user.uid));
+          if (snap.exists()) referralStats.value = { totalRefs: snap.data().totalRefs || 0, totalEarned: snap.data().totalEarned || 0 };
+        } catch(e) {}
+      });
+    });
+    return { referralStats, referralLink, steps, copyReferralLink, shareReferral };
+  }
+}).mount('#app');
+</script>
+</body>
+</html>

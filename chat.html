@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=0, viewport-fit=cover">
+<title>Support Chat — H24 ONLINE</title>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Noto+Sans+Bengali:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<div id="app" v-cloak>
+  <div class="chat-page-wrap">
+    <header class="app-header">
+      <div style="padding:12px 16px;display:flex;align-items:center;gap:10px;">
+        <a href="account.html" style="background:var(--surface2);border:none;border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);text-decoration:none;">
+          <i class="fa-solid fa-arrow-left"></i>
+        </a>
+        <div style="width:38px;height:38px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:50%;display:flex;align-items:center;justify-content:center;position:relative;">
+          <i class="fa-solid fa-headset" style="font-size:16px;"></i>
+          <span class="online-dot" style="position:absolute;bottom:-1px;right:-1px;" v-if="adminOnline"></span>
+        </div>
+        <div>
+          <div style="font-weight:700;font-size:15px;">H24 Support</div>
+          <div v-if="adminOnline" style="font-size:11px;color:var(--green);display:flex;align-items:center;gap:4px;font-weight:600;"><span class="online-dot" style="width:6px;height:6px;border:none;"></span> Online</div>
+          <div v-else style="font-size:11px;color:var(--text-muted);font-weight:600;">Offline</div>
+        </div>
+      </div>
+    </header>
+
+    <div id="chatBox" class="chat-messages-wrap">
+      <div class="chat-bubble-system" style="margin:0 auto;">Welcome to H24 Online Support! 🎮</div>
+      <div v-for="(msg,i) in chatMessages" :key="msg.id||i" style="display:flex;" :style="{justifyContent:msg.sender==='user'?'flex-end':'flex-start'}">
+        <div v-if="msg.type==='system'" class="chat-bubble-system" style="margin:0 auto;">{{ msg.text }}</div>
+        <div v-else-if="msg.sender==='admin'" style="display:flex;align-items:flex-end;gap:8px;max-width:80%;">
+          <div style="width:28px;height:28px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;">H</div>
+          <div>
+            <div class="chat-bubble-in">{{ msg.text }}</div>
+            <div style="font-size:10px;color:var(--text-dim);margin-top:3px;padding-left:4px;">{{ formatMsgTime(msg.createdAt) }}</div>
+          </div>
+        </div>
+        <div v-else style="max-width:80%;">
+          <div class="chat-bubble-out">{{ msg.text }}</div>
+          <div style="font-size:10px;color:var(--text-dim);margin-top:3px;text-align:right;padding-right:4px;display:flex;align-items:center;justify-content:flex-end;gap:3px;">
+            {{ formatMsgTime(msg.createdAt) }} <i class="fa-solid fa-check-double" style="color:var(--primary);font-size:9px;"></i>
+          </div>
+        </div>
+      </div>
+      <div v-if="adminTyping" style="display:flex;align-items:flex-end;gap:8px;">
+        <div style="width:28px;height:28px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;">H</div>
+        <div class="chat-bubble-in" style="padding:12px 16px;">
+          <span style="display:inline-flex;gap:4px;align-items:center;">
+            <span style="width:6px;height:6px;background:var(--text-muted);border-radius:50%;display:inline-block;animation:bounce 1.2s infinite 0s;"></span>
+            <span style="width:6px;height:6px;background:var(--text-muted);border-radius:50%;display:inline-block;animation:bounce 1.2s infinite 0.3s;"></span>
+            <span style="width:6px;height:6px;background:var(--text-muted);border-radius:50%;display:inline-block;animation:bounce 1.2s infinite 0.6s;"></span>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="chat-input-bar">
+      <input v-model="chatInput" class="chat-input" placeholder="Type a message..." @keyup.enter="sendChat">
+      <button @click="sendChat" class="chat-send-btn" :disabled="!chatInput.trim()">
+        <i class="fa-solid fa-paper-plane" style="font-size:14px;color:#fff;"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, collection, addDoc, updateDoc, increment, serverTimestamp, onSnapshot, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { createApp, ref, onMounted, nextTick } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
+
+const firebaseConfig = { apiKey:"AIzaSyCZWRcCP0hXTkfQoRhqxczgdD6cw5kp39c", authDomain:"h24-online.firebaseapp.com", projectId:"h24-online", storageBucket:"h24-online.firebasestorage.app", messagingSenderId:"808524719613", appId:"1:808524719613:web:7f1abe9e70a346c3376594" };
+const fireApp = initializeApp(firebaseConfig);
+const auth = getAuth(fireApp);
+const db = getFirestore(fireApp);
+
+createApp({
+  setup() {
+    const chatMessages = ref([]);
+    const chatInput = ref('');
+    const adminTyping = ref(false);
+    const adminOnline = ref(false);
+    let userData = {};
+
+    const formatMsgTime = (ts) => {
+      if (!ts) return '';
+      const d = ts.toDate ? ts.toDate() : new Date(ts.seconds * 1000);
+      return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    };
+
+    const scrollToBottom = () => {
+      nextTick(() => { const el = document.getElementById('chatBox'); if (el) el.scrollTop = el.scrollHeight; });
+    };
+
+    const initChat = async (user) => {
+      const uid = user.uid;
+      const roomRef = doc(db, 'chats', uid);
+      try {
+        const roomSnap = await getDoc(roomRef);
+        if (!roomSnap.exists()) {
+          await setDoc(roomRef, { userId: uid, userName: userData.name || 'User', userEmail: userData.email || '', lastMsg: '', lastMsgAt: serverTimestamp(), unreadAdmin: 0 });
+        }
+      } catch(e) {}
+      const msgsRef = collection(db, 'chats', uid, 'messages');
+      const q = query(msgsRef, orderBy('createdAt', 'asc'), limit(100));
+      onSnapshot(q, (snap) => {
+        chatMessages.value = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        scrollToBottom();
+      });
+      try { onSnapshot(roomRef, (snap) => { if (snap.exists()) adminTyping.value = snap.data().adminTyping || false; }); } catch(e) {}
+    };
+
+    const sendChat = async () => {
+      if (!chatInput.value.trim()) return;
+      const user = auth.currentUser;
+      if (!user) return;
+      const text = chatInput.value.trim();
+      chatInput.value = '';
+      try {
+        await addDoc(collection(db, 'chats', user.uid, 'messages'), { text, sender: 'user', createdAt: serverTimestamp(), read: false });
+        await updateDoc(doc(db, 'chats', user.uid), { lastMsg: text, lastMsgAt: serverTimestamp(), unreadAdmin: increment(1) });
+      } catch(e) { chatInput.value = text; }
+    };
+
+    onMounted(() => {
+      try {
+        onSnapshot(doc(db, 'settings', 'adminStatus'), (snap) => { adminOnline.value = snap.exists() && snap.data().online === true; });
+      } catch(e) {}
+      onAuthStateChanged(auth, async (user) => {
+        if (!user) { window.location.href = 'login.html'; return; }
+        try {
+          const uSnap = await getDoc(doc(db, 'users', user.uid));
+          if (uSnap.exists()) userData = uSnap.data();
+        } catch(e) {}
+        initChat(user);
+      });
+    });
+
+    return { chatMessages, chatInput, adminTyping, adminOnline, sendChat, formatMsgTime };
+  }
+}).mount('#app');
+</script>
+</body>
+</html>

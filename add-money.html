@@ -1,708 +1,281 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=0, viewport-fit=cover">
-  <title>টাকা যোগ - H24ONLINE</title>
-
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Noto+Sans+Bengali:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/style.css">
-
-  <style>
-    *{-webkit-tap-highlight-color:transparent;box-sizing:border-box;}
-    a,button,div[onclick],[class*="nav-"],[class*="card"],[class*="btn"]{touch-action:manipulation;}
-    body{
-      -webkit-text-size-adjust:100%;text-size-adjust:100%;
-      font-family:'Outfit','Noto Sans Bengali',sans-serif;
-      background:#0a0a0f;color:#fff;overflow-x:hidden;
-    }
-    :root{
-      --primary:#6c63ff;--primary-dark:#4c44cc;--accent:#ff6b9d;
-      --gold:#ffd700;--bg:#0a0a0f;--surface:#12121a;
-      --surface2:#1c1c28;--surface3:#252535;
-      --border:rgba(255,255,255,0.08);--text:#ffffff;
-      --text-muted:#8888a8;--text-dim:#555570;
-      --green:#22c55e;--red:#ef4444;--orange:#f97316;
-      --nav-height:64px;
-    }
-    [v-cloak]{display:none!important;}
-    ::-webkit-scrollbar{width:0;height:0;}
-
-    /* ── HEADER ── */
-    .app-header{
-      background:rgba(10,10,20,0.97);backdrop-filter:blur(20px);
-      border-bottom:1px solid var(--border);
-      position:sticky;top:0;z-index:100;
-    }
-
-    /* ── BOTTOM NAV ── */
-    .nav-bar{
-      position:fixed;bottom:0;left:50%;transform:translateX(-50%);
-      width:100%;max-width:430px;
-      background:rgba(10,10,20,0.98);backdrop-filter:blur(20px);
-      border-top:1px solid var(--border);
-      z-index:999;padding-bottom:env(safe-area-inset-bottom);
-    }
-    .nav-item{
-      display:flex;flex-direction:column;align-items:center;
-      justify-content:center;gap:3px;font-size:10px;font-weight:600;
-      color:var(--text-muted);text-decoration:none;
-      padding:10px 4px 8px;cursor:pointer;transition:all 0.2s;letter-spacing:0.3px;
-    }
-    .nav-item i{font-size:19px;transition:all 0.25s;}
-    .nav-item.active{color:var(--primary);}
-    .nav-item.active i{transform:translateY(-1px);}
-    .nav-item:active{transform:scale(0.92);}
-
-    /* ── PAGE SCROLL ── */
-    .page-scroll{
-      overflow-y:auto;-webkit-overflow-scrolling:touch;
-      padding-bottom:calc(var(--nav-height) + env(safe-area-inset-bottom) + 24px);
-      min-height:calc(100vh - 56px);
-    }
-
-    /* ── STEP INDICATOR ── */
-    .step-indicator{
-      display:flex;align-items:center;justify-content:center;
-      gap:0;margin-bottom:24px;
-    }
-    .step-dot{
-      width:32px;height:32px;border-radius:50%;
-      display:flex;align-items:center;justify-content:center;
-      font-size:12px;font-weight:800;transition:all 0.3s;
-    }
-    .step-dot.done{background:var(--green);color:#fff;}
-    .step-dot.active{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;}
-    .step-dot.inactive{background:var(--surface3);color:var(--text-dim);}
-    .step-line{height:2px;width:40px;transition:all 0.3s;}
-    .step-line.done{background:var(--green);}
-    .step-line.inactive{background:var(--surface3);}
-
-    /* ── কার্ড ── */
-    .step-card{
-      background:var(--surface);border:1px solid var(--border);
-      border-radius:24px;padding:22px 18px;
-    }
-
-    /* ── অ্যামাউন্ট ইনপুট ── */
-    .amount-input-wrap{
-      background:var(--surface2);border:1px solid var(--border);
-      border-radius:16px;padding:16px 18px;
-      display:flex;align-items:center;gap:12px;
-      transition:border-color 0.2s;margin-bottom:16px;
-    }
-    .amount-input-wrap:focus-within{border-color:var(--primary);box-shadow:0 0 0 3px rgba(108,99,255,0.15);}
-    .amount-sign{font-size:24px;font-weight:900;color:var(--primary);}
-    .amount-input{
-      flex:1;background:transparent;border:none;outline:none;
-      font-family:inherit;font-size:26px;font-weight:900;color:var(--text);
-    }
-    .amount-input::placeholder{color:var(--text-dim);}
-
-    /* ── কুইক অ্যামাউন্ট বাটন ── */
-    .quick-btn{
-      background:var(--surface2);border:1px solid var(--border);
-      border-radius:10px;padding:9px 6px;font-family:inherit;
-      font-size:13px;font-weight:700;color:var(--text-muted);
-      cursor:pointer;transition:all 0.2s;
-    }
-    .quick-btn:active{transform:scale(0.94);}
-    .quick-btn.selected{
-      background:rgba(108,99,255,0.12);border-color:var(--primary);color:var(--primary);
-    }
-
-    /* ── প্রাইমারি বাটন ── */
-    .btn-primary{
-      background:linear-gradient(135deg,var(--primary),var(--primary-dark));
-      color:#fff;font-weight:800;border:none;border-radius:16px;
-      padding:16px;font-family:inherit;cursor:pointer;
-      transition:all 0.2s;font-size:15px;letter-spacing:0.3px;
-      width:100%;display:flex;align-items:center;justify-content:center;gap:8px;
-    }
-    .btn-primary:active{transform:scale(0.97);}
-    .btn-primary:disabled{background:#2a2a40;color:var(--text-dim);cursor:not-allowed;}
-
-    /* ── মেথড কার্ড ── */
-    .method-card{
-      background:var(--surface2);border:2px solid var(--border);
-      border-radius:16px;padding:16px;
-      display:flex;align-items:center;justify-content:space-between;
-      cursor:pointer;transition:all 0.2s;
-    }
-    .method-card:active{transform:scale(0.97);}
-    .method-card.bkash:active,.method-card.bkash:hover{border-color:#e2136e;background:rgba(226,19,110,0.06);}
-    .method-card.nagad:active,.method-card.nagad:hover{border-color:#f97316;background:rgba(249,115,22,0.06);}
-    .method-card.rocket:active,.method-card.rocket:hover{border-color:#7c3aed;background:rgba(124,58,237,0.06);}
-    .method-logo{width:48px;height:32px;object-fit:contain;}
-
-    /* ── কপি নম্বর বক্স ── */
-    .copy-box{
-      background:rgba(34,197,94,0.06);
-      border:1.5px dashed rgba(34,197,94,0.35);
-      border-radius:16px;padding:16px;
-      cursor:pointer;transition:all 0.2s;text-align:center;
-      margin-bottom:16px;
-    }
-    .copy-box:active{transform:scale(0.98);background:rgba(34,197,94,0.12);}
-
-    /* ── TRX ইনপুট ── */
-    .trx-input{
-      background:var(--surface2);border:1px solid var(--border);
-      border-radius:14px;padding:14px 16px;width:100%;
-      color:#fff;font-family:inherit;font-size:16px;font-weight:800;
-      outline:none;transition:border-color 0.2s,box-shadow 0.2s;
-      text-transform:uppercase;text-align:center;letter-spacing:4px;
-    }
-    .trx-input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(108,99,255,0.15);}
-    .trx-input::placeholder{color:var(--text-muted);letter-spacing:0;font-size:13px;text-transform:none;font-weight:400;}
-
-    /* ── ভেরিফাই বাটন (গেটওয়ে রঙ) ── */
-    .btn-verify-bkash{background:linear-gradient(135deg,#e2136e,#b50d56);}
-    .btn-verify-nagad{background:linear-gradient(135deg,#f97316,#ea580c);}
-    .btn-verify-rocket{background:linear-gradient(135deg,#7c3aed,#6d28d9);}
-
-    /* ── এরর বক্স ── */
-    .err-box{
-      background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);
-      border-radius:12px;padding:12px 14px;
-      display:flex;align-items:center;gap:8px;
-      font-size:12px;color:#f87171;font-weight:600;margin-bottom:14px;
-    }
-
-    /* ── সাকসেস কার্ড ── */
-    .success-card{
-      background:var(--surface);border:1px solid rgba(34,197,94,0.2);
-      border-radius:24px;padding:28px 20px;text-align:center;
-    }
-    .success-icon{
-      width:72px;height:72px;background:rgba(34,197,94,0.12);
-      border-radius:50%;display:flex;align-items:center;justify-content:center;
-      margin:0 auto 16px;font-size:32px;color:var(--green);
-    }
-    .receipt-row{
-      display:flex;justify-content:space-between;align-items:center;
-      padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;
-    }
-    .receipt-row:last-child{border-bottom:none;}
-
-    /* ── ফেড ট্রানজিশন ── */
-    .fade-enter-active,.fade-leave-active{transition:opacity 0.25s,transform 0.25s;}
-    .fade-enter-from,.fade-leave-to{opacity:0;transform:translateY(12px);}
-
-    /* ── স্পিনার ── */
-    .spinner{
-      width:20px;height:20px;
-      border:2px solid rgba(255,255,255,0.3);
-      border-top-color:#fff;border-radius:50%;
-      animation:spin 0.8s linear infinite;display:inline-block;
-    }
-    @keyframes spin{to{transform:rotate(360deg);}}
-
-    /* ── টোস্ট ── */
-    .toast-msg{
-      position:fixed;
-      bottom:calc(var(--nav-height) + env(safe-area-inset-bottom) + 16px);
-      left:50%;transform:translateX(-50%) translateY(20px);
-      background:rgba(30,30,46,0.97);border:1px solid rgba(108,99,255,0.35);
-      color:#fff;font-size:13px;font-weight:600;
-      padding:12px 22px;border-radius:40px;white-space:nowrap;
-      z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,0.4);
-      pointer-events:none;opacity:0;transition:opacity 0.25s,transform 0.25s;
-    }
-    .toast-msg.show{opacity:1;transform:translateX(-50%) translateY(0);}
-
-    /* ── গেটওয়ে ব্যাজ ── */
-    .gw-badge{
-      display:inline-flex;align-items:center;gap:6px;
-      border-radius:20px;padding:5px 14px;font-size:11px;font-weight:700;
-    }
-    .gw-badge.bkash{background:rgba(226,19,110,0.12);color:#e2136e;}
-    .gw-badge.nagad{background:rgba(249,115,22,0.12);color:#f97316;}
-    .gw-badge.rocket{background:rgba(124,58,237,0.12);color:#7c3aed;}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=0, viewport-fit=cover">
+<title>Deposit — H24 ONLINE</title>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Noto+Sans+Bengali:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
-
-<div id="app" v-cloak style="max-width:430px;margin:0 auto;min-height:100vh;background:var(--bg);position:relative;">
-
-  <!-- ══════════════════════════════
-       HEADER
-  ══════════════════════════════ -->
-  <header class="app-header">
-    <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;">
-      <!-- ব্যাক বাটন -->
-      <a v-if="step === 1" href="index.html"
-        style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text-muted);text-decoration:none;flex-shrink:0;">
-        <i class="fa-solid fa-arrow-left" style="font-size:14px;"></i>
-      </a>
-      <button v-else @click="step--"
-        style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text-muted);cursor:pointer;flex-shrink:0;">
-        <i class="fa-solid fa-arrow-left" style="font-size:14px;"></i>
-      </button>
-
-      <div style="flex:1;">
-        <div style="font-size:15px;font-weight:800;color:var(--text);">টাকা যোগ করুন</div>
-        <div style="font-size:10px;color:var(--text-dim);letter-spacing:0.5px;">অটো পেমেন্ট গেটওয়ে</div>
+<div id="app" v-cloak>
+  <div id="toast-el" class="toast-msg"></div>
+  <div style="display:flex;flex-direction:column;height:100vh;">
+    <header class="app-header">
+      <div style="padding:14px 16px;display:flex;align-items:center;gap:12px;">
+        <a href="index.html" style="background:var(--surface2);border:none;border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);text-decoration:none;">
+          <i class="fa-solid fa-arrow-left"></i>
+        </a>
+        <div style="font-weight:800;font-size:17px;">Deposit</div>
       </div>
+    </header>
+    <main class="page-scroll" style="padding:16px;">
 
-      <!-- স্টেপ ব্যাজ -->
-      <div style="background:rgba(108,99,255,0.12);border:1px solid rgba(108,99,255,0.2);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;color:var(--primary);">
-        ধাপ {{ step }}/3
-      </div>
-    </div>
-
-    <!-- স্টেপ প্রোগ্রেস বার -->
-    <div style="height:2px;background:var(--surface2);margin:0 16px 0;">
-      <div :style="'width:' + (step/3*100) + '%;height:100%;background:linear-gradient(90deg,var(--primary),var(--accent));border-radius:2px;transition:width 0.4s ease;'"></div>
-    </div>
-  </header>
-
-  <!-- ══════════════════════════════
-       MAIN CONTENT
-  ══════════════════════════════ -->
-  <div class="page-scroll" style="padding:18px 14px 0;">
-
-    <!-- ─────────────────────────
-         STEP 1 — পরিমাণ
-    ───────────────────────── -->
-    <transition name="fade">
-      <div v-if="step === 1">
-
-        <!-- আইকন ও টাইটেল -->
-        <div style="text-align:center;margin-bottom:22px;">
-          <div style="width:64px;height:64px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;box-shadow:0 0 28px rgba(108,99,255,0.3);">
-            <i class="fa-solid fa-bolt" style="font-size:28px;color:#fff;"></i>
+      <!-- Step 1: Amount -->
+      <div v-if="step===1">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:24px;margin-bottom:16px;">
+          <div style="width:60px;height:60px;background:rgba(108,99,255,0.15);border-radius:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+            <i class="fa-solid fa-bolt" style="font-size:28px;color:var(--primary);"></i>
           </div>
-          <div style="font-size:20px;font-weight:800;color:var(--text);">ইনস্ট্যান্ট রিচার্জ</div>
-          <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">স্বয়ংক্রিয় পেমেন্ট যাচাই সিস্টেম</div>
+          <div style="text-align:center;margin-bottom:20px;">
+            <div style="font-size:20px;font-weight:800;margin-bottom:4px;">Instant Deposit</div>
+            <div style="font-size:13px;color:var(--text-muted);">Choose your payment method</div>
+          </div>
+          <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:8px;">Enter Amount</div>
+          <div style="position:relative;margin-bottom:16px;">
+            <span style="position:absolute;left:16px;top:50%;transform:translateY(-50%);font-size:16px;font-weight:700;color:var(--text-muted);">৳</span>
+            <input v-model="addAmount" type="number" class="input-field" style="padding-left:34px;font-size:20px;font-weight:700;" placeholder="0">
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px;">
+            <button v-for="a in quickAmounts" :key="a" @click="addAmount=a"
+              style="background:var(--surface2);border:1px solid;border-radius:10px;padding:8px 4px;font-size:13px;font-weight:700;cursor:pointer;"
+              :style="{borderColor:addAmount==a?'var(--primary)':'var(--border)',color:addAmount==a?'var(--primary)':'var(--text-muted)'}">{{ a }}</button>
+          </div>
+          <button @click="step=2" class="btn-primary" style="width:100%;" :disabled="!addAmount||addAmount<=0">
+            Next Step <i class="fa-solid fa-arrow-right" style="margin-left:4px;"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 2: Method -->
+      <div v-else-if="step===2">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+          <button @click="step=1" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);">
+            <i class="fa-solid fa-arrow-left"></i>
+          </button>
+          <div style="font-weight:700;font-size:16px;">Select Payment Method</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div @click="addSelectMethod('eps')" class="eps-card">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+              <div style="display:flex;align-items:center;gap:12px;">
+                <div style="width:42px;height:42px;background:rgba(255,255,255,0.12);border-radius:12px;display:flex;align-items:center;justify-content:center;">
+                  <i class="fa-solid fa-shield-halved" style="font-size:20px;color:#4ade80;"></i>
+                </div>
+                <div>
+                  <div style="font-weight:800;font-size:15px;color:#fff;">EPS Payment</div>
+                  <div style="font-size:11px;color:rgba(255,255,255,0.6);">Secure Gateway</div>
+                </div>
+              </div>
+              <div style="background:rgba(34,197,94,0.2);border:1px solid rgba(34,197,94,0.4);border-radius:8px;padding:4px 10px;font-size:10px;font-weight:700;color:#4ade80;">PSO LICENSED</div>
+            </div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.7);line-height:1.6;">বিকাশ, নগদ, রকেট, কার্ড সহ সকল পেমেন্ট মেথড সাপোর্ট করে।</div>
+          </div>
+          <div v-for="m in ['bkash','nagad','rocket']" :key="m" @click="addSelectMethod(m)"
+               style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px;display:flex;align-items:center;gap:14px;cursor:pointer;" class="card-hover">
+            <div :style="{background:m==='bkash'?'#e2156a':m==='nagad'?'#f47920':'#8b1fa8'}" style="width:52px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;">
+              <span style="color:#fff;font-size:11px;font-weight:800;text-transform:capitalize;">{{ m }}</span>
+            </div>
+            <div><div style="font-weight:700;font-size:14px;text-transform:capitalize;">{{ m }}</div><div style="font-size:11px;color:var(--text-muted);">Manual payment</div></div>
+            <i class="fa-solid fa-chevron-right" style="margin-left:auto;color:var(--text-dim);font-size:12px;"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: Payment Details -->
+      <div v-else-if="step===3">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+          <button @click="step=2" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);">
+            <i class="fa-solid fa-arrow-left"></i>
+          </button>
+          <div style="font-weight:700;font-size:16px;text-transform:capitalize;">{{ addMethod }} — ৳{{ addAmount }}</div>
         </div>
 
-        <div class="step-card">
-          <!-- অ্যামাউন্ট লেবেল -->
-          <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:10px;">
-            পরিমাণ লিখুন
+        <!-- EPS -->
+        <div v-if="addMethod==='eps'">
+          <div class="eps-card" style="margin-bottom:14px;" @click="window.open('https://pg.eps.com.bd/PaymentLink?id=D37C6FF8','_blank')">
+            <div style="font-weight:800;font-size:15px;color:#fff;margin-bottom:10px;">Tap to Open EPS Gateway</div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.7);line-height:1.6;margin-bottom:14px;">Amount: <strong style="color:#fff;">৳{{ addAmount }}</strong></div>
+            <div style="background:rgba(255,255,255,0.1);border-radius:12px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">
+              <span style="font-size:13px;color:rgba(255,255,255,0.8);font-weight:600;">Open Gateway</span>
+              <i class="fa-solid fa-arrow-right" style="color:#4ade80;font-size:14px;"></i>
+            </div>
           </div>
-
-          <!-- অ্যামাউন্ট ইনপুট -->
-          <div class="amount-input-wrap">
-            <span class="amount-sign">৳</span>
-            <input
-              v-model="amount"
-              type="number"
-              placeholder="0"
-              class="amount-input"
-              inputmode="numeric"
-            >
+          <div style="margin-bottom:10px;">
+            <div style="font-size:11px;color:var(--text-muted);font-weight:600;margin-bottom:6px;">পেমেন্টের পর EPS Reference নম্বর দিন</div>
+            <input v-model="addEpsRef" class="input-field" placeholder="EPS Reference Number">
           </div>
-
-          <!-- কুইক অ্যামাউন্ট -->
-          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px;">
-            <button
-              v-for="q in quickAmounts" :key="q"
-              @click="amount = q"
-              :class="['quick-btn', Number(amount) === q ? 'selected' : '']"
-            >৳{{ q }}</button>
+          <div v-if="addError" style="background:rgba(239,68,68,0.1);border-radius:10px;padding:10px 14px;font-size:13px;color:#f87171;margin-bottom:12px;">{{ addError }}</div>
+          <div v-if="addSuccess" style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:14px;padding:16px;text-align:center;margin-bottom:12px;">
+            <i class="fa-solid fa-check-circle" style="color:#4ade80;font-size:32px;margin-bottom:8px;display:block;"></i>
+            <div style="font-weight:700;color:#4ade80;">Request Submitted!</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">অ্যাডমিন যাচাই করে ব্যালেন্স যোগ করবেন।</div>
           </div>
-
-          <!-- মিন অ্যামাউন্ট নোট -->
-          <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-dim);margin-bottom:18px;">
-            <i class="fa-solid fa-circle-info" style="color:var(--primary);font-size:11px;"></i>
-            সর্বনিম্ন রিচার্জ ৳১০
-          </div>
-
-          <!-- নেক্সট বাটন -->
-          <button @click="goToMethod" class="btn-primary">
-            পেমেন্ট মেথড বেছে নিন
-            <i class="fa-solid fa-arrow-right" style="font-size:13px;"></i>
+          <button v-if="!addSuccess" @click="submitEpsDeposit" class="btn-primary" style="width:100%;" :disabled="addLoading">
+            <span v-if="addLoading" class="spinner"></span>
+            <span v-else>Submit EPS Reference</span>
           </button>
         </div>
 
-      </div>
-    </transition>
-
-    <!-- ─────────────────────────
-         STEP 2 — মেথড
-    ───────────────────────── -->
-    <transition name="fade">
-      <div v-if="step === 2">
-
-        <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:16px;">
-          পেমেন্ট পদ্ধতি বেছে নিন
-        </div>
-
-        <!-- রিচার্জ অ্যামাউন্ট দেখানো -->
-        <div style="background:rgba(108,99,255,0.08);border:1px solid rgba(108,99,255,0.2);border-radius:14px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-          <span style="font-size:13px;color:var(--text-muted);">রিচার্জ পরিমাণ</span>
-          <span style="font-size:20px;font-weight:900;color:var(--primary);">৳{{ amount }}</span>
-        </div>
-
-        <div style="display:flex;flex-direction:column;gap:10px;">
-
-          <!-- bKash -->
-          <div @click="selectMethod('bkash')" class="method-card bkash">
-            <div style="display:flex;align-items:center;gap:14px;">
-              <div style="width:48px;height:40px;background:rgba(226,19,110,0.1);border-radius:12px;display:flex;align-items:center;justify-content:center;">
-                <img src="https://seeklogo.com/images/B/bkash-logo-FBB258B90F-seeklogo.com.png" style="height:20px;object-fit:contain;">
-              </div>
-              <div>
-                <div style="font-size:14px;font-weight:800;color:var(--text);">bKash</div>
-                <div style="font-size:11px;color:var(--text-muted);">Personal নম্বরে পাঠান</div>
-              </div>
-            </div>
-            <div style="display:flex;align-items:center;gap:6px;">
-              <div style="font-size:10px;font-weight:700;background:rgba(226,19,110,0.12);color:#e2136e;padding:3px 8px;border-radius:20px;">অটো</div>
-              <i class="fa-solid fa-chevron-right" style="color:var(--text-dim);font-size:12px;"></i>
-            </div>
-          </div>
-
-          <!-- Nagad -->
-          <div @click="selectMethod('nagad')" class="method-card nagad">
-            <div style="display:flex;align-items:center;gap:14px;">
-              <div style="width:48px;height:40px;background:rgba(249,115,22,0.1);border-radius:12px;display:flex;align-items:center;justify-content:center;">
-                <img src="https://seeklogo.com/images/N/nagad-logo-7A70CCFEE0-seeklogo.com.png" style="height:16px;object-fit:contain;">
-              </div>
-              <div>
-                <div style="font-size:14px;font-weight:800;color:var(--text);">Nagad</div>
-                <div style="font-size:11px;color:var(--text-muted);">Personal নম্বরে পাঠান</div>
-              </div>
-            </div>
-            <div style="display:flex;align-items:center;gap:6px;">
-              <div style="font-size:10px;font-weight:700;background:rgba(249,115,22,0.12);color:#f97316;padding:3px 8px;border-radius:20px;">অটো</div>
-              <i class="fa-solid fa-chevron-right" style="color:var(--text-dim);font-size:12px;"></i>
-            </div>
-          </div>
-
-          <!-- Rocket -->
-          <div @click="selectMethod('rocket')" class="method-card rocket">
-            <div style="display:flex;align-items:center;gap:14px;">
-              <div style="width:48px;height:40px;background:rgba(124,58,237,0.1);border-radius:12px;display:flex;align-items:center;justify-content:center;">
-                <img src="https://seeklogo.com/images/D/dutch-bangla-rocket-logo-B4D1CC458D-seeklogo.com.png" style="height:20px;object-fit:contain;">
-              </div>
-              <div>
-                <div style="font-size:14px;font-weight:800;color:var(--text);">Rocket</div>
-                <div style="font-size:11px;color:var(--text-muted);">Personal নম্বরে পাঠান</div>
-              </div>
-            </div>
-            <div style="display:flex;align-items:center;gap:6px;">
-              <div style="font-size:10px;font-weight:700;background:rgba(124,58,237,0.12);color:#7c3aed;padding:3px 8px;border-radius:20px;">অটো</div>
-              <i class="fa-solid fa-chevron-right" style="color:var(--text-dim);font-size:12px;"></i>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- নোট -->
-        <div style="display:flex;align-items:flex-start;gap:8px;background:rgba(255,215,0,0.05);border:1px solid rgba(255,215,0,0.15);border-radius:12px;padding:12px;margin-top:16px;">
-          <i class="fa-solid fa-triangle-exclamation" style="color:var(--gold);font-size:13px;flex-shrink:0;margin-top:1px;"></i>
-          <div style="font-size:11px;color:var(--text-muted);line-height:1.6;">
-            পাঠানোর সময় অবশ্যই <b style="color:var(--text);">Send Money</b> অপশন ব্যবহার করুন। অন্যথায় যাচাই ব্যর্থ হবে।
-          </div>
-        </div>
-
-      </div>
-    </transition>
-
-    <!-- ─────────────────────────
-         STEP 3 — যাচাই / সাকসেস
-    ───────────────────────── -->
-    <transition name="fade">
-      <div v-if="step === 3">
-
-        <!-- ✅ সাকসেস ভিউ -->
-        <div v-if="paymentSuccess" class="success-card">
-          <div class="success-icon">
-            <i class="fa-solid fa-check"></i>
-          </div>
-          <div style="font-size:22px;font-weight:900;color:var(--text);margin-bottom:6px;">পেমেন্ট সফল! 🎉</div>
-          <div style="font-size:13px;color:var(--text-muted);margin-bottom:22px;">আপনার ওয়ালেট ব্যালেন্স আপডেট হয়েছে।</div>
-
-          <!-- রিসিপ্ট -->
-          <div style="background:var(--surface2);border-radius:16px;padding:14px;margin-bottom:22px;text-align:left;">
-            <div class="receipt-row">
-              <span style="color:var(--text-muted);">পরিমাণ</span>
-              <span style="font-weight:800;color:var(--green);">৳{{ amount }}</span>
-            </div>
-            <div class="receipt-row">
-              <span style="color:var(--text-muted);">মেথড</span>
-              <span class="gw-badge" :class="method">{{ method }}</span>
-            </div>
-            <div class="receipt-row">
-              <span style="color:var(--text-muted);">TrxID</span>
-              <span style="font-weight:800;color:var(--text);letter-spacing:1px;">{{ trxId }}</span>
-            </div>
-            <div class="receipt-row">
-              <span style="color:var(--text-muted);">স্ট্যাটাস</span>
-              <span style="background:rgba(34,197,94,0.12);color:var(--green);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">✓ অনুমোদিত</span>
-            </div>
-          </div>
-
-          <a href="account.html" class="btn-primary" style="text-decoration:none;background:linear-gradient(135deg,var(--green),#16a34a);">
-            <i class="fa-solid fa-wallet"></i>
-            ওয়ালেটে যান
-          </a>
-        </div>
-
-        <!-- 📋 যাচাই ফর্ম ভিউ -->
+        <!-- Manual -->
         <div v-else>
-
-          <!-- মেথড হেডার -->
-          <div style="text-align:center;margin-bottom:18px;">
-            <div style="display:inline-flex;align-items:center;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:10px 18px;">
-              <img :src="methodLogo" style="height:24px;object-fit:contain;">
-              <div style="text-align:left;">
-                <div style="font-size:13px;font-weight:800;color:var(--text);text-transform:capitalize;">{{ method }}</div>
-                <div style="font-size:10px;color:var(--text-muted);">Personal • Send Money</div>
-              </div>
-            </div>
+          <div class="copy-box" @click="copyNum(adminNumbers[addMethod])" style="margin-bottom:14px;">
+            <div style="font-size:10px;color:var(--primary);font-weight:700;margin-bottom:4px;">SEND MONEY (PERSONAL)</div>
+            <div style="font-size:20px;font-weight:800;letter-spacing:2px;">{{ adminNumbers[addMethod]||'Loading...' }}</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:4px;"><i class="fa-regular fa-copy"></i> Tap to copy</div>
           </div>
-
-          <div class="step-card">
-
-            <!-- পরিমাণ নোটিস -->
-            <div style="text-align:center;margin-bottom:16px;">
-              <span style="font-size:13px;color:var(--text-muted);">পাঠান </span>
-              <span style="font-size:22px;font-weight:900;color:var(--primary);">৳{{ amount }}</span>
-              <span style="font-size:13px;color:var(--text-muted);"> এই নম্বরে</span>
-            </div>
-
-            <!-- কপি নম্বর বক্স -->
-            <div @click="copyNumber" class="copy-box">
-              <div style="font-size:10px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">
-                <i class="fa-solid fa-paper-plane" style="margin-right:4px;"></i>পার্সোনাল নম্বর
-              </div>
-              <div style="font-size:26px;font-weight:900;color:var(--text);letter-spacing:3px;margin-bottom:5px;">
-                {{ currentAdminNumber }}
-              </div>
-              <div style="font-size:10px;color:var(--text-dim);display:flex;align-items:center;justify-content:center;gap:4px;">
-                <i class="fa-regular fa-copy"></i> ট্যাপ করে কপি করুন
-              </div>
-            </div>
-
-            <!-- TrxID ইনপুট -->
-            <div style="margin-bottom:14px;">
-              <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">
-                ট্রানজেকশন আইডি (TrxID)
-              </div>
-              <input
-                v-model="trxId"
-                type="text"
-                placeholder="যেমন: 9G765KH..."
-                class="trx-input"
-              >
-            </div>
-
-            <!-- এরর মেসেজ -->
-            <div v-if="errorMsg" class="err-box">
-              <i class="fa-solid fa-circle-exclamation"></i>
-              {{ errorMsg }}
-            </div>
-
-            <!-- ভেরিফাই বাটন -->
-            <button
-              @click="verifyPayment"
-              :disabled="loading"
-              class="btn-primary"
-              :class="'btn-verify-' + method"
-              style="border-radius:16px;"
-            >
-              <span v-if="loading" class="spinner"></span>
-              <template v-else>
-                <i class="fa-solid fa-shield-halved"></i>
-                পেমেন্ট যাচাই করুন
-              </template>
-            </button>
-
-            <div style="font-size:10px;color:var(--text-dim);text-align:center;margin-top:12px;">
-              <i class="fa-solid fa-robot" style="margin-right:3px;"></i>
-              Powered by DinGet API Auto-Verification System
-            </div>
-
+          <input v-model="addTrxId" class="input-field" placeholder="Transaction ID (TrxID)" style="text-transform:uppercase;text-align:center;letter-spacing:2px;font-weight:700;margin-bottom:10px;">
+          <div v-if="addError" style="background:rgba(239,68,68,0.1);border-radius:10px;padding:10px 14px;font-size:13px;color:#f87171;margin-bottom:12px;">{{ addError }}</div>
+          <div v-if="addSuccess" style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:14px;padding:16px;text-align:center;margin-bottom:12px;">
+            <i class="fa-solid fa-check-circle" style="color:#4ade80;font-size:32px;margin-bottom:8px;display:block;"></i>
+            <div style="font-weight:700;color:#4ade80;">Deposit Successful!</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">৳{{ addAmount }} আপনার ওয়ালেটে যোগ হয়েছে।</div>
           </div>
+          <button v-if="!addSuccess" @click="verifyAddMoney" class="btn-primary" style="width:100%;" :disabled="addLoading">
+            <span v-if="addLoading" class="spinner"></span>
+            <span v-else>Verify &amp; Add Money</span>
+          </button>
         </div>
-
       </div>
-    </transition>
 
-  </div><!-- /page-scroll -->
+    </main>
+  </div>
+</div>
 
-  <!-- ══════════════════════════════
-       BOTTOM NAVIGATION
-  ══════════════════════════════ -->
-  <nav class="nav-bar">
-    <div style="display:grid;grid-template-columns:repeat(5,1fr);height:var(--nav-height);">
-      <a href="index.html"     class="nav-item"><i class="fa-solid fa-house"></i><span>হোম</span></a>
-      <a href="add-money.html" class="nav-item active"><i class="fa-solid fa-wallet"></i><span>ওয়ালেট</span></a>
-      <a href="orders.html"    class="nav-item"><i class="fa-solid fa-file-invoice"></i><span>অর্ডার</span></a>
-      <a href="codes.html"     class="nav-item"><i class="fa-solid fa-gift"></i><span>কোডস</span></a>
-      <a href="account.html"   class="nav-item"><i class="fa-solid fa-user"></i><span>অ্যাকাউন্ট</span></a>
-    </div>
-  </nav>
-
-  <!-- টোস্ট -->
-  <div class="toast-msg" :class="toast.show ? 'show' : ''">{{ toast.msg }}</div>
-
-</div><!-- /#app -->
-
-<!-- ══════════════════════════════
-     FIREBASE + VUE LOGIC
-══════════════════════════════ -->
 <script type="module">
-  import { initializeApp }           from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-  import { getFirestore, collection, addDoc, serverTimestamp, updateDoc, doc, increment, getDoc }
-                                     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-  import { createApp, ref, computed, onMounted } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, doc, getDoc, collection, addDoc, updateDoc, increment, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { createApp, ref, onMounted } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
 
-  /* ── কনফিগারেশন ── */
-  const SCRIPT_URL     = "https://script.google.com/macros/s/AKfycbygDTGvbG7sUTPAt2lO2iMsPHprZRlP7WjAwq4n4Q3D1SZduenpNPUaayf_c2VsTqC0Xw/exec";
-  const CLIENT_API_KEY = "KEY_LUYAAAKNC_1770036903949";
-
-  const firebaseConfig = {
-    apiKey:            "AIzaSyACUK207BRvtR5yc1UhYLS9FlMitVVlrrE",
-    authDomain:        "freetopup-fd263.firebaseapp.com",
-    projectId:         "freetopup-fd263",
-    storageBucket:     "freetopup-fd263.firebasestorage.app",
-    messagingSenderId: "756173302110",
-    appId:             "1:756173302110:web:14227664f6b5d14d9047cf"
-  };
-
-  const firebaseApp = initializeApp(firebaseConfig);
-  const auth        = getAuth(firebaseApp);
-  const db          = getFirestore(firebaseApp);
-
-  createApp({
-    setup() {
-      /* ── স্টেট ── */
-      const step           = ref(1);
-      const amount         = ref('');
-      const method         = ref('');
-      const loading        = ref(false);
-      const userId         = ref(null);
-      const trxId          = ref('');
-      const errorMsg       = ref('');
-      const paymentSuccess = ref(false);
-      const toast          = ref({ show: false, msg: '' });
-      const adminNumbers   = ref({ bkash: '', nagad: '', rocket: '' });
-
-      /* কুইক অ্যামাউন্ট লিস্ট */
-      const quickAmounts = [100, 300, 500, 1000];
-
-      /* ── টোস্ট ── */
-      let toastTimer = null;
-      const showToast = (msg) => {
-        if (toastTimer) clearTimeout(toastTimer);
-        toast.value = { show: true, msg };
-        toastTimer = setTimeout(() => { toast.value.show = false; }, 2800);
-      };
-
-      /* ── অথ চেক ── */
-      onAuthStateChanged(auth, (user) => {
-        if (user) { userId.value = user.uid; }
-        else { window.location.href = 'login.html'; }
-      });
-
-      /* ── পেমেন্ট সেটিংস ফেচ ── */
-      const fetchPaymentSettings = async () => {
-        try {
-          const snap = await getDoc(doc(db, 'settings', 'payment'));
-          if (snap.exists()) adminNumbers.value = snap.data();
-        } catch (e) { console.error('Settings fetch error:', e); }
-      };
-
-      onMounted(fetchPaymentSettings);
-
-      /* ── স্টেপ ১ → ২ ── */
-      const goToMethod = () => {
-        if (!amount.value || Number(amount.value) < 10) {
-          showToast('⚠️ সর্বনিম্ন রিচার্জ পরিমাণ ৳১০');
-          return;
-        }
-        step.value = 2;
-      };
-
-      /* ── মেথড সিলেক্ট ── */
-      const selectMethod = (m) => {
-        method.value  = m;
-        trxId.value   = '';
-        errorMsg.value = '';
-        step.value    = 3;
-      };
-
-      /* ── নম্বর কপি ── */
-      const copyNumber = () => {
-        const num = currentAdminNumber.value;
-        if (num) {
-          navigator.clipboard.writeText(num).then(() => {
-            showToast('✅ নম্বর কপি হয়েছে: ' + num);
-          });
-        }
-      };
-
-      /* ── পেমেন্ট যাচাই ── */
-      const verifyPayment = async () => {
-        if (!trxId.value || trxId.value.length < 6) {
-          errorMsg.value = 'সঠিক ট্রানজেকশন আইডি দিন (কমপক্ষে ৬ অক্ষর)';
-          return;
-        }
-        loading.value  = true;
-        errorMsg.value = '';
-
-        try {
-          const apiUrl = `${SCRIPT_URL}?trxID=${trxId.value.toUpperCase()}&apiKey=${CLIENT_API_KEY}&amount=${amount.value}`;
-          const resp   = await fetch(apiUrl);
-          const data   = await resp.json();
-
-          if (data.status === 'success') {
-            /* ডিপোজিট লগ */
-            await addDoc(collection(db, 'deposits'), {
-              userId:    userId.value,
-              method:    method.value,
-              amount:    Number(amount.value),
-              trxId:     trxId.value.toUpperCase(),
-              status:    'approved',
-              type:      'auto_verify',
-              createdAt: serverTimestamp()
-            });
-
-            /* ব্যালেন্স আপডেট */
-            await updateDoc(doc(db, 'users', userId.value), {
-              balance: increment(Number(amount.value))
-            });
-
-            paymentSuccess.value = true;
-
-          } else {
-            errorMsg.value = data.message || 'যাচাই ব্যর্থ। TrxID বা পরিমাণ চেক করুন।';
-          }
-
-        } catch (e) {
-          console.error('Verification Error:', e);
-          errorMsg.value = 'সার্ভার সংযোগ সমস্যা। আবার চেষ্টা করুন।';
-        } finally {
-          loading.value = false;
-        }
-      };
-
-      /* ── কম্পিউটেড ── */
-      const currentAdminNumber = computed(() => adminNumbers.value[method.value] || '');
-
-      const methodLogo = computed(() => {
-        if (method.value === 'bkash')  return 'https://seeklogo.com/images/B/bkash-logo-FBB258B90F-seeklogo.com.png';
-        if (method.value === 'nagad')  return 'https://seeklogo.com/images/N/nagad-logo-7A70CCFEE0-seeklogo.com.png';
-        return 'https://seeklogo.com/images/D/dutch-bangla-rocket-logo-B4D1CC458D-seeklogo.com.png';
-      });
-
-      return {
-        step, amount, method, loading, trxId, errorMsg,
-        paymentSuccess, toast, quickAmounts,
-        goToMethod, selectMethod, copyNumber, verifyPayment,
-        currentAdminNumber, methodLogo
-      };
+const FIRESTORE_REST_BASE = `https://firestore.googleapis.com/v1/projects/h24-online/databases/(default)/documents`;
+let PAYMENT_SCRIPT_URL = null, PAYMENT_CLIENT_KEY = null, PAYMENT_CONFIG_READY = false;
+async function loadPaymentConfig() {
+  try {
+    const res = await fetch(`${FIRESTORE_REST_BASE}/AppConfig/payment_config`);
+    if (res.ok) {
+      const data = await res.json();
+      const fields = data.fields || {};
+      PAYMENT_SCRIPT_URL = fields.script_url?.stringValue || null;
+      PAYMENT_CLIENT_KEY = fields.api_key?.stringValue || null;
+      if (PAYMENT_SCRIPT_URL) PAYMENT_CONFIG_READY = true;
     }
-  }).mount('#app');
+  } catch (e) {}
+}
+loadPaymentConfig();
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCZWRcCP0hXTkfQoRhqxczgdD6cw5kp39c",
+  authDomain: "h24-online.firebaseapp.com",
+  projectId: "h24-online",
+  storageBucket: "h24-online.firebasestorage.app",
+  messagingSenderId: "808524719613",
+  appId: "1:808524719613:web:7f1abe9e70a346c3376594"
+};
+const fireApp = initializeApp(firebaseConfig);
+const auth = getAuth(fireApp);
+const db = getFirestore(fireApp);
+
+createApp({
+  setup() {
+    const step = ref(1);
+    const addAmount = ref('');
+    const addMethod = ref('');
+    const addTrxId = ref('');
+    const addEpsRef = ref('');
+    const addError = ref('');
+    const addLoading = ref(false);
+    const addSuccess = ref(false);
+    const adminNumbers = ref({ bkash: '', nagad: '', rocket: '' });
+    const quickAmounts = ref([100, 300, 500, 1000]);
+
+    let toastTimer = null;
+    const showToast = (msg) => {
+      const el = document.getElementById('toast-el');
+      if (!el) return;
+      el.textContent = msg;
+      el.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+    };
+
+    const copyNum = (num) => {
+      if (num) { navigator.clipboard.writeText(num).catch(()=>{}); showToast('✅ Copied: ' + num); }
+    };
+
+    const addSelectMethod = (m) => {
+      addMethod.value = m; step.value = 3;
+      addTrxId.value = ''; addEpsRef.value = ''; addError.value = ''; addSuccess.value = false;
+    };
+
+    const submitEpsDeposit = async () => {
+      if (!addEpsRef.value || addEpsRef.value.length < 4) { addError.value = 'EPS Reference নম্বর দিন।'; return; }
+      addLoading.value = true; addError.value = '';
+      try {
+        const uid = localStorage.getItem('userId');
+        await addDoc(collection(db, 'deposits'), {
+          userId: uid, method: 'eps', amount: Number(addAmount.value),
+          epsRef: addEpsRef.value.trim(), status: 'pending', type: 'eps_pending', createdAt: serverTimestamp()
+        });
+        addSuccess.value = true;
+      } catch(e) { addError.value = 'Server error. Try again.'; }
+      finally { addLoading.value = false; }
+    };
+
+    const verifyAddMoney = async () => {
+      if (!addTrxId.value || addTrxId.value.length < 5) { addError.value = '⚠️ সঠিক Transaction ID দিন।'; return; }
+      if (!addAmount.value || Number(addAmount.value) <= 0) { addError.value = '⚠️ Amount দিন।'; return; }
+      addLoading.value = true; addError.value = '';
+      const trxId = addTrxId.value.trim().toUpperCase();
+      const depositAmount = Number(addAmount.value);
+      const uid = localStorage.getItem('userId');
+      try {
+        try {
+          const txSnap = await getDoc(doc(db, 'transactions', trxId));
+          if (txSnap.exists()) {
+            const txData = txSnap.data();
+            if (txData.status === 'used') { addError.value = '⚠️ এই Transaction ID আগেই ব্যবহার হয়েছে।'; return; }
+            if (Number(txData.amount) !== depositAmount) { addError.value = `❌ Amount মিলছে না।`; return; }
+            await runTransaction(db, async (t) => {
+              const freshSnap = await t.get(doc(db, 'transactions', trxId));
+              if (!freshSnap.exists()) throw new Error('Transaction not found');
+              if (freshSnap.data().status === 'used') throw new Error('ALREADY_USED');
+              t.update(doc(db, 'transactions', trxId), { status: 'used', usedBy: uid, usedAt: serverTimestamp() });
+              t.update(doc(db, 'users', uid), { balance: increment(depositAmount) });
+            });
+            await addDoc(collection(db, 'deposits'), { userId: uid, method: addMethod.value, amount: depositAmount, trxId, status: 'approved', type: 'verified', createdAt: serverTimestamp() }).catch(()=>{});
+            await addDoc(collection(db, 'turnovers'), { userId: uid, type: 'deposit', label: `Deposit Turnover (৳${Math.ceil(depositAmount * 0.5)})`, required: Math.ceil(depositAmount * 0.5), done: 0, status: 'active', createdAt: serverTimestamp() }).catch(()=>{});
+            addSuccess.value = true;
+            return;
+          }
+        } catch(fbErr) {
+          if (fbErr.message === 'ALREADY_USED') { addError.value = '⚠️ এই Transaction ID আগেই ব্যবহার হয়েছে।'; return; }
+        }
+        if (!PAYMENT_CONFIG_READY || !PAYMENT_SCRIPT_URL) { addError.value = '❌ Payment verification system setup হয়নি।'; return; }
+        const vRes = await fetch(`${PAYMENT_SCRIPT_URL}?trxID=${trxId}&apiKey=${PAYMENT_CLIENT_KEY}&amount=${depositAmount}`);
+        if (!vRes.ok) { addError.value = '❌ Server error।'; return; }
+        const vData = await vRes.json();
+        if (vData.status === 'success') {
+          await updateDoc(doc(db, 'users', uid), { balance: increment(depositAmount) });
+          await addDoc(collection(db, 'deposits'), { userId: uid, method: addMethod.value, amount: depositAmount, trxId, status: 'approved', type: 'verified', createdAt: serverTimestamp() });
+          await addDoc(collection(db, 'turnovers'), { userId: uid, type: 'deposit', label: `Deposit Turnover (৳${Math.ceil(depositAmount * 0.5)})`, required: Math.ceil(depositAmount * 0.5), done: 0, status: 'active', createdAt: serverTimestamp() });
+          addSuccess.value = true;
+        } else { addError.value = '❌ ' + (vData.message || 'Verification failed.'); }
+      } catch(e) { addError.value = '❌ Internet connection error।'; }
+      finally { addLoading.value = false; }
+    };
+
+    onMounted(async () => {
+      onAuthStateChanged(auth, (user) => { if (!user) window.location.href = 'login.html'; });
+      try { const s = await getDoc(doc(db, 'settings', 'payment')); if (s.exists()) adminNumbers.value = s.data(); } catch(e) {}
+      try { const s = await getDoc(doc(db, 'settings', 'amounts')); if (s.exists() && s.data().depositAmounts) quickAmounts.value = s.data().depositAmounts; } catch(e) {}
+    });
+
+    return { step, addAmount, addMethod, addTrxId, addEpsRef, addError, addLoading, addSuccess, adminNumbers, quickAmounts, addSelectMethod, submitEpsDeposit, verifyAddMoney, copyNum };
+  }
+}).mount('#app');
 </script>
 </body>
 </html>

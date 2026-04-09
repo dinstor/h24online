@@ -3,153 +3,230 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=0, viewport-fit=cover">
-<title>H24ONLINE</title>
-
-<!-- CDNs -->
+<title>H24 ONLINE</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css"/>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Noto+Sans+Bengali:wght@400;600;700&display=swap" rel="stylesheet">
-
-<!-- External CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css"/>
 <link rel="stylesheet" href="assets/css/style.css">
-
-<style>
-/* ── index.html পেজ-স্পেসিফিক স্টাইল ── */
-*{-webkit-tap-highlight-color:transparent;box-sizing:border-box;}
-a,button,div[onclick],[class*="nav-"],[class*="card"],[class*="btn"]{touch-action:manipulation;}
-body{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
-body{font-family:'Outfit','Noto Sans Bengali',sans-serif;background:#0a0a0f;color:#fff;overflow-x:hidden;margin:0;}
-[v-cloak]{display:none!important;}
-::-webkit-scrollbar{width:0;height:0;}
-
-:root{
-  --primary:#6c63ff;
-  --primary-dark:#4c44cc;
-  --accent:#ff6b9d;
-  --gold:#ffd700;
-  --bg:#0a0a0f;
-  --surface:#12121a;
-  --surface2:#1c1c28;
-  --surface3:#252535;
-  --border:rgba(255,255,255,0.08);
-  --text:#ffffff;
-  --text-muted:#8888a8;
-  --text-dim:#555570;
-  --green:#22c55e;
-  --red:#ef4444;
-  --orange:#f97316;
-  --nav-height:64px;
-}
-
-/* স্কেলেটন */
-.sk-block{background:linear-gradient(90deg,var(--surface2) 25%,var(--surface3) 50%,var(--surface2) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px;}
-@keyframes shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
-.sk-banner{height:170px;border-radius:20px;margin-bottom:20px;}
-.sk-checkin{height:72px;border-radius:16px;margin-bottom:16px;}
-.sk-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;}
-.sk-grid-item{height:80px;border-radius:16px;}
-.sk-section-title{height:16px;width:140px;border-radius:6px;margin-bottom:12px;}
-.sk-cards-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
-.sk-cards-3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;}
-.sk-card-tall{height:160px;border-radius:16px;}
-.sk-card-short{height:110px;border-radius:16px;}
-
-/* গ্রেডিয়েন্ট টেক্সট */
-.gradient-text{background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-
-/* কার্ড */
-.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;}
-.card-hover{transition:transform 0.18s,border-color 0.18s;}
-.card-hover:active{transform:scale(0.96);}
-.product-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;cursor:pointer;transition:all 0.2s;}
-.product-card:active{transform:scale(0.95);}
-
-/* সেকশন টাইটেল */
-.section-title{font-size:13px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:1.2px;display:flex;align-items:center;gap:8px;}
-.section-title::after{content:'';flex:1;height:1px;background:var(--border);}
-
-/* নোটিস বার */
-.notice-bar{background:linear-gradient(90deg,var(--primary-dark),#8b5cf6);font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;}
-.notice-scroll{display:inline-flex;animation:scroll-left 25s linear infinite;}
-@keyframes scroll-left{0%{transform:translateX(100vw);}100%{transform:translateX(-100%);}}
-
-/* নেভ বার */
-.nav-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:rgba(10,10,20,0.98);backdrop-filter:blur(20px);border-top:1px solid var(--border);z-index:999;padding-bottom:env(safe-area-inset-bottom);transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);}
-.nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:10px;font-weight:600;color:var(--text-muted);text-decoration:none;padding:10px 4px 8px;cursor:pointer;transition:all 0.2s;letter-spacing:0.3px;}
-.nav-item i{font-size:19px;transition:all 0.25s;}
-.nav-item.active{color:var(--primary);}
-.nav-item.active i{transform:translateY(-1px);}
-.nav-item:active{transform:scale(0.92);}
-.nav-live{color:#fff!important;background:linear-gradient(135deg,#ef4444,#dc2626);border-radius:12px;padding:6px 14px!important;margin-top:6px;}
-.nav-live i{color:#fff!important;}
-.live-dot{width:6px;height:6px;background:#fff;border-radius:50%;display:inline-block;animation:blink 1s infinite;margin-right:3px;}
-@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.3;}}
-
-/* পেজ স্ক্রল */
-.page-scroll{overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(var(--nav-height) + env(safe-area-inset-bottom) + 24px);flex:1;min-height:0;}
-
-/* অ্যাপ হেডার */
-.app-header{background:rgba(10,10,20,0.97);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;}
-#app{max-width:430px;margin:0 auto;min-height:100vh;position:relative;background:var(--bg);}
-
-/* অ্যাভাটার */
-.avatar-ring{background:linear-gradient(135deg,var(--primary),var(--accent));padding:3px;border-radius:50%;}
-.avatar-inner{border-radius:50%;background:var(--surface);padding:3px;overflow:hidden;}
-
-/* ডেইলি চেক-ইন */
-.checkin-banner{background:linear-gradient(135deg,#f97316,#ea580c);border-radius:16px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;position:relative;overflow:hidden;cursor:pointer;}
-.checkin-banner::before{content:'';position:absolute;top:-20px;right:-20px;width:80px;height:80px;background:rgba(255,255,255,0.12);border-radius:50%;}
-.checkin-claim-btn{background:#fff;color:#f97316;font-weight:800;font-size:13px;border:none;border-radius:10px;padding:8px 18px;cursor:pointer;flex-shrink:0;transition:all 0.2s;z-index:1;}
-.checkin-claim-btn:active{transform:scale(0.95);}
-.checkin-claimed{background:rgba(255,255,255,0.3);color:#fff;font-weight:800;font-size:13px;border:none;border-radius:10px;padding:8px 18px;flex-shrink:0;z-index:1;}
-
-/* রিওয়ার্ড ব্যানার */
-.reward-banner{background:linear-gradient(135deg,#1a1a2e,#16213e);border:1px solid rgba(108,99,255,0.2);border-radius:20px;padding:20px;position:relative;overflow:hidden;}
-.reward-banner::before{content:'';position:absolute;top:-50%;right:-20%;width:200px;height:200px;background:radial-gradient(circle,rgba(108,99,255,0.15) 0%,transparent 70%);pointer-events:none;}
-
-/* সোশ্যাল আইকন */
-.social-icon-btn{width:38px;height:38px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);text-decoration:none;transition:all 0.18s;cursor:pointer;position:relative;overflow:hidden;}
-.social-icon-btn:active{transform:scale(0.82);background:rgba(108,99,255,0.18);border-color:var(--primary);color:var(--primary);}
-
-/* টোস্ট */
-.toast-msg{position:fixed;bottom:calc(var(--nav-height) + env(safe-area-inset-bottom) + 16px);left:50%;transform:translateX(-50%) translateY(20px);background:rgba(30,30,46,0.97);border:1px solid rgba(108,99,255,0.35);color:#fff;font-size:13px;font-weight:600;padding:12px 22px;border-radius:40px;white-space:nowrap;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,0.4);pointer-events:none;opacity:0;transition:opacity 0.25s,transform 0.25s;}
-.toast-msg.show{opacity:1;transform:translateX(-50%) translateY(0);}
-
-/* স্লাইডার */
-.swiper-pagination-bullet{width:6px;height:6px;background:rgba(255,255,255,0.3);opacity:1;transition:0.3s;}
-.swiper-pagination-bullet-active{background:var(--primary)!important;width:18px;border-radius:4px;}
-
-/* বাটন */
-.btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;font-weight:700;border:none;border-radius:14px;padding:14px 24px;font-family:inherit;cursor:pointer;transition:all 0.2s;font-size:14px;letter-spacing:0.3px;}
-.btn-primary:active{transform:scale(0.97);}
-
-/* ভিউ ট্রানজিশন */
-.pop-enter-active{transition:all 0.3s ease-out;}
-.pop-leave-active{transition:all 0.2s ease-in;}
-.pop-enter-from,.pop-leave-to{opacity:0;transform:scale(0.92) translateY(20px);}
-@keyframes pulse-ring{0%{transform:scale(1);opacity:0.6;}100%{transform:scale(1.35);opacity:0;}}
-@keyframes spin{to{transform:rotate(360deg);}}
-.spinner{width:20px;height:20px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;display:inline-block;}
-</style>
 </head>
 <body>
-
 <div id="app" v-cloak>
 
   <!-- ── TOAST ── -->
   <div id="toast-el" class="toast-msg"></div>
 
+  <!-- ═══════ POPUP MODAL ═══════ -->
+  <transition name="pop">
+    <div v-if="popup.show" class="modal-overlay" style="align-items:center;z-index:2000;" @click.self="closePopup">
+      <div style="background:var(--surface);border-radius:28px;padding:32px 24px;width:92%;max-width:360px;border:1px solid var(--border);text-align:center;box-shadow:0 24px 80px rgba(0,0,0,0.5);">
+        <div v-if="popup.type==='success'"
+             style="width:72px;height:72px;background:linear-gradient(135deg,rgba(34,197,94,0.2),rgba(34,197,94,0.08));border:2px solid rgba(34,197,94,0.4);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;position:relative;">
+          <i class="fa-solid fa-check" style="font-size:30px;color:#4ade80;"></i>
+          <div style="position:absolute;inset:-6px;border-radius:50%;border:2px solid rgba(34,197,94,0.15);animation:pulse-ring 1.5s ease-out infinite;"></div>
+        </div>
+        <div v-else-if="popup.type==='confirm'"
+             style="width:72px;height:72px;background:rgba(108,99,255,0.15);border:2px solid rgba(108,99,255,0.3);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+          <i class="fa-solid fa-cart-shopping" style="font-size:28px;color:var(--primary);"></i>
+        </div>
+        <div v-else
+             style="width:72px;height:72px;background:rgba(239,68,68,0.12);border:2px solid rgba(239,68,68,0.3);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+          <i class="fa-solid fa-triangle-exclamation" style="font-size:28px;color:#f87171;"></i>
+        </div>
+        <h3 style="font-size:19px;font-weight:800;margin-bottom:10px;">{{ popup.title }}</h3>
+        <p style="font-size:13px;color:var(--text-muted);line-height:1.7;margin-bottom:24px;">{{ popup.msg }}</p>
+        <div v-if="popup.type==='confirm'" style="display:flex;gap:10px;">
+          <button @click="closePopup" class="btn-outline" style="flex:1;padding:12px;">Cancel</button>
+          <button @click="popup.confirm && popup.confirm()" class="btn-primary" style="flex:1;padding:12px;">Confirm</button>
+        </div>
+        <button v-else @click="closePopup"
+                :style="{background: popup.type==='success' ? 'linear-gradient(135deg,#22c55e,#16a34a)' : 'linear-gradient(135deg,#ef4444,#dc2626)'}"
+                style="width:100%;color:#fff;font-weight:800;border:none;border-radius:14px;padding:14px 24px;font-family:inherit;cursor:pointer;font-size:14px;">
+          {{ popup.btnText || 'OK' }}
+        </button>
+      </div>
+    </div>
+  </transition>
+
+  <!-- ═══════ PURCHASE MODAL ═══════ -->
+  <transition name="pop">
+    <div v-if="purchaseModal.show" class="modal-overlay" @click.self="purchaseModal.show=false">
+      <div class="modal-sheet" @click.stop>
+        <span class="modal-handle"></span>
+        <div style="display:flex;gap:12px;align-items:center;margin-bottom:20px;justify-content:space-between;">
+          <div style="display:flex;gap:12px;align-items:center;flex:1;min-width:0;">
+            <img :src="purchaseModal.product.image" @error="imgError" style="width:60px;height:60px;border-radius:14px;object-fit:cover;border:1px solid var(--border);flex-shrink:0;">
+            <div style="min-width:0;">
+              <div style="font-weight:800;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ purchaseModal.product.name }}</div>
+              <div style="font-size:12px;color:var(--text-muted);text-transform:capitalize;margin-top:2px;">{{ purchaseModal.product.category }}</div>
+            </div>
+          </div>
+          <button @click="purchaseModal.show=false" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);flex-shrink:0;margin-left:8px;">
+            <i class="fa-solid fa-xmark" style="font-size:15px;"></i>
+          </button>
+        </div>
+
+        <!-- Step 1: Package -->
+        <div style="margin-bottom:16px;">
+          <div style="font-size:12px;font-weight:700;color:var(--text-muted);display:flex;align-items:center;gap:8px;margin-bottom:10px;"><span class="step-circle">1</span> Select Package</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div v-for="(pack,i) in purchaseModal.packages" :key="i" class="pkg-card" :class="{selected:purchaseModal.selectedPkg&&purchaseModal.selectedPkg.name===pack.name}" @click="purchaseModal.selectedPkg=pack">
+              <div v-if="purchaseModal.selectedPkg&&purchaseModal.selectedPkg.name===pack.name" class="pkg-check"><i class="fa-solid fa-check" style="font-size:10px;"></i></div>
+              <div style="font-weight:700;font-size:13px;margin-bottom:4px;">{{ pack.name }}</div>
+              <div style="color:var(--primary);font-weight:700;font-size:16px;">৳{{ pack.price }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2: Sheet Info -->
+        <div style="margin-bottom:16px;">
+          <div style="font-size:12px;font-weight:700;color:var(--text-muted);display:flex;align-items:center;gap:8px;margin-bottom:10px;"><span class="step-circle">2</span> Sheet Info</div>
+          <select v-model="purchaseModal.playerId" class="round-select">
+            <option value="" disabled>-- Select Sheet No --</option>
+            <option v-for="s in sheetOptions" :key="s.label" :value="s.label">{{ s.label }}</option>
+          </select>
+        </div>
+
+        <!-- Step 3: Round Info -->
+        <div style="margin-bottom:16px;">
+          <div style="font-size:12px;font-weight:700;color:var(--text-muted);display:flex;align-items:center;gap:8px;margin-bottom:10px;"><span class="step-circle" style="background:#f97316;">3</span> Round Info</div>
+          <select v-model="purchaseModal.selectedRound" class="round-select">
+            <option value="" disabled>-- Select Round --</option>
+            <option v-for="r in rounds" :key="r.label" :value="r.label">{{ r.label }}</option>
+          </select>
+        </div>
+
+        <!-- Step 4: Payment -->
+        <div style="margin-bottom:20px;">
+          <div style="font-size:12px;font-weight:700;color:var(--text-muted);display:flex;align-items:center;gap:8px;margin-bottom:10px;"><span class="step-circle">4</span> Payment Method</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
+            <div class="payment-tab" :class="{active:purchaseModal.payMethod==='wallet'}" @click="purchaseModal.payMethod='wallet'">
+              <i class="fa-solid fa-wallet" style="margin-right:4px;"></i> Wallet
+            </div>
+            <div class="payment-tab" :class="{active:purchaseModal.payMethod==='direct'}" @click="purchaseModal.payMethod='direct'">
+              <i class="fa-solid fa-bolt" style="margin-right:4px;"></i> Auto Pay
+            </div>
+            <div class="payment-tab" :class="{active:purchaseModal.payMethod==='eps'}" @click="purchaseModal.payMethod='eps'">
+              <i class="fa-solid fa-credit-card" style="margin-right:4px;"></i> EPS
+            </div>
+          </div>
+
+          <div v-if="purchaseModal.payMethod==='wallet'" style="background:rgba(108,99,255,0.08);border:1px solid rgba(108,99,255,0.2);border-radius:12px;padding:12px;display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div style="font-size:11px;color:var(--text-muted);font-weight:600;">My Balance</div>
+              <div style="font-size:20px;font-weight:800;color:var(--primary);">৳{{ userBalance }}</div>
+            </div>
+            <a href="add-money.html" style="background:var(--primary);color:#fff;font-size:11px;font-weight:700;padding:7px 12px;border-radius:10px;cursor:pointer;text-decoration:none;">+ Deposit</a>
+          </div>
+
+          <div v-if="purchaseModal.payMethod==='direct'">
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;">
+              <div @click="purchaseModal.gateway='bkash'" class="method-card" :class="{selected:purchaseModal.gateway==='bkash'}" style="text-align:center;padding:10px 6px;">
+                <div style="height:28px;display:flex;align-items:center;justify-content:center;margin-bottom:4px;"><span style="background:#e2156a;color:#fff;font-size:11px;font-weight:800;padding:4px 8px;border-radius:6px;">bKash</span></div>
+                <div style="font-size:10px;font-weight:700;">bKash</div>
+              </div>
+              <div @click="purchaseModal.gateway='nagad'" class="method-card" :class="{selected:purchaseModal.gateway==='nagad'}" style="text-align:center;padding:10px 6px;">
+                <div style="height:28px;display:flex;align-items:center;justify-content:center;margin-bottom:4px;"><span style="background:#f47920;color:#fff;font-size:11px;font-weight:800;padding:4px 8px;border-radius:6px;">Nagad</span></div>
+                <div style="font-size:10px;font-weight:700;">Nagad</div>
+              </div>
+              <div @click="purchaseModal.gateway='rocket'" class="method-card" :class="{selected:purchaseModal.gateway==='rocket'}" style="text-align:center;padding:10px 6px;">
+                <div style="height:28px;display:flex;align-items:center;justify-content:center;margin-bottom:4px;"><span style="background:#8b1fa8;color:#fff;font-size:11px;font-weight:800;padding:4px 8px;border-radius:6px;">Rocket</span></div>
+                <div style="font-size:10px;font-weight:700;">Rocket</div>
+              </div>
+            </div>
+            <div class="copy-box" @click="copyNum(adminNumbers[purchaseModal.gateway])" style="margin-bottom:10px;">
+              <div style="font-size:10px;color:var(--primary);font-weight:700;margin-bottom:4px;">SEND MONEY (PERSONAL)</div>
+              <div style="font-size:20px;font-weight:800;letter-spacing:2px;">{{ adminNumbers[purchaseModal.gateway]||'Loading...' }}</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:4px;"><i class="fa-regular fa-copy"></i> Tap to copy</div>
+            </div>
+            <input v-model="purchaseModal.trxId" class="input-field" placeholder="Transaction ID (TrxID)" style="text-transform:uppercase;text-align:center;letter-spacing:2px;font-weight:700;">
+          </div>
+
+          <div v-if="purchaseModal.payMethod==='eps'">
+            <div class="eps-card" style="margin-bottom:12px;" @click="handleEpsPurchaseRedirect">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <div style="width:42px;height:42px;background:rgba(255,255,255,0.12);border-radius:12px;display:flex;align-items:center;justify-content:center;">
+                    <i class="fa-solid fa-shield-halved" style="font-size:20px;color:#4ade80;"></i>
+                  </div>
+                  <div>
+                    <div style="font-weight:800;font-size:15px;color:#fff;">EPS Payment</div>
+                    <div style="font-size:11px;color:rgba(255,255,255,0.6);">Secure Gateway</div>
+                  </div>
+                </div>
+                <div style="background:rgba(34,197,94,0.2);border:1px solid rgba(34,197,94,0.4);border-radius:8px;padding:4px 10px;font-size:10px;font-weight:700;color:#4ade80;">PSO LICENSED</div>
+              </div>
+              <div style="background:rgba(255,255,255,0.1);border-radius:12px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">
+                <div style="font-size:13px;color:rgba(255,255,255,0.8);font-weight:600;">Tap to Open Gateway</div>
+                <i class="fa-solid fa-arrow-right" style="color:#4ade80;font-size:14px;"></i>
+              </div>
+            </div>
+            <input v-model="purchaseModal.epsRef" class="input-field" placeholder="EPS Reference Number" style="letter-spacing:1px;font-weight:700;margin-bottom:10px;">
+            <div class="eps-pending-box">
+              <i class="fa-solid fa-circle-info" style="color:#4ade80;margin-right:6px;"></i>
+              পেমেন্ট সম্পন্ন করার পর Reference নম্বর দিয়ে Submit করুন।
+            </div>
+          </div>
+        </div>
+
+        <div style="border-top:1px solid var(--border);padding-top:16px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+            <span style="color:var(--text-muted);font-size:14px;">Total Payable</span>
+            <span style="font-size:22px;font-weight:800;color:var(--primary);">৳{{ purchaseModal.selectedPkg?purchaseModal.selectedPkg.price:0 }}</span>
+          </div>
+          <button @click="handlePurchaseBuy" class="btn-primary" style="width:100%;" :disabled="purchaseModal.verifying||!purchaseModal.selectedPkg||!purchaseModal.playerId||!purchaseModal.selectedRound">
+            <span v-if="purchaseModal.verifying" class="spinner"></span>
+            <span v-else>
+              <span v-if="purchaseModal.payMethod==='wallet'">Pay from Wallet</span>
+              <span v-else-if="purchaseModal.payMethod==='eps'">Submit Order</span>
+              <span v-else>Verify &amp; Buy</span>
+              <i class="fa-solid fa-arrow-right" style="margin-left:4px;"></i>
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </transition>
+
+  <!-- ═══════ ANNOUNCEMENT MODAL ═══════ -->
+  <transition name="pop">
+    <div v-if="announcementModal" class="modal-overlay" style="z-index:1500;" @click.self="announcementModal=false">
+      <div class="modal-sheet" @click.stop>
+        <span class="modal-handle"></span>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+          <div style="width:46px;height:46px;background:rgba(255,215,0,0.15);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="fa-solid fa-bullhorn" style="font-size:20px;color:var(--gold);"></i>
+          </div>
+          <div>
+            <div style="font-weight:800;font-size:17px;">Announcement</div>
+            <div style="font-size:12px;color:var(--text-muted);">H24 Online থেকে বিজ্ঞপ্তি</div>
+          </div>
+          <button @click="announcementModal=false" style="margin-left:auto;background:var(--surface2);border:1px solid var(--border);border-radius:10px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);flex-shrink:0;">
+            <i class="fa-solid fa-xmark" style="font-size:15px;"></i>
+          </button>
+        </div>
+        <div v-if="announcementLines.length===0" style="text-align:center;padding:30px 0;">
+          <i class="fa-solid fa-bell-slash" style="font-size:40px;color:var(--text-dim);margin-bottom:12px;display:block;"></i>
+          <div style="font-size:15px;font-weight:600;color:var(--text-muted);">এখন কোনো বিজ্ঞপ্তি নেই</div>
+        </div>
+        <div v-else style="display:flex;flex-direction:column;gap:10px;">
+          <div v-for="(line, i) in announcementLines" :key="i"
+               style="background:rgba(255,215,0,0.06);border:1px solid rgba(255,215,0,0.18);border-radius:14px;padding:14px 16px;display:flex;align-items:flex-start;gap:10px;">
+            <span style="width:22px;height:22px;background:rgba(255,215,0,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:800;color:var(--gold);margin-top:1px;">{{ i+1 }}</span>
+            <div style="font-size:14px;color:#fff;line-height:1.6;font-weight:500;">{{ line }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </transition>
+
   <!-- ═══════ HOME PAGE ═══════ -->
   <div style="display:flex;flex-direction:column;height:100vh;">
-
-    <!-- Header -->
-    <header class="app-header" style="flex-shrink:0;">
+    <header class="app-header" style="position:sticky;top:0;flex-shrink:0;">
       <div style="padding:12px 16px;display:flex;justify-content:space-between;align-items:center;">
-        <!-- লোগো + নাম -->
         <div style="display:flex;align-items:center;gap:10px;">
-          <div style="width:36px;height:36px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px;overflow:hidden;flex-shrink:0;">
+          <div style="width:36px;height:36px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px;overflow:hidden;">
             <img v-if="logoUrl" :src="logoUrl" style="width:100%;height:100%;object-fit:cover;border-radius:10px;" @error="logoUrl=''">
             <span v-else>H</span>
           </div>
@@ -158,48 +235,32 @@ body{font-family:'Outfit','Noto Sans Bengali',sans-serif;background:#0a0a0f;colo
             <div style="font-size:10px;color:var(--text-muted);font-weight:500;margin-top:-2px;">H24 Online Platform</div>
           </div>
         </div>
-
-        <!-- লগইন / প্রোফাইল -->
         <div style="display:flex;align-items:center;gap:8px;">
-          <!-- ব্যালেন্স -->
-          <div v-if="isLoggedIn" @click="goProtected('add-money')"
-               style="cursor:pointer;display:flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:6px 10px;touch-action:manipulation;">
+          <div v-if="isLoggedIn" @click="goPage('account.html')" style="cursor:pointer;display:flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:6px 10px;">
             <i class="fa-solid fa-wallet" style="font-size:13px;color:var(--primary);"></i>
             <span style="font-size:13px;font-weight:700;">{{ userBalance }}৳</span>
           </div>
-          <!-- লগইন বাটন -->
-          <div v-if="!isLoggedIn" @click="window.location.href='login.html'"
-               style="cursor:pointer;background:var(--primary);border-radius:10px;padding:7px 14px;font-size:12px;font-weight:700;">
-            Login
-          </div>
-          <!-- প্রোফাইল -->
-          <a v-if="isLoggedIn" href="account.html"
-             style="cursor:pointer;display:flex;align-items:center;gap:8px;text-decoration:none;touch-action:manipulation;">
+          <a v-if="!isLoggedIn" href="login.html" style="cursor:pointer;background:var(--primary);border-radius:10px;padding:7px 14px;font-size:12px;font-weight:700;color:#fff;text-decoration:none;">Login</a>
+          <div v-if="isLoggedIn" @click="goPage('account.html')" style="cursor:pointer;display:flex;align-items:center;gap:8px;touch-action:manipulation;">
             <div style="text-align:right;">
-              <div style="font-size:12px;font-weight:700;color:#fff;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ userName }}</div>
-              <div style="font-size:10px;color:var(--green);display:flex;align-items:center;justify-content:flex-end;gap:3px;">
-                <span style="width:5px;height:5px;background:var(--green);border-radius:50%;display:inline-block;"></span>Online
-              </div>
+              <div style="font-size:12px;font-weight:700;color:#fff;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ userData.name||'User' }}</div>
+              <div style="font-size:10px;color:var(--green);display:flex;align-items:center;justify-content:flex-end;gap:3px;"><span style="width:5px;height:5px;background:var(--green);border-radius:50%;display:inline-block;"></span>Online</div>
             </div>
             <div class="avatar-ring" style="width:36px;height:36px;flex-shrink:0;">
               <div class="avatar-inner" style="width:100%;height:100%;">
                 <img :src="userAvatar" style="width:100%;height:100%;object-fit:cover;">
               </div>
             </div>
-          </a>
+          </div>
         </div>
       </div>
-
-      <!-- নোটিস বার -->
       <div class="notice-bar" style="padding:6px 12px;overflow:hidden;">
         <span class="notice-scroll">📢 {{ noticeMessage }}</span>
       </div>
     </header>
 
-    <!-- Main -->
     <main class="page-scroll" style="padding:16px;">
-
-      <!-- স্কেলেটন লোডিং -->
+      <!-- Skeleton Loading -->
       <div v-if="loading" style="padding:4px 0;">
         <div class="sk-block sk-banner"></div>
         <div class="sk-block sk-checkin"></div>
@@ -223,17 +284,15 @@ body{font-family:'Outfit','Noto Sans Bengali',sans-serif;background:#0a0a0f;colo
       </div>
 
       <div v-else>
-
-        <!-- ── ব্যানার স্লাইডার ── -->
-        <div v-if="banners.length > 0" style="margin-bottom:20px;border-radius:20px;overflow:hidden;">
+        <!-- Banner Swiper -->
+        <div v-if="banners.length>0" style="margin-bottom:20px;border-radius:20px;overflow:hidden;">
           <div class="swiper mySwiper" style="border-radius:20px;">
             <div class="swiper-wrapper">
-              <div class="swiper-slide" v-for="(b, i) in banners" :key="i"
-                   style="position:relative;"
-                   @click="handleBannerClick(b)"
+              <div class="swiper-slide" v-for="(b,i) in banners" :key="i"
+                   style="position:relative;" @click="handleBannerClick(b)"
                    :style="{cursor:(b.productId||b.link)?'pointer':'default'}">
                 <img :src="b.image" style="width:100%;height:170px;object-fit:cover;display:block;">
-                <div v-if="b.productId || b.link"
+                <div v-if="b.productId||b.link"
                      style="position:absolute;bottom:14px;right:14px;background:rgba(108,99,255,0.92);backdrop-filter:blur(6px);color:#fff;font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;letter-spacing:0.4px;display:flex;align-items:center;gap:5px;">
                   <i :class="b.link && !b.productId ? 'fa-solid fa-arrow-up-right-from-square' : 'fa-solid fa-bolt'" style="font-size:10px;"></i>
                   {{ b.link && !b.productId ? 'Visit' : 'Buy Now' }}
@@ -243,251 +302,185 @@ body{font-family:'Outfit','Noto Sans Bengali',sans-serif;background:#0a0a0f;colo
             <div class="swiper-pagination" style="bottom:8px;"></div>
           </div>
         </div>
-
-        <!-- ব্যানার না থাকলে রিওয়ার্ড ব্যানার -->
         <div v-else class="reward-banner" style="margin-bottom:20px;">
           <div style="font-size:11px;font-weight:700;color:var(--primary);letter-spacing:1px;margin-bottom:6px;">🔥 EXCLUSIVE DEALS</div>
           <div style="font-size:20px;font-weight:800;">Top Up Faster,<br><span class="gradient-text">Play Better.</span></div>
           <div style="font-size:12px;color:var(--text-muted);margin-top:8px;">Instant delivery. Best price guaranteed.</div>
         </div>
 
-        <!-- ── ডেইলি চেক-ইন ── -->
-        <div class="checkin-banner" @click="claimDailyBonus">
+        <!-- Daily Check-In -->
+        <div class="checkin-banner">
           <div style="z-index:1;">
             <div style="font-weight:800;font-size:15px;color:#fff;margin-bottom:3px;">Daily Check-In</div>
             <div style="font-size:12px;color:rgba(255,255,255,0.85);">Collect daily bonus</div>
           </div>
-          <button v-if="!checkInClaimed" class="checkin-claim-btn" @click.stop="claimDailyBonus">Claim</button>
+          <button v-if="!checkInClaimed" @click="claimDailyBonus" class="checkin-claim-btn">Claim</button>
           <div v-else class="checkin-claimed">✓ Claimed</div>
         </div>
 
-        <!-- ── কুইক অ্যাকসেস গ্রিড ── -->
+        <!-- Quick Access Grid -->
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;">
-          <div @click="handleProtectedAction('add-money.html')"
-               style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:14px 8px;text-align:center;cursor:pointer;" class="card-hover">
+          <div @click="goProtected('add-money.html')" style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:14px 8px;text-align:center;cursor:pointer;" class="card-hover">
             <div style="width:40px;height:40px;background:rgba(108,99,255,0.15);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;">
               <i class="fa-solid fa-wallet" style="color:var(--primary);font-size:16px;"></i>
             </div>
             <div style="font-size:11px;font-weight:600;color:var(--text-muted);">Deposit</div>
           </div>
-          <div @click="handleProtectedAction('orders.html')"
-               style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:14px 8px;text-align:center;cursor:pointer;" class="card-hover">
+          <div @click="goProtected('orders.html')" style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:14px 8px;text-align:center;cursor:pointer;" class="card-hover">
             <div style="width:40px;height:40px;background:rgba(255,107,157,0.15);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;">
               <i class="fa-solid fa-receipt" style="color:var(--accent);font-size:16px;"></i>
             </div>
             <div style="font-size:11px;font-weight:600;color:var(--text-muted);">My Orders</div>
           </div>
-          <div @click="showAnnouncement"
-               style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:14px 8px;text-align:center;cursor:pointer;position:relative;" class="card-hover">
+          <div @click="announcementModal=true" style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:14px 8px;text-align:center;cursor:pointer;position:relative;" class="card-hover">
             <div style="width:40px;height:40px;background:rgba(255,215,0,0.15);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;">
               <i class="fa-solid fa-bullhorn" style="color:var(--gold);font-size:16px;"></i>
             </div>
             <div style="font-size:11px;font-weight:600;color:var(--text-muted);">Announce</div>
-            <span v-if="announcementLines.length > 0"
-                  style="position:absolute;top:6px;right:6px;width:8px;height:8px;background:#ef4444;border-radius:50%;display:block;"></span>
+            <span v-if="announcementLines.length>0" style="position:absolute;top:6px;right:6px;width:8px;height:8px;background:#ef4444;border-radius:50%;display:block;"></span>
           </div>
-          <div @click="handleProtectedAction('live.html')"
-               style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:14px 8px;text-align:center;cursor:pointer;" class="card-hover">
-            <div style="width:40px;height:40px;background:rgba(239,68,68,0.12);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;">
-              <i class="fa-solid fa-video" style="color:#ef4444;font-size:16px;"></i>
+          <div @click="goProtected('chat.html')" style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:14px 8px;text-align:center;cursor:pointer;" class="card-hover">
+            <div style="width:40px;height:40px;background:rgba(255,215,0,0.12);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;">
+              <i class="fa-solid fa-comments" style="color:var(--gold);font-size:16px;"></i>
             </div>
-            <div style="font-size:11px;font-weight:600;color:var(--text-muted);">Live</div>
+            <div style="font-size:11px;font-weight:600;color:var(--text-muted);">Support</div>
           </div>
         </div>
 
-        <!-- ── MYSTERY BOX ── -->
-        <div v-if="mysteryBoxes.length > 0" style="margin-bottom:20px;">
-          <div class="section-title" style="margin-bottom:12px;">
-            <i class="fa-solid fa-box-open" style="color:var(--accent);"></i> Mystery Box
-          </div>
+        <!-- Mystery Box -->
+        <div v-if="mysteryBoxes.length>0" style="margin-bottom:20px;">
+          <div class="section-title" style="margin-bottom:12px;"><i class="fa-solid fa-box-open" style="color:var(--accent);"></i> Mystery Box</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-            <div v-for="item in mysteryBoxes" :key="item.id"
-                 class="product-card" @click="goToDetails(item.id)">
-              <img :src="item.image" @error="handleImageError" style="width:100%;height:120px;object-fit:cover;">
+            <div v-for="item in mysteryBoxes" :key="item.id" class="product-card" @click="openPurchase(item)">
+              <img :src="item.image" @error="imgError" style="width:100%;height:120px;object-fit:cover;">
               <div style="padding:10px 12px;">
-                <div style="font-weight:700;font-size:13px;margin-bottom:4px;color:var(--text);">{{ item.name }}</div>
-                <div style="font-size:12px;color:var(--primary);font-weight:600;">
-                  From ৳{{ getMinPrice(item) }}
-                </div>
+                <div style="font-weight:700;font-size:13px;margin-bottom:4px;">{{ item.name }}</div>
+                <div style="font-size:12px;color:var(--primary);font-weight:600;">From ৳{{ getMinPrice(item) }}</div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- ── SPECIAL OFFERS ── -->
-        <div v-if="specialOffers.length > 0" style="margin-bottom:20px;">
-          <div class="section-title" style="margin-bottom:12px;">
-            <i class="fa-solid fa-fire" style="color:#f97316;"></i> Special Offers
-          </div>
+        <!-- Special Offers -->
+        <div v-if="specialOffers.length>0" style="margin-bottom:20px;">
+          <div class="section-title" style="margin-bottom:12px;"><i class="fa-solid fa-fire" style="color:#f97316;"></i> Special Offers</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-            <div v-for="item in specialOffers" :key="item.id"
-                 class="product-card" @click="goToDetails(item.id)" style="position:relative;">
-              <img :src="item.image" @error="handleImageError" style="width:100%;height:120px;object-fit:cover;">
+            <div v-for="item in specialOffers" :key="item.id" class="product-card" @click="openPurchase(item)" style="position:relative;">
+              <img :src="item.image" @error="imgError" style="width:100%;height:120px;object-fit:cover;">
               <div style="position:absolute;top:8px;right:8px;background:#f97316;color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;">HOT</div>
               <div style="padding:10px 12px;">
-                <div style="font-weight:700;font-size:13px;margin-bottom:4px;color:var(--text);">{{ item.name }}</div>
-                <div style="font-size:12px;color:var(--accent);font-weight:600;">
-                  From ৳{{ getMinPrice(item) }}
-                </div>
+                <div style="font-weight:700;font-size:13px;margin-bottom:4px;">{{ item.name }}</div>
+                <div style="font-size:12px;color:var(--accent);font-weight:600;">From ৳{{ getMinPrice(item) }}</div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- ── POPULAR GAMES ── -->
-        <div v-if="gameItems.length > 0" style="margin-bottom:20px;">
-          <div class="section-title" style="margin-bottom:12px;">
-            <i class="fa-solid fa-gamepad" style="color:#6366f1;"></i> Popular Games
-          </div>
+        <!-- Popular Games -->
+        <div v-if="gameItems.length>0" style="margin-bottom:20px;">
+          <div class="section-title" style="margin-bottom:12px;"><i class="fa-solid fa-gamepad" style="color:#6366f1;"></i> Popular Games</div>
           <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
-            <div v-for="item in gameItems" :key="item.id"
-                 class="product-card" @click="goToDetails(item.id)" style="padding:10px;text-align:center;">
-              <img :src="item.image" @error="handleImageError" style="width:100%;height:70px;object-fit:contain;border-radius:10px;margin-bottom:8px;">
+            <div v-for="item in gameItems" :key="item.id" class="product-card" @click="openPurchase(item)" style="padding:10px;text-align:center;">
+              <img :src="item.image" @error="imgError" style="width:100%;height:70px;object-fit:contain;border-radius:10px;margin-bottom:8px;">
               <div style="font-size:11px;font-weight:700;color:var(--text);line-height:1.3;">{{ item.name }}</div>
-              <div style="font-size:11px;color:var(--primary);font-weight:600;margin-top:3px;">
-                ৳{{ getMinPrice(item) }}
-              </div>
+              <div style="font-size:11px;color:var(--primary);font-weight:600;margin-top:3px;">৳{{ getMinPrice(item) }}</div>
             </div>
           </div>
         </div>
 
-        <!-- ── CARDS & SUBSCRIPTIONS ── -->
-        <div v-if="otherItems.length > 0" style="margin-bottom:20px;">
-          <div class="section-title" style="margin-bottom:12px;">
-            <i class="fa-solid fa-ticket" style="color:var(--green);"></i> Cards &amp; Subscriptions
-          </div>
+        <!-- Cards & Subscriptions -->
+        <div v-if="otherItems.length>0" style="margin-bottom:20px;">
+          <div class="section-title" style="margin-bottom:12px;"><i class="fa-solid fa-ticket" style="color:var(--green);"></i> Cards &amp; Subscriptions</div>
           <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
-            <div v-for="item in otherItems" :key="item.id"
-                 class="product-card" @click="goToDetails(item.id)" style="padding:10px;text-align:center;">
-              <img :src="item.image" @error="handleImageError" style="width:100%;height:70px;object-fit:contain;border-radius:10px;margin-bottom:8px;">
-              <div style="font-size:11px;font-weight:700;color:var(--text);line-height:1.3;">{{ item.name }}</div>
-              <div style="font-size:11px;color:var(--green);font-weight:600;margin-top:3px;">
-                ৳{{ getMinPrice(item) }}
-              </div>
+            <div v-for="item in otherItems" :key="item.id" class="product-card" @click="openPurchase(item)" style="padding:10px;text-align:center;">
+              <img :src="item.image" @error="imgError" style="width:100%;height:70px;object-fit:contain;border-radius:10px;margin-bottom:8px;">
+              <div style="font-size:11px;font-weight:700;line-height:1.3;">{{ item.name }}</div>
+              <div style="font-size:11px;color:var(--green);font-weight:600;margin-top:3px;">৳{{ getMinPrice(item) }}</div>
             </div>
           </div>
         </div>
 
-        <!-- খালি স্টেট -->
-        <div v-if="!loading && gameItems.length===0 && otherItems.length===0 && mysteryBoxes.length===0 && specialOffers.length===0"
-             style="text-align:center;padding:40px 20px;">
+        <div v-if="!loading && gameItems.length===0 && otherItems.length===0 && mysteryBoxes.length===0 && specialOffers.length===0" style="text-align:center;padding:40px 20px;">
           <i class="fa-solid fa-store" style="font-size:48px;color:var(--text-dim);margin-bottom:16px;display:block;"></i>
           <div style="font-size:16px;font-weight:700;color:var(--text-muted);">Products Loading...</div>
         </div>
 
-        <!-- ── ফুটার ── -->
+        <!-- Footer -->
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:20px;margin-top:10px;text-align:center;">
           <div style="font-size:18px;font-weight:800;margin-bottom:4px;">H24 <span class="gradient-text">ONLINE</span></div>
           <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">H24 Online Platform</div>
           <div style="display:flex;justify-content:center;gap:10px;margin-bottom:16px;">
-            <a v-for="(url, platform) in socials" :key="platform"
-               :href="getSocialLink(url)" target="_blank" class="social-icon-btn">
-              <i :class="iconMap[platform] || 'fa-brands fa-link'" style="font-size:15px;"></i>
+            <a v-for="(url,platform) in socials" :key="platform" :href="openSocialLink(url)" target="_blank" class="social-icon-btn">
+              <i :class="iconMap[platform]||'fa-brands fa-link'" style="font-size:15px;"></i>
             </a>
           </div>
-          <div style="font-size:11px;color:var(--text-dim);border-top:1px solid var(--border);padding-top:12px;">
-            © H24 Online 2026 · All Rights Reserved
-          </div>
+          <div style="font-size:11px;color:var(--text-dim);border-top:1px solid var(--border);padding-top:12px;">© H24 Online 2026 · All Rights Reserved</div>
         </div>
-
-      </div><!-- v-else end -->
+      </div>
     </main>
   </div>
 
-  <!-- ═══════ ANNOUNCEMENT MODAL ═══════ -->
-  <transition name="pop">
-    <div v-if="announcementModal"
-         style="position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);z-index:1500;display:flex;align-items:flex-end;justify-content:center;"
-         @click.self="announcementModal=false">
-      <div style="background:var(--surface);border-radius:24px 24px 0 0;width:100%;max-width:430px;padding:24px 24px 32px;border-top:1px solid var(--border);max-height:85vh;overflow-y:auto;" @click.stop>
-        <span style="width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px;display:block;"></span>
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
-          <div style="width:46px;height:46px;background:rgba(255,215,0,0.15);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <i class="fa-solid fa-bullhorn" style="font-size:20px;color:var(--gold);"></i>
-          </div>
-          <div>
-            <div style="font-weight:800;font-size:17px;">Announcement</div>
-            <div style="font-size:12px;color:var(--text-muted);">H24 Online থেকে বিজ্ঞপ্তি</div>
-          </div>
-          <button @click="announcementModal=false"
-                  style="margin-left:auto;background:var(--surface2);border:1px solid var(--border);border-radius:10px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);flex-shrink:0;">
-            <i class="fa-solid fa-xmark" style="font-size:15px;"></i>
-          </button>
-        </div>
-        <div v-if="announcementLines.length === 0" style="text-align:center;padding:30px 0;">
-          <i class="fa-solid fa-bell-slash" style="font-size:40px;color:var(--text-dim);margin-bottom:12px;display:block;"></i>
-          <div style="font-size:15px;font-weight:600;color:var(--text-muted);">এখন কোনো বিজ্ঞপ্তি নেই</div>
-        </div>
-        <div v-else style="display:flex;flex-direction:column;gap:10px;">
-          <div v-for="(line, i) in announcementLines" :key="i"
-               style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:14px 16px;font-size:14px;color:var(--text);line-height:1.6;">
-            {{ line }}
-          </div>
-        </div>
-      </div>
-    </div>
-  </transition>
-
   <!-- ═══════ BOTTOM NAV ═══════ -->
-  <div class="nav-bar">
+  <div class="nav-bar" :class="{'nav-hidden':navHidden}">
     <div style="display:grid;grid-template-columns:repeat(5,1fr);height:60px;">
       <a href="index.html" class="nav-item active">
         <i class="fa-solid fa-house"></i><span>Home</span>
       </a>
-      <a :href="isLoggedIn ? 'add-money.html' : 'login.html'" class="nav-item">
+      <div @click="goProtected('add-money.html')" class="nav-item">
         <i class="fa-solid fa-wallet"></i><span>Deposit</span>
-      </a>
-      <!-- LIVE বাটন (মাঝখানে) -->
-      <a href="live.html"
-         class="nav-item nav-live"
-         style="flex-direction:row;font-size:12px;gap:3px;padding:0!important;margin:8px 6px;touch-action:manipulation;">
+      </div>
+      <a href="live.html" class="nav-item nav-live" style="flex-direction:row;font-size:12px;gap:3px;padding:0!important;margin:8px 6px;touch-action:manipulation;">
         <span class="live-dot"></span><span style="font-size:12px;font-weight:800;">LIVE</span>
       </a>
-      <a :href="isLoggedIn ? 'orders.html' : 'login.html'" class="nav-item">
+      <div @click="goProtected('orders.html')" class="nav-item">
         <i class="fa-solid fa-receipt"></i><span>Orders</span>
-      </a>
-      <a :href="isLoggedIn ? 'account.html' : 'login.html'" class="nav-item">
+      </div>
+      <div @click="goProtected('account.html')" class="nav-item">
         <i class="fa-solid fa-user"></i><span>Account</span>
-      </a>
+      </div>
     </div>
   </div>
 
-</div><!-- #app end -->
+</div>
 
-<!-- Swiper JS -->
 <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
-
-<!-- Vue & Firebase -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, collection, getDocs, doc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, collection, getDocs, query, where, addDoc, updateDoc, increment, runTransaction, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { createApp, ref, onMounted, nextTick } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
 
-// ── Firebase Config (H24 Online) ──
+const EPS_PAYMENT_URL = "https://pg.eps.com.bd/PaymentLink?id=D37C6FF8";
+let PAYMENT_SCRIPT_URL = null;
+let PAYMENT_CLIENT_KEY = null;
+let PAYMENT_CONFIG_READY = false;
+const FIRESTORE_REST_BASE = `https://firestore.googleapis.com/v1/projects/h24-online/databases/(default)/documents`;
+
+async function loadPaymentConfig() {
+  try {
+    const res = await fetch(`${FIRESTORE_REST_BASE}/AppConfig/payment_config`);
+    if (res.ok) {
+      const data = await res.json();
+      const fields = data.fields || {};
+      PAYMENT_SCRIPT_URL = fields.script_url?.stringValue || null;
+      PAYMENT_CLIENT_KEY = fields.api_key?.stringValue || null;
+      if (PAYMENT_SCRIPT_URL) PAYMENT_CONFIG_READY = true;
+    }
+  } catch (e) {}
+}
+loadPaymentConfig();
+
 const firebaseConfig = {
   apiKey: "AIzaSyCZWRcCP0hXTkfQoRhqxczgdD6cw5kp39c",
   authDomain: "h24-online.firebaseapp.com",
-  databaseURL: "https://h24-online-default-rtdb.firebaseio.com",
   projectId: "h24-online",
   storageBucket: "h24-online.firebasestorage.app",
   messagingSenderId: "808524719613",
   appId: "1:808524719613:web:7f1abe9e70a346c3376594"
 };
-
 const fireApp = initializeApp(firebaseConfig);
 const auth = getAuth(fireApp);
 const db = getFirestore(fireApp);
-
-// ── সোশ্যাল আইকন ম্যাপ ──
-const ICON_MAP = {
-  facebook: 'fa-brands fa-facebook',
-  whatsapp: 'fa-brands fa-whatsapp',
-  instagram: 'fa-brands fa-instagram',
-  youtube: 'fa-brands fa-youtube',
-  telegram: 'fa-brands fa-telegram',
-  tiktok: 'fa-brands fa-tiktok',
-};
 
 createApp({
   setup() {
@@ -495,198 +488,323 @@ createApp({
     const isLoggedIn = ref(false);
     const userBalance = ref(0);
     const userAvatar = ref('https://i.pravatar.cc/150?img=12');
-    const userName = ref('User');
-    const logoUrl = ref('');
+    const userData = ref({});
     const noticeMessage = ref('আমাদের H24 Online স্টোরে আপনাকে স্বাগতম! সেরা দামে গেম টপআপ করুন।');
+    const logoUrl = ref('');
     const banners = ref([]);
-    const socials = ref({});
-    const iconMap = ref(ICON_MAP);
-
-    // ক্যাটাগরি অনুযায়ী প্রোডাক্ট
     const mysteryBoxes = ref([]);
     const specialOffers = ref([]);
     const gameItems = ref([]);
     const otherItems = ref([]);
-
-    // অ্যানাউন্সমেন্ট
+    const socials = ref({});
+    const adminNumbers = ref({ bkash: '', nagad: '', rocket: '' });
     const announcementLines = ref([]);
     const announcementModal = ref(false);
-
-    // ডেইলি চেক-ইন
     const checkInClaimed = ref(false);
+    const navHidden = ref(false);
+    const rounds = ref([]);
+    const sheetOptions = ref([]);
 
-    // ── টোস্ট ──
-    const showToast = (msg) => {
+    const popup = ref({ show: false, type: '', title: '', msg: '', btnText: 'OK', confirm: null });
+    const purchaseModal = ref({
+      show: false, product: {}, packages: [], selectedPkg: null,
+      playerId: '', selectedRound: '', payMethod: 'wallet',
+      gateway: 'bkash', trxId: '', epsRef: '', verifying: false
+    });
+
+    const iconMap = {
+      facebook: 'fa-brands fa-facebook-f', instagram: 'fa-brands fa-instagram',
+      tiktok: 'fa-brands fa-tiktok', youtube: 'fa-brands fa-youtube',
+      telegram: 'fa-brands fa-telegram', whatsapp: 'fa-brands fa-whatsapp'
+    };
+
+    let toastTimer = null;
+    const showToast = (msg, duration = 2200) => {
       const el = document.getElementById('toast-el');
       if (!el) return;
       el.textContent = msg;
       el.classList.add('show');
-      setTimeout(() => el.classList.remove('show'), 2500);
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.remove('show'), duration);
     };
 
-    // ── প্রোটেক্টেড অ্যাকশন ──
-    const handleProtectedAction = (url) => {
-      if (isLoggedIn.value) {
-        window.location.href = url;
-      } else {
-        window.location.href = 'login.html';
-      }
+    const goPage = (url) => { window.location.href = url; };
+    const goProtected = (url) => {
+      if (!isLoggedIn.value) { window.location.href = 'login.html'; return; }
+      window.location.href = url;
     };
 
-    // ── ডিটেইলস পেজে যাও ──
-    const goToDetails = (id) => {
-      if (id) window.location.href = `details.html?id=${id}`;
-    };
-
-    // ── ইমেজ এরর হ্যান্ডলার ──
-    const handleImageError = (e) => {
-      e.target.src = 'https://placehold.co/400x400/1c1c28/8888a8?text=No+Image';
-    };
-
-    // ── সর্বনিম্ন মূল্য ──
-    const getMinPrice = (item) => {
-      if (!item) return 0;
-      if (item.packages && item.packages.length > 0) {
-        return Math.min(...item.packages.map(p => p.price));
-      }
-      return item.price || 0;
-    };
-
-    // ── ব্যানার ক্লিক ──
-    const handleBannerClick = (b) => {
-      if (b.productId) {
-        window.location.href = `details.html?id=${b.productId}`;
-      } else if (b.link) {
-        window.open(b.link, '_blank');
-      }
-    };
-
-    // ── সোশ্যাল লিংক ──
-    const getSocialLink = (url) => {
+    const openSocialLink = (url) => {
       if (!url) return '#';
-      if (url.startsWith('http')) return url;
+      if (url.startsWith('http://') || url.startsWith('https://')) return url;
+      if (url.startsWith('whatsapp://')) {
+        const m = url.match(/phone=(\d+)/);
+        return m ? `https://wa.me/${m[1]}` : 'https://wa.me';
+      }
+      if (url.startsWith('tg://')) return url.replace('tg://resolve?domain=', 'https://t.me/');
       return 'https://' + url;
     };
 
-    // ── অ্যানাউন্সমেন্ট দেখাও ──
-    const showAnnouncement = () => {
-      announcementModal.value = true;
+    const showPopup = (type, title, msg, btnText = 'OK', confirm = null) => {
+      popup.value = { show: true, type, title, msg, btnText, confirm };
+    };
+    const closePopup = () => {
+      if (popup.value.btnText === 'Deposit') { popup.value.show = false; goPage('add-money.html'); }
+      else if (popup.value.btnText === 'Orders') { popup.value.show = false; goPage('orders.html'); }
+      else { popup.value.show = false; }
     };
 
-    // ── ডেইলি বোনাস (স্টাব — মেইন ফাইলে ফুল লজিক আছে) ──
-    const claimDailyBonus = () => {
-      if (checkInClaimed.value) return;
-      if (!isLoggedIn.value) {
-        window.location.href = 'login.html';
-        return;
-      }
-      showToast('Daily bonus claimed! ✅');
-      checkInClaimed.value = true;
+    const imgError = (e) => { e.target.src = 'https://placehold.co/400x400/1c1c28/6c63ff?text=H24'; };
+    const getMinPrice = (item) => {
+      if (item.packages && item.packages.length > 0) return Math.min(...item.packages.map(p => p.price));
+      return item.price || 0;
     };
 
-    // ── Auth স্টেট ──
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        isLoggedIn.value = true;
-        onSnapshot(doc(db, 'users', user.uid), (snap) => {
-          if (snap.exists()) {
-            userBalance.value = snap.data().balance || 0;
-            userAvatar.value = snap.data().photoURL || 'https://i.pravatar.cc/150?img=12';
-            userName.value = snap.data().name || snap.data().displayName || 'User';
-            // ডেইলি চেক-ইন চেক
-            const today = new Date().toISOString().split('T')[0];
-            if (snap.data().lastCheckIn === today) {
-              checkInClaimed.value = true;
-            }
-          }
-        });
-      } else {
-        isLoggedIn.value = false;
-        userBalance.value = 0;
+    const handleBannerClick = (banner) => {
+      if (!banner) return;
+      if (banner.productId) {
+        const allProducts = [...mysteryBoxes.value, ...specialOffers.value, ...gameItems.value, ...otherItems.value];
+        const product = allProducts.find(p => p.id === banner.productId);
+        if (product) { openPurchase(product); return; }
       }
-    });
+      if (banner.link) { window.open(openSocialLink(banner.link), '_blank'); }
+    };
 
-    // ── ডেটা ফেচ ──
-    const fetchData = async () => {
+    const openPurchase = (item) => {
+      if (!isLoggedIn.value) { goPage('login.html'); return; }
+      purchaseModal.value = {
+        show: true, product: item,
+        packages: item.packages && item.packages.length > 0 ? item.packages : [{ name: 'Default', price: item.price || 0 }],
+        selectedPkg: null, playerId: '', selectedRound: '',
+        payMethod: 'wallet', gateway: 'bkash', trxId: '', epsRef: '', verifying: false
+      };
+    };
+
+    const handleEpsPurchaseRedirect = () => {
+      if (!purchaseModal.value.selectedPkg) { showPopup('error','Select Package','Please choose a package first.'); return; }
+      window.open(EPS_PAYMENT_URL, '_blank');
+    };
+
+    const copyNum = (num) => {
+      if (num) { navigator.clipboard.writeText(num).catch(()=>{}); showToast('✅ Copied: ' + num); }
+    };
+
+    const addReferralCommission = async (buyerUid, orderPrice) => {
       try {
-        // নোটিস
-        try {
-          const nSnap = await getDoc(doc(db, 'settings', 'notice'));
-          if (nSnap.exists()) noticeMessage.value = nSnap.data().text;
-        } catch (e) {}
+        const buyerSnap = await getDoc(doc(db, 'users', buyerUid));
+        if (!buyerSnap.exists()) return;
+        const referredBy = buyerSnap.data().referredBy;
+        if (!referredBy) return;
+        const refQuery = query(collection(db, 'users'), where('referralCode', '==', referredBy));
+        const refSnap = await getDocs(refQuery);
+        if (refSnap.empty) return;
+        const referrerId = refSnap.docs[0].id;
+        const commission = Math.floor(orderPrice * 0.10);
+        if (commission <= 0) return;
+        await updateDoc(doc(db, 'users', referrerId), { balance: increment(commission) });
+        const refDocRef = doc(db, 'referrals', referrerId);
+        const refDoc = await getDoc(refDocRef);
+        if (refDoc.exists()) { await updateDoc(refDocRef, { totalEarned: increment(commission) }); }
+        else { await setDoc(refDocRef, { totalRefs: 0, totalEarned: commission }); }
+        await addDoc(collection(db, 'balanceLogs'), { userId: referrerId, type: 'referral', amount: commission, note: 'Refer Bonus', createdAt: serverTimestamp() });
+      } catch (e) {}
+    };
 
-        // অ্যানাউন্সমেন্ট
+    const updateTurnoverProgress = async (uid, spentAmount) => {
+      try {
+        const snap = await getDocs(query(collection(db, 'turnovers'), where('userId', '==', uid), where('status', '==', 'active')));
+        let remaining = spentAmount;
+        for (const d of snap.docs) {
+          if (remaining <= 0) break;
+          const data = d.data();
+          const needed = data.required - (data.done || 0);
+          if (needed <= 0) { await updateDoc(doc(db, 'turnovers', d.id), { status: 'completed', done: data.required }); continue; }
+          const toAdd = Math.min(remaining, needed);
+          const newDone = (data.done || 0) + toAdd;
+          if (newDone >= data.required) { await updateDoc(doc(db, 'turnovers', d.id), { done: data.required, status: 'completed' }); }
+          else { await updateDoc(doc(db, 'turnovers', d.id), { done: newDone }); }
+          remaining -= toAdd;
+        }
+      } catch (e) {}
+    };
+
+    const handlePurchaseBuy = async () => {
+      const pm = purchaseModal.value;
+      if (!pm.selectedPkg) return showPopup('error', 'Select Package', 'Please choose a package.');
+      if (!pm.playerId) return showPopup('error', 'Missing Info', 'Sheet No দিন।');
+      if (!pm.selectedRound) return showPopup('error', 'Select Round', 'Round select করুন।');
+      const uid = localStorage.getItem('userId');
+      const orderData = {
+        userId: uid, packageName: pm.selectedPkg.name, price: pm.selectedPkg.price,
+        playerId: pm.playerId, sheetInfo: pm.playerId,
+        selectedRound: pm.selectedRound, roundInfo: pm.selectedRound,
+        productName: pm.product.name, category: pm.product.category,
+        createdAt: serverTimestamp()
+      };
+      if (pm.payMethod === 'wallet') {
+        if (userBalance.value < pm.selectedPkg.price) return showPopup('error', 'Low Balance', 'Insufficient balance.', 'Deposit');
+        showPopup('confirm', 'Confirm Purchase', `Deduct ৳${pm.selectedPkg.price} from wallet?`, 'Confirm', async () => {
+          popup.value.show = false;
+          purchaseModal.value.show = false;
+          try {
+            await runTransaction(db, async (t) => {
+              const uRef = doc(db, 'users', uid);
+              const uDoc = await t.get(uRef);
+              if (uDoc.data().balance < pm.selectedPkg.price) throw 'Low Balance';
+              t.update(uRef, { balance: uDoc.data().balance - pm.selectedPkg.price });
+              t.set(doc(collection(db, 'orders')), { ...orderData, status: 'pending', paymentMethod: 'wallet' });
+            });
+            await addReferralCommission(uid, pm.selectedPkg.price);
+            await updateTurnoverProgress(uid, pm.selectedPkg.price);
+            showPopup('success', 'Order Placed!', 'Your order is pending for delivery.', 'Orders');
+          } catch (e) { showPopup('error', 'Failed', 'Transaction failed. Try again.'); }
+        });
+      } else if (pm.payMethod === 'direct') {
+        if (!pm.trxId || pm.trxId.length < 5) return showPopup('error', 'Invalid TrxID', 'সঠিক Transaction ID দিন।');
+        pm.verifying = true;
         try {
-          const annSnap = await getDoc(doc(db, 'settings', 'announcement'));
-          if (annSnap.exists() && annSnap.data().lines) {
-            announcementLines.value = annSnap.data().lines || [];
+          const trxId = pm.trxId.trim().toUpperCase();
+          const price = pm.selectedPkg.price;
+          let verifyOk = false, verifyMsg = '';
+          try {
+            const txSnap = await getDoc(doc(db, 'transactions', trxId));
+            if (txSnap.exists()) {
+              const txData = txSnap.data();
+              if (txData.status === 'used') { verifyMsg = 'এই TrxID আগেই ব্যবহার হয়েছে।'; }
+              else if (Number(txData.amount) !== price) { verifyMsg = `Amount মিলছে না।`; }
+              else { await updateDoc(doc(db, 'transactions', trxId), { status: 'used', usedBy: uid, usedAt: serverTimestamp() }); verifyOk = true; }
+            }
+          } catch (fe) {}
+          if (!verifyOk && !verifyMsg && PAYMENT_CONFIG_READY && PAYMENT_SCRIPT_URL) {
+            try {
+              const vRes = await fetch(`${PAYMENT_SCRIPT_URL}?trxID=${trxId}&apiKey=${PAYMENT_CLIENT_KEY}&amount=${price}`);
+              if (vRes.ok) { const vData = await vRes.json(); verifyOk = vData.status === 'success'; verifyMsg = vData.message || ''; }
+            } catch (fe) {}
           }
-        } catch (e) {}
-
-        // লোগো
+          if (verifyOk) {
+            await addDoc(collection(db, 'orders'), { ...orderData, status: 'processing', paymentMethod: pm.gateway + '_auto', trxId, isAutoVerified: true });
+            await addReferralCommission(uid, price);
+            pm.show = false;
+            showPopup('success', 'Payment Verified! ✅', 'আপনার অর্ডার সম্পন্ন হয়েছে।', 'Orders');
+          } else { showPopup('error', 'Verification Failed ❌', verifyMsg || 'TrxID মিলছে না।'); }
+        } catch (e) { showPopup('error', 'Error', 'Connection failed. Try again.'); }
+        finally { pm.verifying = false; }
+      } else if (pm.payMethod === 'eps') {
+        if (!pm.epsRef || pm.epsRef.length < 4) return showPopup('error', 'EPS Reference', 'EPS Reference নম্বর দিন।');
+        pm.verifying = true;
         try {
-          const logoSnap = await getDoc(doc(db, 'settings', 'logo'));
-          if (logoSnap.exists()) logoUrl.value = logoSnap.data().url || '';
-        } catch (e) {}
+          await addDoc(collection(db, 'orders'), { ...orderData, status: 'pending', paymentMethod: 'eps', epsRef: pm.epsRef.trim(), isEps: true });
+          pm.show = false;
+          showPopup('success', 'Order Submitted!', 'EPS পেমেন্ট যাচাই হলে অর্ডার প্রসেস হবে।', 'Orders');
+        } catch (e) { showPopup('error', 'Error', 'Order submit failed. Try again.'); }
+        finally { pm.verifying = false; }
+      }
+    };
 
-        // সোশ্যাল লিংক
-        try {
-          const sSnap = await getDoc(doc(db, 'admin', 'settings'));
-          if (sSnap.exists()) socials.value = sSnap.data();
-        } catch (e) {}
+    const claimDailyBonus = async () => {
+      if (!isLoggedIn.value) { goPage('login.html'); return; }
+      if (checkInClaimed.value) return;
+      const user = auth.currentUser;
+      if (!user) { goPage('login.html'); return; }
+      const uid = user.uid;
+      const today = new Date().toISOString().slice(0, 10);
+      const checkinRef = doc(db, 'checkins', `${uid}_${today}`);
+      try {
+        const snap = await getDoc(checkinRef);
+        if (snap.exists()) { checkInClaimed.value = true; showPopup('error', 'Already Claimed', 'আজকের বোনাস আগেই নেওয়া হয়েছে।'); return; }
+        await setDoc(checkinRef, { userId: uid, date: today, amount: 10, claimedAt: serverTimestamp() });
+        await updateDoc(doc(db, 'users', uid), { balance: increment(10) });
+        await addDoc(collection(db, 'balanceLogs'), { userId: uid, type: 'daily_bonus', amount: 10, note: 'Daily Check-In', createdAt: serverTimestamp() });
+        await addDoc(collection(db, 'turnovers'), { userId: uid, type: 'daily_bonus', label: 'Daily Bonus Turnover (৳10)', required: 10, done: 0, status: 'active', createdAt: serverTimestamp() });
+        checkInClaimed.value = true;
+        showPopup('success', 'বোনাস পেয়েছেন! 🎉', '৳১০ আপনার ওয়ালেটে যোগ হয়েছে।');
+      } catch (e) { showPopup('error', 'Error', 'কিছু সমস্যা হয়েছে।'); }
+    };
 
-        // প্রোডাক্ট — ক্যাটাগরি অনুযায়ী সর্ট
+    onMounted(async () => {
+      document.addEventListener('touchstart', (e) => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
+      let lastTouchEnd = 0;
+      document.addEventListener('touchend', (e) => { const now = Date.now(); if (now - lastTouchEnd < 300) e.preventDefault(); lastTouchEnd = now; }, { passive: false });
+      document.addEventListener('gesturestart', (e) => { e.preventDefault(); }, { passive: false });
+
+      let lastScrollY = 0;
+      document.addEventListener('scroll', (e) => {
+        if (e.target && e.target.classList && e.target.classList.contains('page-scroll')) {
+          const currentY = e.target.scrollTop;
+          if (currentY > lastScrollY + 8 && currentY > 50) { navHidden.value = true; }
+          else if (currentY < lastScrollY - 8 || currentY < 10) { navHidden.value = false; }
+          lastScrollY = currentY;
+        }
+      }, true);
+
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          isLoggedIn.value = true;
+          localStorage.setItem('userId', user.uid);
+          updateDoc(doc(db, 'users', user.uid), { isOnline: true, lastSeen: serverTimestamp() }).catch(()=>{});
+          onSnapshot(doc(db, 'users', user.uid), (d) => {
+            if (d.exists()) {
+              userBalance.value = d.data().balance || 0;
+              userAvatar.value = d.data().photoURL || 'https://i.pravatar.cc/150?img=12';
+              userData.value = d.data();
+            }
+          });
+          const today = new Date().toISOString().slice(0, 10);
+          getDoc(doc(db, 'checkins', `${user.uid}_${today}`)).then(s => { checkInClaimed.value = s.exists(); }).catch(()=>{});
+        } else { isLoggedIn.value = false; }
+      });
+
+      // Load settings
+      try { const s = await getDoc(doc(db, 'settings', 'notice')); if (s.exists()) noticeMessage.value = s.data().text; } catch(e) {}
+      try { const s = await getDoc(doc(db, 'settings', 'announcement')); if (s.exists()) announcementLines.value = s.data().lines || []; } catch(e) {}
+      try { const s = await getDoc(doc(db, 'settings', 'logo')); if (s.exists()) logoUrl.value = s.data().url || ''; } catch(e) {}
+      try { const s = await getDoc(doc(db, 'settings', 'payment')); if (s.exists()) adminNumbers.value = s.data(); } catch(e) {}
+      try { const s = await getDoc(doc(db, 'admin', 'settings')); if (s.exists()) socials.value = s.data(); } catch(e) {}
+      try {
+        const s = await getDoc(doc(db, 'settings', 'rounds'));
+        if (s.exists() && s.data().list) { rounds.value = s.data().list; }
+        const ss = await getDoc(doc(db, 'settings', 'sheetInfo'));
+        if (ss.exists() && ss.data().list) { sheetOptions.value = ss.data().list; }
+      } catch(e) {}
+
+      // Load products
+      try {
         const prodSnap = await getDocs(collection(db, 'products'));
-        prodSnap.forEach((d) => {
+        prodSnap.forEach(d => {
           const item = { id: d.id, ...d.data() };
           const cat = item.category;
           if (cat === 'mystery') mysteryBoxes.value.push(item);
           else if (cat === 'special') specialOffers.value.push(item);
           else if (cat === 'freefire' || cat === 'ingame') gameItems.value.push(item);
           else if (cat === 'shell' || cat === 'giftcard' || cat === 'subscription') otherItems.value.push(item);
-          else gameItems.value.push(item); // ডিফল্ট ফলব্যাক
+          else gameItems.value.push(item);
         });
-
-        // ব্যানার
         const bannerSnap = await getDocs(collection(db, 'banners'));
-        banners.value = bannerSnap.docs.map(d => ({
-          image: d.data().image || '',
-          link: d.data().link || '',
-          productId: d.data().productId || ''
-        }));
+        banners.value = bannerSnap.docs.map(d => ({ image: d.data().image || '', link: d.data().link || '', productId: d.data().productId || '' }));
+      } catch(e) {}
 
-        loading.value = false;
-
-        await nextTick();
-        if (banners.value.length > 0) {
-          setTimeout(() => {
-            new Swiper('.mySwiper', {
-              loop: true,
-              autoplay: { delay: 3500, disableOnInteraction: false },
-              pagination: { el: '.swiper-pagination', clickable: true },
-            });
-          }, 300);
-        }
-
-      } catch (error) {
-        console.error('Fetch error:', error);
-        loading.value = false;
+      loading.value = false;
+      await nextTick();
+      if (banners.value.length > 0) {
+        setTimeout(() => {
+          new Swiper('.mySwiper', {
+            loop: true, autoplay: { delay: 3500, disableOnInteraction: false },
+            pagination: { el: '.swiper-pagination', clickable: true }
+          });
+        }, 300);
       }
-    };
-
-    onMounted(() => {
-      fetchData();
     });
 
     return {
-      loading, isLoggedIn, userBalance, userAvatar, userName, logoUrl,
-      noticeMessage, banners, socials, iconMap,
-      mysteryBoxes, specialOffers, gameItems, otherItems,
-      announcementLines, announcementModal,
-      checkInClaimed,
-      goToDetails, handleImageError, handleProtectedAction,
-      getMinPrice, handleBannerClick, getSocialLink,
-      showAnnouncement, claimDailyBonus,
+      loading, isLoggedIn, userBalance, userAvatar, userData,
+      noticeMessage, logoUrl, banners, mysteryBoxes, specialOffers, gameItems, otherItems,
+      socials, iconMap, adminNumbers, announcementLines, announcementModal,
+      checkInClaimed, navHidden, rounds, sheetOptions,
+      popup, purchaseModal,
+      goPage, goProtected, openSocialLink, showToast,
+      showPopup, closePopup, imgError, getMinPrice,
+      handleBannerClick, openPurchase, handlePurchaseBuy, handleEpsPurchaseRedirect,
+      claimDailyBonus, copyNum
     };
   }
 }).mount('#app');

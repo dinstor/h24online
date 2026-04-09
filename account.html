@@ -1,378 +1,410 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=0, viewport-fit=cover">
-    <title>My Account - H24 ONLINE</title>
-
-    <!-- CDNs -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Noto+Sans+Bengali:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-
-    <style>
-        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
-        a, button, div[onclick], [class*="nav-"], [class*="card"], [class*="btn"] { touch-action: manipulation; }
-        body { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
-        body { font-family: 'Outfit', 'Noto Sans Bengali', sans-serif; background: #0a0a0f; color: #fff; overflow-x: hidden; }
-        [v-cloak] { display: none !important; }
-        ::-webkit-scrollbar { width: 0; height: 0; }
-
-        :root {
-            --primary: #6c63ff;
-            --primary-dark: #4c44cc;
-            --accent: #ff6b9d;
-            --gold: #ffd700;
-            --bg: #0a0a0f;
-            --surface: #12121a;
-            --surface2: #1c1c28;
-            --surface3: #252535;
-            --border: rgba(255,255,255,0.08);
-            --text: #ffffff;
-            --text-muted: #8888a8;
-            --text-dim: #555570;
-            --green: #22c55e;
-            --red: #ef4444;
-            --orange: #f97316;
-            --nav-height: 64px;
-        }
-
-        /* ── APP WRAPPER ── */
-        #app { max-width: 430px; margin: 0 auto; min-height: 100vh; background: var(--bg); display: flex; flex-direction: column; }
-
-        /* ── HEADER ── */
-        .app-header { background: rgba(10,10,20,0.97); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
-
-        /* ── BOTTOM NAV ── */
-        .nav-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 430px; background: rgba(10,10,20,0.98); backdrop-filter: blur(20px); border-top: 1px solid var(--border); z-index: 999; padding-bottom: env(safe-area-inset-bottom); }
-        .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 10px; font-weight: 600; color: var(--text-muted); text-decoration: none; padding: 10px 4px 8px; cursor: pointer; transition: all 0.2s; letter-spacing: 0.3px; }
-        .nav-item i { font-size: 19px; transition: all 0.25s; }
-        .nav-item.active { color: var(--primary); font-weight: 700; }
-        .nav-item.active i { transform: translateY(-1px); }
-        .nav-item:active { transform: scale(0.92); }
-
-        /* ── PAGE SCROLL ── */
-        .page-scroll { overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: calc(var(--nav-height) + env(safe-area-inset-bottom) + 24px); flex: 1; min-height: 0; }
-
-        /* ── STAT CARD ── */
-        .stat-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 16px; padding: 14px; text-align: center; }
-
-        /* ── MENU ROW ── */
-        .menu-row { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.15s; }
-        .menu-row:last-child { border-bottom: none; }
-        .menu-row:active { background: rgba(108,99,255,0.07); }
-        .menu-icon { width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
-
-        /* ── AVATAR RING ── */
-        .avatar-ring { background: linear-gradient(135deg, var(--primary), var(--accent)); padding: 3px; border-radius: 50%; }
-        .avatar-inner { border-radius: 50%; background: var(--surface); padding: 3px; overflow: hidden; }
-
-        /* ── SOCIAL ICON ── */
-        .social-icon-btn { width: 38px; height: 38px; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); text-decoration: none; transition: all 0.18s; cursor: pointer; }
-        .social-icon-btn:active { transform: scale(0.82); background: rgba(108,99,255,0.18); border-color: var(--primary); color: var(--primary); }
-
-        /* ── CARD ── */
-        .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; }
-
-        /* ── SECTION TITLE ── */
-        .section-title { font-size: 13px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.2px; display: flex; align-items: center; gap: 8px; }
-        .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-
-        /* ── BTN ── */
-        .btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; font-weight: 700; border: none; border-radius: 14px; padding: 14px 24px; font-family: inherit; cursor: pointer; transition: all 0.2s; font-size: 14px; }
-        .btn-danger:active { transform: scale(0.97); }
-
-        /* ── PROFILE HERO ── */
-        .profile-hero { background: linear-gradient(135deg, rgba(108,99,255,0.15), rgba(255,107,157,0.08)); border: 1px solid rgba(108,99,255,0.2); border-radius: 20px; padding: 24px 20px; text-align: center; position: relative; overflow: hidden; }
-        .profile-hero::before { content: ''; position: absolute; top: -40px; right: -40px; width: 120px; height: 120px; background: radial-gradient(circle, rgba(108,99,255,0.18) 0%, transparent 70%); pointer-events: none; }
-
-        /* ── BALANCE CARD ── */
-        .balance-card { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); border-radius: 16px; padding: 18px; text-align: center; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=0, viewport-fit=cover">
+<title>Account — H24 ONLINE</title>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Noto+Sans+Bengali:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
-
 <div id="app" v-cloak>
+  <div id="toast-el" class="toast-msg"></div>
 
-    <!-- ── Header ── -->
-    <header class="app-header">
-        <div style="padding:12px 16px;display:flex;justify-content:space-between;align-items:center;">
-            <a href="index.html" style="display:flex;align-items:center;gap:10px;text-decoration:none;">
-                <div style="width:32px;height:32px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));border-radius:10px;display:flex;align-items:center;justify-content:center;">
-                    <i class="fa-solid fa-bolt" style="color:#fff;font-size:14px;"></i>
-                </div>
-                <span style="font-size:16px;font-weight:800;color:#fff;letter-spacing:0.5px;">H24 ONLINE</span>
-            </a>
-            <div style="display:flex;align-items:center;gap:10px;">
-                <div style="background:rgba(108,99,255,0.15);border:1px solid rgba(108,99,255,0.3);border-radius:20px;padding:6px 14px;display:flex;align-items:center;gap:6px;">
-                    <i class="fa-solid fa-wallet" style="color:var(--primary);font-size:12px;"></i>
-                    <span style="font-size:13px;font-weight:700;color:#fff;">{{ user.balance || 0 }} ৳</span>
-                </div>
-                <div class="avatar-ring" style="width:36px;height:36px;">
-                    <div class="avatar-inner" style="width:100%;height:100%;">
-                        <img :src="user.photoURL || 'https://i.pravatar.cc/150?img=12'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
-                    </div>
-                </div>
-            </div>
+  <!-- Withdraw Modal -->
+  <transition name="pop">
+    <div v-if="withdrawModal.show" class="modal-overlay" @click.self="withdrawModal.show=false">
+      <div class="modal-sheet">
+        <span class="modal-handle"></span>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+          <div style="width:50px;height:50px;background:rgba(249,115,22,0.15);border-radius:14px;display:flex;align-items:center;justify-content:center;">
+            <i class="fa-solid fa-money-bill-transfer" style="font-size:22px;color:#f97316;"></i>
+          </div>
+          <div style="flex:1;">
+            <div style="font-weight:800;font-size:17px;">Withdraw Balance</div>
+            <div style="font-size:12px;color:var(--text-muted);">Available: <span style="color:#f97316;font-weight:700;">৳{{ userBalance }}</span></div>
+          </div>
+          <button @click="withdrawModal.show=false" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);flex-shrink:0;">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
         </div>
+        <div style="margin-bottom:14px;">
+          <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:8px;">Amount</div>
+          <div style="position:relative;">
+            <span style="position:absolute;left:16px;top:50%;transform:translateY(-50%);font-size:16px;font-weight:700;color:var(--text-muted);">৳</span>
+            <input v-model="withdrawModal.amount" type="number" class="input-field" style="padding-left:34px;font-size:20px;font-weight:700;" placeholder="0">
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px;">
+            <button v-for="a in [500,1000,1500,2000]" :key="a" @click="withdrawModal.amount=a"
+              style="background:var(--surface2);border:1px solid;border-radius:10px;padding:8px 4px;font-size:13px;font-weight:700;cursor:pointer;"
+              :style="{borderColor:withdrawModal.amount==a?'var(--orange)':'var(--border)',color:withdrawModal.amount==a?'#f97316':'var(--text-muted)'}">{{ a }}</button>
+          </div>
+        </div>
+        <div style="margin-bottom:14px;">
+          <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:8px;">Method</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+            <div v-for="g in ['bkash','nagad','rocket']" :key="g" @click="withdrawModal.gateway=g" class="method-card" :class="{selected:withdrawModal.gateway===g}" style="text-align:center;padding:10px 6px;">
+              <div style="height:28px;display:flex;align-items:center;justify-content:center;margin-bottom:4px;">
+                <span :style="{background:g==='bkash'?'#e2156a':g==='nagad'?'#f47920':'#8b1fa8'}" style="color:#fff;font-size:11px;font-weight:800;padding:4px 8px;border-radius:6px;text-transform:capitalize;">{{ g }}</span>
+              </div>
+              <div style="font-size:10px;font-weight:700;text-transform:capitalize;">{{ g }}</div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-bottom:14px;">
+          <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:8px;">Your Number</div>
+          <input v-model="withdrawModal.accountNumber" class="input-field" placeholder="01XXXXXXXXX" type="tel">
+        </div>
+        <div style="background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.2);border-radius:12px;padding:12px;font-size:12px;color:rgba(249,115,22,0.9);margin-bottom:20px;line-height:1.7;">
+          <i class="fa-solid fa-circle-info" style="margin-right:6px;"></i> সর্বনিম্ন ৳500 উইথড্র করা যাবে।
+        </div>
+        <div v-if="withdrawModal.error" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:12px;padding:12px;font-size:13px;color:#f87171;margin-bottom:16px;">{{ withdrawModal.error }}</div>
+        <button @click="submitWithdraw" style="width:100%;background:linear-gradient(135deg,#f97316,#ea580c);color:#fff;font-weight:700;border:none;border-radius:14px;padding:14px 24px;font-family:inherit;cursor:pointer;font-size:14px;" :disabled="withdrawModal.loading">
+          <span v-if="withdrawModal.loading" class="spinner"></span>
+          <span v-else><i class="fa-solid fa-paper-plane" style="margin-right:8px;"></i>Submit Request</span>
+        </button>
+      </div>
+    </div>
+  </transition>
+
+  <!-- Turnover Modal -->
+  <transition name="pop">
+    <div v-if="turnoverModal" class="modal-overlay" style="z-index:1500;" @click.self="turnoverModal=false">
+      <div class="modal-sheet" @click.stop style="max-height:90vh;">
+        <span class="modal-handle"></span>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:46px;height:46px;background:rgba(255,215,0,0.15);border-radius:14px;display:flex;align-items:center;justify-content:center;">
+              <i class="fa-solid fa-rotate" style="font-size:20px;color:var(--gold);"></i>
+            </div>
+            <div>
+              <div style="font-weight:800;font-size:17px;">Turnover</div>
+              <div style="font-size:11px;color:var(--text-muted);">উইথড্রের জন্য টার্নওভার পূরণ করুন</div>
+            </div>
+          </div>
+          <button @click="turnoverModal=false" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:20px;background:var(--surface2);border-radius:24px;padding:4px;">
+          <div @click="turnoverTab='active'" style="flex:1;text-align:center;" class="turnover-tab" :class="{active:turnoverTab==='active'}">Active ({{ activeTurnovers.length }})</div>
+          <div @click="turnoverTab='completed'" style="flex:1;text-align:center;" class="turnover-tab" :class="{active:turnoverTab==='completed'}">Completed</div>
+        </div>
+        <div v-if="turnoverTab==='active'">
+          <div v-if="activeTurnovers.length===0" style="text-align:center;padding:40px 20px;">
+            <i class="fa-solid fa-rotate" style="font-size:40px;color:var(--text-dim);margin-bottom:12px;display:block;"></i>
+            <div style="font-weight:700;font-size:15px;color:var(--text-muted);">কোনো Active Turnover নেই ✅</div>
+          </div>
+          <div v-else style="display:flex;flex-direction:column;gap:12px;">
+            <div v-for="tv in activeTurnovers" :key="tv.id" style="background:var(--surface2);border:1px solid rgba(255,215,0,0.2);border-left:3px solid var(--gold);border-radius:16px;padding:16px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+                <div style="font-weight:700;font-size:14px;">{{ tv.label }}</div>
+                <span style="font-size:10px;font-weight:700;background:rgba(255,165,0,0.15);color:#fb923c;border:1px solid rgba(255,165,0,0.3);padding:2px 8px;border-radius:20px;">ACTIVE</span>
+              </div>
+              <div class="turnover-progress"><div class="turnover-progress-fill" :style="{width: Math.min(100,(tv.done/tv.required)*100)+'%'}"></div></div>
+              <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);">
+                <span>{{ tv.done.toFixed(0) }} done</span><span>{{ tv.required.toFixed(0) }} needed</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div v-if="turnoverTab==='completed'">
+          <div v-if="completedTurnovers.length===0" style="text-align:center;padding:40px 20px;">
+            <div style="font-weight:700;font-size:15px;color:var(--text-muted);">কোনো Completed Turnover নেই</div>
+          </div>
+          <div v-else style="display:flex;flex-direction:column;gap:12px;">
+            <div v-for="tv in completedTurnovers" :key="tv.id" style="background:var(--surface2);border:1px solid rgba(34,197,94,0.2);border-left:3px solid var(--green);border-radius:16px;padding:16px;">
+              <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+                <div style="font-weight:700;font-size:14px;">{{ tv.label }}</div>
+                <span style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:20px;padding:3px 10px;font-size:10px;font-weight:700;color:#4ade80;">✅ Done</span>
+              </div>
+              <div class="turnover-progress"><div class="turnover-progress-fill" style="width:100%;background:linear-gradient(90deg,var(--green),#16a34a);"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </transition>
+
+  <!-- Main -->
+  <div style="display:flex;flex-direction:column;height:100vh;">
+    <header class="app-header">
+      <div style="padding:14px 16px;display:flex;align-items:center;justify-content:space-between;">
+        <a href="index.html" style="background:var(--surface2);border:none;border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);text-decoration:none;">
+          <i class="fa-solid fa-arrow-left"></i>
+        </a>
+        <div style="font-weight:800;font-size:17px;">My Account</div>
+        <div style="width:36px;"></div>
+      </div>
     </header>
 
-    <!-- ── Page Scroll ── -->
-    <div class="page-scroll">
-        <div style="padding:16px;display:flex;flex-direction:column;gap:16px;">
-
-            <!-- ── Profile Hero ── -->
-            <div class="profile-hero">
-                <div class="avatar-ring" style="width:88px;height:88px;margin:0 auto 14px;display:inline-block;">
-                    <div class="avatar-inner" style="width:100%;height:100%;">
-                        <img :src="user.photoURL || 'https://i.pravatar.cc/150?img=12'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
-                    </div>
-                </div>
-                <div style="font-size:18px;font-weight:800;color:#fff;margin-bottom:4px;">Hi, {{ user.name || 'Guest User' }} 👋</div>
-                <div style="font-size:13px;color:var(--text-muted);display:flex;align-items:center;justify-content:center;gap:8px;">
-                    <span>Available Balance: <strong style="color:#fff;">{{ user.balance || 0 }} ৳</strong></span>
-                    <i @click="fetchUserData" class="fa-solid fa-arrows-rotate" style="color:var(--primary);cursor:pointer;font-size:13px;"></i>
-                </div>
-                <div style="margin-top:12px;display:inline-flex;align-items:center;gap:6px;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.3);border-radius:20px;padding:4px 12px;">
-                    <i class="fa-solid fa-circle-check" style="color:var(--green);font-size:11px;"></i>
-                    <span style="font-size:11px;font-weight:700;color:var(--green);">Account Verified</span>
-                </div>
+    <main class="page-scroll" id="accountScroll" style="padding:16px;">
+      <div style="text-align:center;padding:24px 0 20px;">
+        <div style="display:inline-block;position:relative;margin-bottom:14px;">
+          <div class="avatar-ring" style="width:90px;height:90px;display:inline-block;">
+            <div class="avatar-inner" style="width:100%;height:100%;">
+              <img :src="userAvatar" style="width:100%;height:100%;object-fit:cover;">
             </div>
-
-            <!-- ── Stats Grid ── -->
-            <div>
-                <div class="section-title" style="margin-bottom:12px;"><i class="fa-solid fa-chart-simple" style="color:var(--primary);"></i> Stats</div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-                    <div class="stat-card">
-                        <div style="font-size:9px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Support PIN</div>
-                        <div style="font-size:20px;font-weight:800;color:var(--primary);">{{ supportPin }}</div>
-                    </div>
-                    <div class="stat-card">
-                        <div style="font-size:9px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Weekly Spent</div>
-                        <div style="font-size:20px;font-weight:800;color:var(--accent);">{{ stats.weeklySpent }} ৳</div>
-                    </div>
-                    <div class="stat-card">
-                        <div style="font-size:9px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Total Spent</div>
-                        <div style="font-size:20px;font-weight:800;color:var(--gold);">{{ stats.totalSpent }} ৳</div>
-                    </div>
-                    <div class="stat-card">
-                        <div style="font-size:9px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Total Orders</div>
-                        <div style="font-size:20px;font-weight:800;color:var(--green);">{{ stats.totalOrders }}</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ── Balance Card ── -->
-            <div class="balance-card">
-                <div style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Available Balance</div>
-                <div style="font-size:32px;font-weight:900;color:#fff;margin-bottom:4px;">{{ user.balance || 0 }} ৳</div>
-                <div style="font-size:11px;color:rgba(255,255,255,0.6);">Wallet Balance</div>
-            </div>
-
-            <!-- ── Account Information ── -->
-            <div>
-                <div class="section-title" style="margin-bottom:12px;"><i class="fa-solid fa-circle-info" style="color:var(--primary);"></i> Account Information</div>
-                <div class="card" style="overflow:hidden;">
-                    <div class="menu-row">
-                        <div class="menu-icon" style="background:rgba(108,99,255,0.15);color:var(--primary);">
-                            <i class="fa-solid fa-envelope"></i>
-                        </div>
-                        <div style="flex:1;min-width:0;">
-                            <div style="font-size:11px;color:var(--text-dim);font-weight:600;margin-bottom:2px;">Email</div>
-                            <div style="font-size:13px;font-weight:600;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ user.email || 'No email linked' }}</div>
-                        </div>
-                    </div>
-                    <div class="menu-row">
-                        <div class="menu-icon" style="background:rgba(34,197,94,0.15);color:var(--green);">
-                            <i class="fa-solid fa-phone"></i>
-                        </div>
-                        <div style="flex:1;">
-                            <div style="font-size:11px;color:var(--text-dim);font-weight:600;margin-bottom:2px;">Phone</div>
-                            <div style="font-size:13px;font-weight:600;color:#fff;">{{ user.phone || 'No phone linked' }}</div>
-                        </div>
-                    </div>
-                    <div class="menu-row">
-                        <div class="menu-icon" style="background:rgba(255,215,0,0.15);color:var(--gold);">
-                            <i class="fa-solid fa-hashtag"></i>
-                        </div>
-                        <div style="flex:1;">
-                            <div style="font-size:11px;color:var(--text-dim);font-weight:600;margin-bottom:2px;">Support PIN</div>
-                            <div style="font-size:13px;font-weight:600;color:#fff;">{{ supportPin }}</div>
-                        </div>
-                        <div style="font-size:11px;color:var(--text-dim);">Use for support</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ── Stay Connected ── -->
-            <div>
-                <div class="section-title" style="margin-bottom:12px;"><i class="fa-solid fa-share-nodes" style="color:var(--primary);"></i> Stay Connected</div>
-                <div class="card" style="padding:16px;">
-                    <div style="display:flex;gap:10px;flex-wrap:wrap;">
-                        <template v-for="(url, platform) in socials" :key="platform">
-                            <a v-if="url && iconMap[platform]"
-                               :href="url"
-                               target="_blank"
-                               class="social-icon-btn">
-                                <i :class="iconMap[platform]" style="font-size:15px;"></i>
-                            </a>
-                        </template>
-                        <div v-if="!Object.values(socials).some(v => v)" style="color:var(--text-dim);font-size:12px;padding:8px 0;">
-                            Social links loading...
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ── Logout ── -->
-            <button @click="handleLogout" class="btn-danger" style="width:100%;display:flex;align-items:center;justify-content:center;gap:10px;">
-                <i class="fa-solid fa-right-from-bracket"></i>
-                Logout Account
-            </button>
-
-            <!-- ── Footer ── -->
-            <div style="text-align:center;padding:8px 0 4px;">
-                <p style="font-size:11px;color:var(--text-dim);">© H24 Online 2026 | All Rights Reserved</p>
-            </div>
-
+          </div>
+          <span class="online-dot" style="position:absolute;bottom:6px;right:6px;border:2px solid var(--bg);"></span>
         </div>
+        <div style="font-size:20px;font-weight:800;margin-bottom:4px;" class="gradient-text">{{ userData.name||'Guest' }}</div>
+        <div style="font-size:13px;color:var(--text-muted);">{{ userData.email||'' }}</div>
+        <div v-if="userData.phone" style="font-size:12px;color:var(--text-dim);margin-top:2px;"><i class="fa-solid fa-phone" style="margin-right:4px;"></i>{{ userData.phone }}</div>
+        <div style="display:inline-flex;align-items:center;gap:5px;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.3);border-radius:20px;padding:3px 10px;margin-top:8px;">
+          <span style="width:6px;height:6px;background:var(--green);border-radius:50%;display:inline-block;animation:pulse-green 2s infinite;"></span>
+          <span style="font-size:11px;color:#4ade80;font-weight:600;">Online</span>
+        </div>
+      </div>
+
+      <!-- Wallet Card -->
+      <div style="background:linear-gradient(135deg,var(--primary),var(--primary-dark));border-radius:20px;padding:20px;margin-bottom:16px;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:-20px;right:-20px;width:100px;height:100px;background:rgba(255,255,255,0.08);border-radius:50%;"></div>
+        <div style="font-size:12px;font-weight:700;opacity:0.7;letter-spacing:1px;margin-bottom:4px;">AVAILABLE BALANCE</div>
+        <div style="font-size:36px;font-weight:900;margin-bottom:12px;">৳{{ userBalance }}</div>
+        <div style="display:flex;gap:10px;">
+          <a href="add-money.html" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);border-radius:10px;padding:8px 0;color:#fff;font-size:12px;font-weight:700;cursor:pointer;flex:1;display:flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;">
+            <i class="fa-solid fa-plus" style="font-size:11px;"></i> Deposit
+          </a>
+          <button @click="withdrawModal.show=true" style="background:rgba(249,115,22,0.25);border:1px solid rgba(249,115,22,0.5);border-radius:10px;padding:8px 0;color:#fed7aa;font-size:12px;font-weight:700;cursor:pointer;flex:1;display:flex;align-items:center;justify-content:center;gap:6px;">
+            <i class="fa-solid fa-arrow-up-from-bracket" style="font-size:11px;"></i> Withdraw
+          </button>
+        </div>
+      </div>
+
+      <!-- Turnover Widget -->
+      <div v-if="activeTurnovers.length > 0" @click="turnoverModal=true" class="turnover-card" style="cursor:pointer;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <i class="fa-solid fa-rotate" style="color:var(--gold);font-size:16px;"></i>
+            <span style="font-weight:800;font-size:14px;color:var(--gold);">Turnover Required</span>
+          </div>
+          <span style="font-size:10px;font-weight:700;background:rgba(255,165,0,0.15);color:#fb923c;border:1px solid rgba(255,165,0,0.3);padding:2px 8px;border-radius:20px;">{{ activeTurnovers.length }} ACTIVE</span>
+        </div>
+        <div v-if="activeTurnovers[0]">
+          <div style="font-size:12px;color:rgba(255,215,0,0.7);margin-bottom:6px;">{{ activeTurnovers[0].label }}</div>
+          <div class="turnover-progress"><div class="turnover-progress-fill" :style="{width: Math.min(100,(activeTurnovers[0].done/activeTurnovers[0].required)*100)+'%'}"></div></div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:rgba(255,215,0,0.6);margin-top:4px;">
+            <span>Done: ৳{{ activeTurnovers[0].done.toFixed(0) }}</span>
+            <span>Required: ৳{{ activeTurnovers[0].required.toFixed(0) }}</span>
+          </div>
+        </div>
+        <div style="margin-top:8px;font-size:11px;color:rgba(255,215,0,0.5);text-align:center;">বিস্তারিত দেখতে ট্যাপ করুন <i class="fa-solid fa-chevron-right" style="font-size:9px;"></i></div>
+      </div>
+
+      <!-- Profile Info -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;overflow:hidden;margin-bottom:16px;">
+        <div style="padding:14px 16px;">
+          <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Profile Info</div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+            <i class="fa-solid fa-user" style="color:var(--primary);width:16px;"></i>
+            <span style="font-size:14px;">{{ userData.name||'—' }}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+            <i class="fa-solid fa-envelope" style="color:var(--accent);width:16px;"></i>
+            <span style="font-size:14px;">{{ userData.email||'—' }}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <i class="fa-solid fa-phone" style="color:var(--green);width:16px;"></i>
+            <span style="font-size:14px;" :style="{color:userData.phone?'var(--text)':'var(--text-dim)'}">{{ userData.phone||'Not added' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px;">
+        <div class="stat-card"><div style="font-size:11px;color:var(--text-muted);font-weight:600;margin-bottom:4px;">Support PIN</div><div style="font-size:20px;font-weight:800;color:var(--primary);">{{ supportPin }}</div></div>
+        <div class="stat-card"><div style="font-size:11px;color:var(--text-muted);font-weight:600;margin-bottom:4px;">Weekly Spent</div><div style="font-size:20px;font-weight:800;color:var(--accent);">৳{{ stats.weeklySpent }}</div></div>
+        <div class="stat-card"><div style="font-size:11px;color:var(--text-muted);font-weight:600;margin-bottom:4px;">Total Spent</div><div style="font-size:20px;font-weight:800;">{{ stats.totalSpent }}</div></div>
+        <div class="stat-card"><div style="font-size:11px;color:var(--text-muted);font-weight:600;margin-bottom:4px;">Total Orders</div><div style="font-size:20px;font-weight:800;">{{ stats.totalOrders }}</div></div>
+      </div>
+
+      <!-- Account Menu -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;overflow:hidden;margin-bottom:16px;">
+        <a v-for="(item,i) in accountMenu" :key="i" :href="item.href||'#'" @click="item.action&&item.action()"
+           style="display:flex;align-items:center;gap:14px;padding:16px;cursor:pointer;text-decoration:none;color:#fff;"
+           :style="{borderBottom:i<accountMenu.length-1?'1px solid var(--border)':'none'}" class="card-hover">
+          <div :style="{background:item.bg}" style="width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i :class="item.icon" :style="{color:item.color}" style="font-size:16px;"></i>
+          </div>
+          <div style="flex:1;">
+            <div style="font-weight:700;font-size:14px;margin-bottom:1px;">{{ item.label }}</div>
+            <div style="font-size:12px;color:var(--text-muted);">{{ item.sub }}</div>
+          </div>
+          <i class="fa-solid fa-chevron-right" style="font-size:11px;color:var(--text-dim);"></i>
+        </a>
+      </div>
+
+      <button @click="handleLogout" class="btn-danger" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:20px;">
+        <i class="fa-solid fa-right-from-bracket"></i> Logout Account
+      </button>
+    </main>
+  </div>
+
+  <!-- Bottom Nav -->
+  <div class="nav-bar">
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);height:60px;">
+      <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i><span>Home</span></a>
+      <a href="add-money.html" class="nav-item"><i class="fa-solid fa-wallet"></i><span>Deposit</span></a>
+      <a href="live.html" class="nav-item nav-live" style="flex-direction:row;font-size:12px;gap:3px;padding:0!important;margin:8px 6px;">
+        <span class="live-dot"></span><span style="font-size:12px;font-weight:800;">LIVE</span>
+      </a>
+      <a href="orders.html" class="nav-item"><i class="fa-solid fa-receipt"></i><span>Orders</span></a>
+      <a href="account.html" class="nav-item active"><i class="fa-solid fa-user"></i><span>Account</span></a>
     </div>
-
-    <!-- ── Bottom Navigation ── -->
-    <nav class="nav-bar">
-        <div style="display:grid;grid-template-columns:repeat(5,1fr);height:var(--nav-height);">
-            <a href="index.html" class="nav-item">
-                <i class="fa-solid fa-house"></i>
-                <span>Home</span>
-            </a>
-            <a href="add-money.html" class="nav-item">
-                <i class="fa-solid fa-wallet"></i>
-                <span>Add Money</span>
-            </a>
-            <a href="orders.html" class="nav-item">
-                <i class="fa-solid fa-file-invoice"></i>
-                <span>My Orders</span>
-            </a>
-            <a href="codes.html" class="nav-item">
-                <i class="fa-solid fa-gift"></i>
-                <span>My Codes</span>
-            </a>
-            <a href="account.html" class="nav-item active">
-                <i class="fa-solid fa-user"></i>
-                <span>Account</span>
-            </a>
-        </div>
-    </nav>
-
+  </div>
 </div>
 
-<!-- ── Logic Script ── -->
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-    import { createApp, ref, onMounted } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, doc, collection, getDocs, query, where, addDoc, updateDoc, increment, runTransaction, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { createApp, ref, computed, onMounted } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyACUK207BRvtR5yc1UhYLS9FlMitVVlrrE",
-        authDomain: "freetopup-fd263.firebaseapp.com",
-        projectId: "freetopup-fd263",
-        storageBucket: "freetopup-fd263.firebasestorage.app",
-        messagingSenderId: "756173302110",
-        appId: "1:756173302110:web:14227664f6b5d14d9047cf"
+const firebaseConfig = {
+  apiKey: "AIzaSyCZWRcCP0hXTkfQoRhqxczgdD6cw5kp39c",
+  authDomain: "h24-online.firebaseapp.com",
+  projectId: "h24-online",
+  storageBucket: "h24-online.firebasestorage.app",
+  messagingSenderId: "808524719613",
+  appId: "1:808524719613:web:7f1abe9e70a346c3376594"
+};
+const fireApp = initializeApp(firebaseConfig);
+const auth = getAuth(fireApp);
+const db = getFirestore(fireApp);
+
+createApp({
+  setup() {
+    const userBalance = ref(0);
+    const userAvatar = ref('https://i.pravatar.cc/150?img=12');
+    const userData = ref({});
+    const supportPin = ref('---');
+    const stats = ref({ totalSpent: 0, totalOrders: 0, weeklySpent: 0 });
+    const activeTurnovers = ref([]);
+    const completedTurnovers = ref([]);
+    const turnoverModal = ref(false);
+    const turnoverTab = ref('active');
+    const withdrawModal = ref({ show: false, amount: '', gateway: 'bkash', accountNumber: '', loading: false, error: '' });
+
+    let toastTimer = null;
+    const showToast = (msg) => {
+      const el = document.getElementById('toast-el');
+      if (!el) return;
+      el.textContent = msg;
+      el.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
     };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+    const accountMenu = computed(() => [
+      { label: 'My Orders', sub: 'Track your purchases', icon: 'fa-solid fa-receipt', color: '#6c63ff', bg: 'rgba(108,99,255,0.12)', href: 'orders.html' },
+      { label: 'Gift Codes', sub: 'View your codes', icon: 'fa-solid fa-gift', color: '#ffd700', bg: 'rgba(255,215,0,0.12)', href: 'codes.html' },
+      { label: 'Deposit', sub: 'Add money to wallet', icon: 'fa-solid fa-wallet', color: '#22c55e', bg: 'rgba(34,197,94,0.12)', href: 'add-money.html' },
+      { label: 'Balance History', sub: 'Deposit & Withdraw log', icon: 'fa-solid fa-clock-rotate-left', color: '#22d3ee', bg: 'rgba(34,211,238,0.12)', href: 'balance-history.html' },
+      { label: 'Refer & Earn', sub: 'Earn 10% commission', icon: 'fa-solid fa-users', color: '#a78bfa', bg: 'rgba(167,139,250,0.12)', href: 'referral.html' },
+      { label: 'Live Support', sub: 'Chat with admin', icon: 'fa-solid fa-headset', color: '#ff6b9d', bg: 'rgba(255,107,157,0.12)', href: 'chat.html' },
+      { label: 'Live Stream', sub: 'Watch live events', icon: 'fa-solid fa-video', color: '#ef4444', bg: 'rgba(239,68,68,0.12)', href: 'live.html' },
+    ]);
 
-    createApp({
-        setup() {
-            const user = ref({});
-            const stats = ref({ totalSpent: 0, totalOrders: 0, weeklySpent: 0 });
-            const supportPin = ref('------');
-            const socials = ref({});
+    const fetchTurnovers = async () => {
+      const uid = localStorage.getItem('userId');
+      if (!uid) return;
+      activeTurnovers.value = []; completedTurnovers.value = [];
+      try {
+        const snap = await getDocs(query(collection(db, 'turnovers'), where('userId', '==', uid)));
+        snap.forEach(d => {
+          const item = { id: d.id, ...d.data() };
+          if (d.data().status === 'completed') completedTurnovers.value.push(item);
+          else activeTurnovers.value.push(item);
+        });
+      } catch(e) {}
+    };
 
-            const iconMap = {
-                facebook:  'fa-brands fa-facebook-f',
-                instagram: 'fa-brands fa-instagram',
-                tiktok:    'fa-brands fa-tiktok',
-                youtube:   'fa-brands fa-youtube',
-                telegram:  'fa-brands fa-telegram',
-                whatsapp:  'fa-brands fa-whatsapp'
-            };
+    const fetchStats = async () => {
+      const uid = localStorage.getItem('userId');
+      if (!uid) return;
+      try {
+        const snap = await getDocs(query(collection(db, 'orders'), where('userId', '==', uid)));
+        let spent = 0, count = 0, weekly = 0;
+        const oneWeekAgo = new Date(); oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+        snap.forEach(d => {
+          const data = d.data();
+          if (data.status === 'completed') {
+            spent += Number(data.price || 0); count++;
+            const od = data.createdAt ? data.createdAt.toDate() : new Date();
+            if (od >= oneWeekAgo) weekly += Number(data.price || 0);
+          }
+        });
+        stats.value = { totalSpent: spent, totalOrders: count, weeklySpent: weekly };
+      } catch(e) {}
+    };
 
-            const userId = localStorage.getItem('userId');
+    const submitWithdraw = async () => {
+      const wm = withdrawModal.value;
+      wm.error = '';
+      if (!wm.amount || Number(wm.amount) < 500) { wm.error = 'সর্বনিম্ন ৳500 উইথড্র করুন।'; return; }
+      if (Number(wm.amount) > userBalance.value) { wm.error = 'আপনার ব্যালেন্স পর্যাপ্ত নয়।'; return; }
+      if (!wm.accountNumber || wm.accountNumber.length < 10) { wm.error = 'সঠিক নম্বর দিন।'; return; }
+      if (activeTurnovers.value.length > 0) { wm.error = '⚠️ Turnover Complete হয়নি।'; return; }
+      wm.loading = true;
+      try {
+        const uid = localStorage.getItem('userId');
+        const pendingSnap = await getDocs(query(collection(db, 'withdrawals'), where('userId', '==', uid), where('status', '==', 'pending')));
+        if (!pendingSnap.empty) { wm.error = 'একটি রিকোয়েস্ট ইতিমধ্যে পেন্ডিং আছে।'; wm.loading = false; return; }
+        const amount = Number(wm.amount);
+        await runTransaction(db, async (t) => {
+          const uRef = doc(db, 'users', uid);
+          const uDoc = await t.get(uRef);
+          if (uDoc.data().balance < amount) throw new Error('Low Balance');
+          t.update(uRef, { balance: uDoc.data().balance - amount });
+          t.set(doc(collection(db, 'withdrawals')), { userId: uid, amount, gateway: wm.gateway, accountNumber: wm.accountNumber, status: 'pending', createdAt: serverTimestamp() });
+        });
+        withdrawModal.value.show = false;
+        showToast(`✅ ৳${amount} উইথড্র রিকোয়েস্ট পাঠানো হয়েছে।`);
+        setTimeout(() => { window.location.href = 'balance-history.html'; }, 1500);
+      } catch(e) {
+        if (e.message === 'Low Balance') wm.error = 'ব্যালেন্স পর্যাপ্ত নয়।';
+        else { wm.error = 'সমস্যা হয়েছে।'; }
+      } finally { wm.loading = false; }
+    };
 
-            const fetchUserData = async () => {
-                if (!userId) {
-                    window.location.href = 'login.html';
-                    return;
-                }
-                try {
-                    const docSnap = await getDoc(doc(db, 'users', userId));
-                    if (docSnap.exists()) {
-                        user.value = docSnap.data();
-                        const uidStr = userId.toString().replace(/\D/g, '');
-                        supportPin.value = uidStr.length > 5 ? uidStr.substring(0, 6) : Math.floor(100000 + Math.random() * 900000);
-                    }
-                } catch (e) {
-                    console.error('Error fetching user:', e);
-                }
-            };
+    const handleLogout = async () => {
+      if (!confirm('আপনি কি নিশ্চিত লগআউট করতে চান?')) return;
+      const uid = localStorage.getItem('userId');
+      if (uid) await updateDoc(doc(db, 'users', uid), { isOnline: false, lastSeen: serverTimestamp() }).catch(()=>{});
+      await signOut(auth).catch(()=>{});
+      localStorage.removeItem('userId');
+      window.location.href = 'login.html';
+    };
 
-            const fetchUserStats = async () => {
-                if (!userId) return;
-                try {
-                    const q = query(collection(db, 'orders'), where('userId', '==', userId));
-                    const snap = await getDocs(q);
-                    let spent = 0, count = 0, weekly = 0;
-                    const oneWeekAgo = new Date();
-                    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-                    snap.forEach(d => {
-                        const data = d.data();
-                        if (data.status === 'completed') {
-                            spent += Number(data.price || 0);
-                            count++;
-                            const orderDate = data.createdAt ? data.createdAt.toDate() : new Date();
-                            if (orderDate >= oneWeekAgo) weekly += Number(data.price || 0);
-                        }
-                    });
-                    stats.value = { totalSpent: spent, totalOrders: count, weeklySpent: weekly };
-                } catch (e) {
-                    console.error('Error fetching stats:', e);
-                }
-            };
+    onMounted(() => {
+      onAuthStateChanged(auth, (user) => {
+        if (!user) { window.location.href = 'login.html'; return; }
+        localStorage.setItem('userId', user.uid);
+        updateDoc(doc(db, 'users', user.uid), { isOnline: true, lastSeen: serverTimestamp() }).catch(()=>{});
+        onSnapshot(doc(db, 'users', user.uid), (d) => {
+          if (d.exists()) {
+            userBalance.value = d.data().balance || 0;
+            userAvatar.value = d.data().photoURL || 'https://i.pravatar.cc/150?img=12';
+            userData.value = d.data();
+            const uid = user.uid.replace(/\D/g, '');
+            supportPin.value = uid.length > 5 ? uid.substring(0, 6) : Math.floor(100000 + Math.random() * 900000);
+          }
+        });
+        fetchTurnovers();
+        fetchStats();
+      });
+    });
 
-            const fetchSocials = async () => {
-                try {
-                    const docSnap = await getDoc(doc(db, 'admin', 'settings'));
-                    if (docSnap.exists()) socials.value = docSnap.data();
-                } catch (e) {
-                    console.error('Error fetching socials:', e);
-                }
-            };
-
-            const handleLogout = async () => {
-                if (confirm('আপনি কি নিশ্চিত আপনি লগআউট করতে চান?')) {
-                    try { await signOut(auth); } catch (e) {}
-                    localStorage.removeItem('userId');
-                    sessionStorage.clear();
-                    window.location.href = 'login.html';
-                }
-            };
-
-            onMounted(() => {
-                fetchUserData();
-                fetchUserStats();
-                fetchSocials();
-            });
-
-            return { user, stats, supportPin, socials, iconMap, fetchUserData, handleLogout };
-        }
-    }).mount('#app');
+    return {
+      userBalance, userAvatar, userData, supportPin, stats,
+      activeTurnovers, completedTurnovers, turnoverModal, turnoverTab,
+      withdrawModal, submitWithdraw, accountMenu, handleLogout
+    };
+  }
+}).mount('#app');
 </script>
 </body>
 </html>
