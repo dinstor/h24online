@@ -85,7 +85,8 @@ createApp({
   setup() {
     const userId = ref('');
     const referralStats = ref({ totalRefs: 0, totalEarned: 0 });
-    const referralLink = computed(() => `${window.location.origin}/index.html?ref=${userId.value.substring(0, 8)}`);
+    const APP_BASE_URL = 'https://dinstor.github.io/index.html';
+    const referralLink = computed(() => `${APP_BASE_URL}?ref=${userId.value.substring(0, 8)}`);
     const steps = [
       { title: 'রেফারেল লিংক শেয়ার করুন', desc: 'বন্ধু বা পরিবারকে আপনার ইউনিক লিংক পাঠান', bg: 'rgba(108,99,255,0.15)', color: 'var(--primary)' },
       { title: 'তারা অ্যাপে যোগ দিন', desc: 'আপনার লিংক দিয়ে রেজিস্ট্রেশন করলে স্বয়ংক্রিয়ভাবে লিংক হবে', bg: 'rgba(255,107,157,0.15)', color: 'var(--accent)' },
