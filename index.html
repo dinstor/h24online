@@ -11,178 +11,114 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css"/>
 <link rel="stylesheet" href="assets/css/style.css">
 <style>
-.qty-btn{width:34px;height:34px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:#fff;font-size:18px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.15s;flex-shrink:0;}
-.qty-btn:active{transform:scale(0.9);}
-.qty-btn:disabled{opacity:0.3;cursor:not-allowed;}
-.qty-display{min-width:38px;text-align:center;font-size:18px;font-weight:800;}
+/* ── Multi-select Package Cards ── */
+.pkg-multi-card {
+  background: var(--surface2);
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: all 0.18s;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+}
+.pkg-multi-card.selected {
+  border-color: var(--primary);
+  background: rgba(108,99,255,0.10);
+}
+.pkg-multi-card:active { transform: scale(0.97); }
+
+.pkg-checkbox {
+  width: 22px; height: 22px;
+  border-radius: 7px;
+  border: 2px solid var(--border);
+  background: var(--surface);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s;
+  font-size: 11px;
+  color: #fff;
+}
+.pkg-multi-card.selected .pkg-checkbox {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.pkg-multi-info { flex: 1; }
+.pkg-multi-name { font-weight: 700; font-size: 13px; color: #fff; }
+.pkg-multi-price { font-size: 15px; font-weight: 800; color: var(--primary); margin-top: 2px; }
+
+.pkg-multi-card.selected .pkg-multi-price { color: var(--primary); }
+
+/* Selected summary bar */
+.selected-summary {
+  background: rgba(108,99,255,0.08);
+  border: 1px solid rgba(108,99,255,0.22);
+  border-radius: 12px;
+  padding: 10px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  font-size: 13px;
+}
+.selected-summary-label { color: var(--text-muted); font-weight: 600; }
+.selected-summary-val { color: var(--primary); font-weight: 800; font-size: 16px; }
 
 /* ── Book Sheet FAB ── */
 .book-sheet-fab{
   position:fixed;
   bottom:calc(var(--nav-height) + env(safe-area-inset-bottom) + 20px);
   right:20px;
-  width:64px;
-  height:64px;
+  width:64px; height:64px;
   background:linear-gradient(145deg,#f97316,#ea580c);
-  color:#fff;
-  border:none;
-  border-radius:50%;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  gap:3px;
+  color:#fff; border:none; border-radius:50%;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
   z-index:500;
   box-shadow:0 4px 18px rgba(249,115,22,0.5), 0 0 0 5px rgba(249,115,22,0.15);
-  cursor:pointer;
-  transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);
-  font-family:inherit;
+  cursor:pointer; transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1); font-family:inherit;
 }
 .book-sheet-fab:active{transform:scale(0.9);}
-.book-sheet-fab.fab-hidden{
-  transform:translateY(120%);
-  opacity:0;
-  pointer-events:none;
-}
+.book-sheet-fab.fab-hidden{ transform:translateY(120%); opacity:0; pointer-events:none; }
+
 /* ── Book Sheet Popup ── */
-.bs-overlay{
-  position:fixed;inset:0;
-  background:rgba(0,0,0,0.72);
-  backdrop-filter:blur(8px);
-  z-index:2100;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:16px;
-}
-.bs-popup{
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:24px;
-  width:100%;
-  max-width:370px;
-  max-height:88vh;
-  overflow-y:auto;
-  padding:18px;
-  position:relative;
-}
-.bs-header{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  margin-bottom:14px;
-}
-.bs-nav-btn{
-  background:var(--surface2);
-  border:1px solid var(--border);
-  border-radius:10px;
-  width:32px;height:32px;
-  color:#fff;
-  cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  font-size:15px;
-  flex-shrink:0;
-  transition:all 0.15s;
-}
+.bs-overlay{ position:fixed;inset:0; background:rgba(0,0,0,0.72); backdrop-filter:blur(8px); z-index:2100; display:flex; align-items:center; justify-content:center; padding:16px; }
+.bs-popup{ background:var(--surface); border:1px solid var(--border); border-radius:24px; width:100%; max-width:370px; max-height:88vh; overflow-y:auto; padding:18px; position:relative; }
+.bs-header{ display:flex; align-items:center; gap:8px; margin-bottom:14px; }
+.bs-nav-btn{ background:var(--surface2); border:1px solid var(--border); border-radius:10px; width:32px;height:32px; color:#fff; cursor:pointer; display:flex;align-items:center;justify-content:center; font-size:15px; flex-shrink:0; transition:all 0.15s; }
 .bs-nav-btn:disabled{opacity:0.28;cursor:not-allowed;}
 .bs-nav-btn:not([disabled]):active{background:rgba(108,99,255,0.25);}
-.bs-round-info{
-  flex:1;
-  text-align:center;
-}
+.bs-round-info{ flex:1; text-align:center; }
 .bs-round-label{font-size:13px;font-weight:800;color:#fff;}
 .bs-round-time{font-size:11px;color:var(--primary);font-weight:600;margin-top:2px;}
-.bs-close-btn{
-  background:var(--surface2);
-  border:1px solid var(--border);
-  border-radius:10px;
-  width:32px;height:32px;
-  color:var(--text-muted);
-  cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  flex-shrink:0;
-  font-size:14px;
-}
+.bs-close-btn{ background:var(--surface2); border:1px solid var(--border); border-radius:10px; width:32px;height:32px; color:var(--text-muted); cursor:pointer; display:flex;align-items:center;justify-content:center; flex-shrink:0; font-size:14px; }
 .bs-section-label{font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:8px;letter-spacing:0.5px;}
 .bs-amounts{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px;}
-.bs-amt-btn{
-  background:var(--surface2);
-  border:1.5px solid var(--border);
-  border-radius:10px;
-  color:var(--text-muted);
-  font-size:12px;font-weight:700;
-  padding:6px 12px;
-  cursor:pointer;
-  transition:all 0.15s;
-  font-family:inherit;
-}
+.bs-amt-btn{ background:var(--surface2); border:1.5px solid var(--border); border-radius:10px; color:var(--text-muted); font-size:12px;font-weight:700; padding:6px 12px; cursor:pointer; transition:all 0.15s; font-family:inherit; }
 .bs-amt-btn.active{background:rgba(249,115,22,0.15);border-color:#f97316;color:#f97316;}
 .bs-amt-btn:active{transform:scale(0.95);}
-
 .bs-legend{display:flex;gap:12px;margin-bottom:10px;}
 .bs-leg{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text-muted);}
 .bs-leg-dot{width:10px;height:10px;border-radius:50%;}
-
-.bs-sheets-grid{
-  display:grid;
-  grid-template-columns:repeat(5,1fr);
-  gap:8px;
-  margin-bottom:14px;
-}
-.bs-sheet{
-  aspect-ratio:1;
-  border-radius:50%;
-  background:var(--surface2);
-  border:1.5px solid var(--border);
-  display:flex;align-items:center;justify-content:center;
-  font-size:12px;font-weight:700;color:var(--text-muted);
-  cursor:pointer;
-  transition:all 0.15s;
-}
+.bs-sheets-grid{ display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-bottom:14px; }
+.bs-sheet{ aspect-ratio:1; border-radius:50%; background:var(--surface2); border:1.5px solid var(--border); display:flex;align-items:center;justify-content:center; font-size:12px;font-weight:700;color:var(--text-muted); cursor:pointer; transition:all 0.15s; }
 .bs-sheet:active{transform:scale(0.9);}
-.bs-sheet.selected{
-  background:rgba(249,115,22,0.18);
-  border-color:#f97316;
-  color:#f97316;
-}
-.bs-sheet.taken{
-  background:rgba(239,68,68,0.1);
-  border-color:rgba(239,68,68,0.35);
-  color:#f87171;
-  cursor:not-allowed;
-  opacity:0.7;
-}
-.bs-footer{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  padding-top:12px;
-  border-top:1px solid var(--border);
-}
-.bs-stat{
-  background:var(--surface2);
-  border:1px solid var(--border);
-  border-radius:10px;
-  padding:8px 10px;
-  flex:1;
-  text-align:center;
-}
+.bs-sheet.selected{ background:rgba(249,115,22,0.18); border-color:#f97316; color:#f97316; }
+.bs-sheet.taken{ background:rgba(239,68,68,0.1); border-color:rgba(239,68,68,0.35); color:#f87171; cursor:not-allowed; opacity:0.7; }
+.bs-footer{ display:flex; align-items:center; gap:8px; padding-top:12px; border-top:1px solid var(--border); }
+.bs-stat{ background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:8px 10px; flex:1; text-align:center; }
 .bs-stat-label{font-size:10px;color:var(--text-muted);font-weight:600;}
 .bs-stat-val{font-size:15px;font-weight:800;color:#fff;margin-top:2px;}
-.bs-book-btn{
-  background:linear-gradient(135deg,#f97316,#ea580c);
-  border:none;
-  border-radius:12px;
-  color:#fff;
-  font-size:13px;font-weight:800;
-  padding:12px 18px;
-  cursor:pointer;
-  flex:1.4;
-  font-family:inherit;
-  transition:all 0.2s;
-}
+.bs-book-btn{ background:linear-gradient(135deg,#f97316,#ea580c); border:none; border-radius:12px; color:#fff; font-size:13px;font-weight:800; padding:12px 18px; cursor:pointer; flex:1.4; font-family:inherit; transition:all 0.2s; }
 .bs-book-btn:disabled{background:#2a2a40;color:var(--text-dim);cursor:not-allowed;}
 .bs-book-btn:not(:disabled):active{transform:scale(0.97);}
+
+.qty-btn{width:34px;height:34px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:#fff;font-size:18px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.15s;flex-shrink:0;}
+.qty-btn:active{transform:scale(0.9);}
+.qty-btn:disabled{opacity:0.3;cursor:not-allowed;}
+.qty-display{min-width:38px;text-align:center;font-size:18px;font-weight:800;}
 
 .pop-enter-active{transition:all 0.3s ease-out;}
 .pop-leave-active{transition:all 0.2s ease-in;}
@@ -226,11 +162,13 @@
     </div>
   </transition>
 
-  <!-- PURCHASE MODAL -->
+  <!-- PURCHASE MODAL — Multi-select packages, no quantity -->
   <transition name="pop">
     <div v-if="purchaseModal.show" class="modal-overlay" @click.self="purchaseModal.show=false">
       <div class="modal-sheet" @click.stop>
         <span class="modal-handle"></span>
+
+        <!-- Product Header -->
         <div style="display:flex;gap:12px;align-items:center;margin-bottom:20px;justify-content:space-between;">
           <div style="display:flex;gap:12px;align-items:center;flex:1;min-width:0;">
             <img :src="purchaseModal.product.image" @error="imgError" style="width:60px;height:60px;border-radius:14px;object-fit:cover;border:1px solid var(--border);flex-shrink:0;">
@@ -244,34 +182,37 @@
           </button>
         </div>
 
-        <div style="margin-bottom:16px;">
-          <div style="font-size:12px;font-weight:700;color:var(--text-muted);display:flex;align-items:center;gap:8px;margin-bottom:10px;"><span class="step-circle">1</span> Select Package</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-            <div v-for="(pack,i) in purchaseModal.packages" :key="i" class="pkg-card" :class="{selected:purchaseModal.selectedPkg&&purchaseModal.selectedPkg.name===pack.name}" @click="purchaseModal.selectedPkg=pack">
-              <div v-if="purchaseModal.selectedPkg&&purchaseModal.selectedPkg.name===pack.name" class="pkg-check"><i class="fa-solid fa-check" style="font-size:10px;"></i></div>
-              <div style="font-weight:700;font-size:13px;margin-bottom:4px;">{{ pack.name }}</div>
-              <div style="color:var(--primary);font-weight:700;font-size:16px;">৳{{ pack.price }}</div>
-            </div>
-          </div>
-        </div>
-
+        <!-- Step 1: Multi-select Packages -->
         <div style="margin-bottom:16px;">
           <div style="font-size:12px;font-weight:700;color:var(--text-muted);display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-            <span class="step-circle" style="background:#22c55e;">Q</span> Quantity
-            <span v-if="purchaseModal.selectedPkg" style="margin-left:auto;font-size:12px;color:var(--primary);font-weight:700;">Total: ৳{{ (purchaseModal.selectedPkg.price * purchaseModal.quantity) }}</span>
+            <span class="step-circle">1</span>
+            Select Package(s)
+            <span style="margin-left:auto;font-size:11px;color:var(--text-dim);">একাধিক সিলেক্ট করা যাবে</span>
           </div>
-          <div style="display:flex;align-items:center;gap:12px;background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:10px 14px;">
-            <button class="qty-btn" @click="purchaseModal.quantity > 1 && purchaseModal.quantity--" :disabled="purchaseModal.quantity <= 1">−</button>
-            <span class="qty-display">{{ purchaseModal.quantity }}</span>
-            <button class="qty-btn" @click="purchaseModal.quantity < 20 && purchaseModal.quantity++" :disabled="purchaseModal.quantity >= 20">+</button>
-            <div style="margin-left:auto;display:flex;gap:6px;">
-              <button v-for="q in [1,5,10,20]" :key="q" @click="purchaseModal.quantity=q"
-                style="padding:4px 10px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid;"
-                :style="{background:purchaseModal.quantity===q?'var(--primary)':'transparent',borderColor:purchaseModal.quantity===q?'var(--primary)':'var(--border)',color:purchaseModal.quantity===q?'#fff':'var(--text-muted)'}">{{ q }}</button>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div
+              v-for="(pack, i) in purchaseModal.packages" :key="i"
+              class="pkg-multi-card"
+              :class="{ selected: purchaseModal.selectedPkgs.includes(i) }"
+              @click="togglePkg(i)">
+              <div class="pkg-checkbox">
+                <i v-if="purchaseModal.selectedPkgs.includes(i)" class="fa-solid fa-check" style="font-size:11px;"></i>
+              </div>
+              <div class="pkg-multi-info">
+                <div class="pkg-multi-name">{{ pack.name }}</div>
+                <div class="pkg-multi-price">৳{{ pack.price }}</div>
+              </div>
             </div>
+          </div>
+
+          <!-- Selected summary -->
+          <div v-if="purchaseModal.selectedPkgs.length > 0" class="selected-summary">
+            <span class="selected-summary-label">{{ purchaseModal.selectedPkgs.length }}টি সিলেক্ট করা হয়েছে</span>
+            <span class="selected-summary-val">৳{{ purchaseTotalPrice }}</span>
           </div>
         </div>
 
+        <!-- Step 2: Sheet Info -->
         <div style="margin-bottom:16px;">
           <div style="font-size:12px;font-weight:700;color:var(--text-muted);display:flex;align-items:center;gap:8px;margin-bottom:10px;"><span class="step-circle">2</span> Sheet Info</div>
           <select v-model="purchaseModal.playerId" class="round-select">
@@ -280,14 +221,18 @@
           </select>
         </div>
 
+        <!-- Step 3: Round Info -->
         <div style="margin-bottom:16px;">
-          <div style="font-size:12px;font-weight:700;color:var(--text-muted);display:flex;align-items:center;gap:8px;margin-bottom:10px;"><span class="step-circle" style="background:#f97316;">3</span> Round Info</div>
+          <div style="font-size:12px;font-weight:700;color:var(--text-muted);display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+            <span class="step-circle" style="background:#f97316;">3</span> Round Info
+          </div>
           <select v-model="purchaseModal.selectedRound" class="round-select">
             <option value="" disabled>-- Select Round --</option>
             <option v-for="r in rounds" :key="r.label" :value="r.label">{{ r.label }}</option>
           </select>
         </div>
 
+        <!-- Step 4: Payment Method -->
         <div style="margin-bottom:20px;">
           <div style="font-size:12px;font-weight:700;color:var(--text-muted);display:flex;align-items:center;gap:8px;margin-bottom:10px;"><span class="step-circle">4</span> Payment Method</div>
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
@@ -360,16 +305,21 @@
           </div>
         </div>
 
+        <!-- Footer: Total + Buy -->
         <div style="border-top:1px solid var(--border);padding-top:16px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-            <span style="color:var(--text-muted);font-size:13px;">{{ purchaseModal.selectedPkg ? purchaseModal.selectedPkg.name : '—' }} × {{ purchaseModal.quantity }}</span>
-            <span style="font-size:14px;font-weight:700;color:var(--text-muted);">৳{{ purchaseModal.selectedPkg ? purchaseModal.selectedPkg.price * purchaseModal.quantity : 0 }}</span>
+          <div v-if="purchaseModal.selectedPkgs.length > 0" style="margin-bottom:10px;">
+            <div v-for="i in purchaseModal.selectedPkgs" :key="i"
+                 style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+              <span style="color:var(--text-muted);font-size:12px;">{{ purchaseModal.packages[i].name }}</span>
+              <span style="font-size:12px;font-weight:700;color:var(--text-muted);">৳{{ purchaseModal.packages[i].price }}</span>
+            </div>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
             <span style="color:var(--text-muted);font-size:14px;">Total Payable</span>
-            <span style="font-size:22px;font-weight:800;color:var(--primary);">৳{{ purchaseModal.selectedPkg ? purchaseModal.selectedPkg.price * purchaseModal.quantity : 0 }}</span>
+            <span style="font-size:22px;font-weight:800;color:var(--primary);">৳{{ purchaseTotalPrice }}</span>
           </div>
-          <button @click="handlePurchaseBuy" class="btn-primary" style="width:100%;" :disabled="purchaseModal.verifying||!purchaseModal.selectedPkg||!purchaseModal.playerId||!purchaseModal.selectedRound">
+          <button @click="handlePurchaseBuy" class="btn-primary" style="width:100%;"
+                  :disabled="purchaseModal.verifying || purchaseModal.selectedPkgs.length === 0 || !purchaseModal.playerId || !purchaseModal.selectedRound">
             <span v-if="purchaseModal.verifying" class="spinner"></span>
             <span v-else>
               <span v-if="purchaseModal.payMethod==='wallet'">Pay from Wallet</span>
@@ -415,14 +365,10 @@
     </div>
   </transition>
 
-  <!-- ══════════════════════════════════════════
-       BOOK SHEET POPUP MODAL
-  ══════════════════════════════════════════ -->
+  <!-- BOOK SHEET POPUP MODAL -->
   <transition name="pop">
     <div v-if="bookSheetModal.show" class="bs-overlay" @click.self="closeBookSheet">
       <div class="bs-popup" @click.stop>
-
-        <!-- Header: Prev / Round Info / Next / Close -->
         <div class="bs-header">
           <button class="bs-nav-btn" @click="bsChangeRound(-1)" :disabled="bookSheetModal.roundIndex === 0">
             <i class="fa-solid fa-chevron-left" style="font-size:12px;"></i>
@@ -438,60 +384,29 @@
             <i class="fa-solid fa-xmark" style="font-size:13px;"></i>
           </button>
         </div>
-
-        <!-- Amount Selection -->
         <div class="bs-section-label">SELECT AMOUNT</div>
         <div class="bs-amounts">
-          <button
-            v-for="amt in bsAmounts" :key="amt"
-            class="bs-amt-btn"
-            :class="{ active: bookSheetModal.selectedAmt === amt }"
-            @click="bookSheetModal.selectedAmt = amt">
-            ৳{{ amt }}
-          </button>
+          <button v-for="amt in bsAmounts" :key="amt" class="bs-amt-btn" :class="{ active: bookSheetModal.selectedAmt === amt }" @click="bookSheetModal.selectedAmt = amt">৳{{ amt }}</button>
         </div>
-
-        <!-- Legend -->
         <div class="bs-legend">
           <div class="bs-leg"><div class="bs-leg-dot" style="background:#f97316;"></div> Selected</div>
           <div class="bs-leg"><div class="bs-leg-dot" style="background:rgba(239,68,68,0.5);"></div> Taken</div>
           <div class="bs-leg"><div class="bs-leg-dot" style="background:var(--surface2);border:1.5px solid rgba(255,255,255,0.1);"></div> Available</div>
         </div>
-
-        <!-- Sheet Grid (1–10) -->
         <div class="bs-section-label">SELECT SHEET NO</div>
         <div class="bs-sheets-grid">
-          <div
-            v-for="n in 10" :key="n"
-            class="bs-sheet"
-            :class="{
-              selected: bookSheetModal.selectedSheets.includes(n),
-              taken: bsTakenSheets.includes(n)
-            }"
-            @click="bsToggleSheet(n)">
-            {{ n }}
-          </div>
+          <div v-for="n in 10" :key="n" class="bs-sheet"
+               :class="{ selected: bookSheetModal.selectedSheets.includes(n), taken: bsTakenSheets.includes(n) }"
+               @click="bsToggleSheet(n)">{{ n }}</div>
         </div>
-
-        <!-- Footer: stats + Book Now -->
         <div class="bs-footer">
-          <div class="bs-stat">
-            <div class="bs-stat-label">Total Sheet</div>
-            <div class="bs-stat-val">{{ bookSheetModal.selectedSheets.length }}</div>
-          </div>
-          <div class="bs-stat">
-            <div class="bs-stat-label">Total Amount</div>
-            <div class="bs-stat-val">৳{{ (bookSheetModal.selectedSheets.length * (bookSheetModal.selectedAmt || 0)) }}</div>
-          </div>
-          <button
-            class="bs-book-btn"
-            :disabled="bookSheetModal.selectedSheets.length === 0 || !bookSheetModal.selectedAmt || bookSheetModal.booking"
-            @click="handleBookSheet">
+          <div class="bs-stat"><div class="bs-stat-label">Total Sheet</div><div class="bs-stat-val">{{ bookSheetModal.selectedSheets.length }}</div></div>
+          <div class="bs-stat"><div class="bs-stat-label">Total Amount</div><div class="bs-stat-val">৳{{ (bookSheetModal.selectedSheets.length * (bookSheetModal.selectedAmt || 0)) }}</div></div>
+          <button class="bs-book-btn" :disabled="bookSheetModal.selectedSheets.length === 0 || !bookSheetModal.selectedAmt || bookSheetModal.booking" @click="handleBookSheet">
             <span v-if="bookSheetModal.booking" class="spinner"></span>
             <span v-else>Book Now <i class="fa-solid fa-arrow-right" style="margin-left:4px;font-size:11px;"></i></span>
           </button>
         </div>
-
       </div>
     </div>
   </transition>
@@ -522,9 +437,7 @@
               <div style="font-size:10px;color:var(--green);display:flex;align-items:center;justify-content:flex-end;gap:3px;"><span style="width:5px;height:5px;background:var(--green);border-radius:50%;display:inline-block;"></span>Online</div>
             </div>
             <div class="avatar-ring" style="width:36px;height:36px;flex-shrink:0;">
-              <div class="avatar-inner" style="width:100%;height:100%;">
-                <img :src="userAvatar" style="width:100%;height:100%;object-fit:cover;">
-              </div>
+              <div class="avatar-inner" style="width:100%;height:100%;"><img :src="userAvatar" style="width:100%;height:100%;object-fit:cover;"></div>
             </div>
           </div>
         </div>
@@ -535,14 +448,10 @@
     </header>
 
     <main class="page-scroll" style="padding:16px;">
-      <!-- Skeleton Loading -->
       <div v-if="loading" style="padding:4px 0;">
         <div class="sk-block sk-banner"></div>
         <div class="sk-block sk-checkin"></div>
-        <div class="sk-grid">
-          <div class="sk-block sk-grid-item"></div><div class="sk-block sk-grid-item"></div>
-          <div class="sk-block sk-grid-item"></div><div class="sk-block sk-grid-item"></div>
-        </div>
+        <div class="sk-grid"><div class="sk-block sk-grid-item"></div><div class="sk-block sk-grid-item"></div><div class="sk-block sk-grid-item"></div><div class="sk-block sk-grid-item"></div></div>
         <div class="sk-block sk-section-title" style="margin-bottom:12px;"></div>
         <div class="sk-cards-2"><div class="sk-block sk-card-tall"></div><div class="sk-block sk-card-tall"></div></div>
         <div class="sk-block sk-section-title" style="margin-bottom:12px;"></div>
@@ -554,12 +463,9 @@
         <div v-if="banners.length>0" style="margin-bottom:20px;border-radius:20px;overflow:hidden;">
           <div class="swiper mySwiper" style="border-radius:20px;">
             <div class="swiper-wrapper">
-              <div class="swiper-slide" v-for="(b,i) in banners" :key="i"
-                   style="position:relative;" @click="handleBannerClick(b)"
-                   :style="{cursor:(b.productId||b.link)?'pointer':'default'}">
+              <div class="swiper-slide" v-for="(b,i) in banners" :key="i" style="position:relative;" @click="handleBannerClick(b)" :style="{cursor:(b.productId||b.link)?'pointer':'default'}">
                 <img :src="b.image" style="width:100%;height:170px;object-fit:cover;display:block;">
-                <div v-if="b.productId||b.link"
-                     style="position:absolute;bottom:14px;right:14px;background:rgba(108,99,255,0.92);backdrop-filter:blur(6px);color:#fff;font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;letter-spacing:0.4px;display:flex;align-items:center;gap:5px;">
+                <div v-if="b.productId||b.link" style="position:absolute;bottom:14px;right:14px;background:rgba(108,99,255,0.92);backdrop-filter:blur(6px);color:#fff;font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;letter-spacing:0.4px;display:flex;align-items:center;gap:5px;">
                   <i :class="b.link && !b.productId ? 'fa-solid fa-arrow-up-right-from-square' : 'fa-solid fa-bolt'" style="font-size:10px;"></i>
                   {{ b.link && !b.productId ? 'Visit' : 'Buy Now' }}
                 </div>
@@ -587,28 +493,20 @@
         <!-- Quick Access Grid -->
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;">
           <div @click="goProtected('add-money.html')" style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:14px 8px;text-align:center;cursor:pointer;" class="card-hover">
-            <div style="width:40px;height:40px;background:rgba(108,99,255,0.15);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;">
-              <i class="fa-solid fa-wallet" style="color:var(--primary);font-size:16px;"></i>
-            </div>
+            <div style="width:40px;height:40px;background:rgba(108,99,255,0.15);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;"><i class="fa-solid fa-wallet" style="color:var(--primary);font-size:16px;"></i></div>
             <div style="font-size:11px;font-weight:600;color:var(--text-muted);">Deposit</div>
           </div>
           <div @click="goProtected('orders.html')" style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:14px 8px;text-align:center;cursor:pointer;" class="card-hover">
-            <div style="width:40px;height:40px;background:rgba(255,107,157,0.15);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;">
-              <i class="fa-solid fa-receipt" style="color:var(--accent);font-size:16px;"></i>
-            </div>
+            <div style="width:40px;height:40px;background:rgba(255,107,157,0.15);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;"><i class="fa-solid fa-receipt" style="color:var(--accent);font-size:16px;"></i></div>
             <div style="font-size:11px;font-weight:600;color:var(--text-muted);">My Orders</div>
           </div>
           <div @click="announcementModal=true" style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:14px 8px;text-align:center;cursor:pointer;position:relative;" class="card-hover">
-            <div style="width:40px;height:40px;background:rgba(255,215,0,0.15);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;">
-              <i class="fa-solid fa-bullhorn" style="color:var(--gold);font-size:16px;"></i>
-            </div>
+            <div style="width:40px;height:40px;background:rgba(255,215,0,0.15);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;"><i class="fa-solid fa-bullhorn" style="color:var(--gold);font-size:16px;"></i></div>
             <div style="font-size:11px;font-weight:600;color:var(--text-muted);">Announce</div>
             <span v-if="announcementLines.length>0" style="position:absolute;top:6px;right:6px;width:8px;height:8px;background:#ef4444;border-radius:50%;display:block;"></span>
           </div>
           <div @click="goProtected('chat.html')" style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:14px 8px;text-align:center;cursor:pointer;" class="card-hover">
-            <div style="width:40px;height:40px;background:rgba(255,215,0,0.12);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;">
-              <i class="fa-solid fa-comments" style="color:var(--gold);font-size:16px;"></i>
-            </div>
+            <div style="width:40px;height:40px;background:rgba(255,215,0,0.12);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;"><i class="fa-solid fa-comments" style="color:var(--gold);font-size:16px;"></i></div>
             <div style="font-size:11px;font-weight:600;color:var(--text-muted);">Support</div>
           </div>
         </div>
@@ -619,10 +517,7 @@
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
             <div v-for="item in mysteryBoxes" :key="item.id" class="product-card" @click="openPurchase(item)">
               <img :src="item.image" @error="imgError" style="width:100%;height:120px;object-fit:cover;">
-              <div style="padding:10px 12px;">
-                <div style="font-weight:700;font-size:13px;margin-bottom:4px;">{{ item.name }}</div>
-                <div style="font-size:12px;color:var(--primary);font-weight:600;">From ৳{{ getMinPrice(item) }}</div>
-              </div>
+              <div style="padding:10px 12px;"><div style="font-weight:700;font-size:13px;margin-bottom:4px;">{{ item.name }}</div><div style="font-size:12px;color:var(--primary);font-weight:600;">From ৳{{ getMinPrice(item) }}</div></div>
             </div>
           </div>
         </div>
@@ -634,10 +529,7 @@
             <div v-for="item in specialOffers" :key="item.id" class="product-card" @click="openPurchase(item)" style="position:relative;">
               <img :src="item.image" @error="imgError" style="width:100%;height:120px;object-fit:cover;">
               <div style="position:absolute;top:8px;right:8px;background:#f97316;color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;">HOT</div>
-              <div style="padding:10px 12px;">
-                <div style="font-weight:700;font-size:13px;margin-bottom:4px;">{{ item.name }}</div>
-                <div style="font-size:12px;color:var(--accent);font-weight:600;">From ৳{{ getMinPrice(item) }}</div>
-              </div>
+              <div style="padding:10px 12px;"><div style="font-weight:700;font-size:13px;margin-bottom:4px;">{{ item.name }}</div><div style="font-size:12px;color:var(--accent);font-weight:600;">From ৳{{ getMinPrice(item) }}</div></div>
             </div>
           </div>
         </div>
@@ -699,16 +591,13 @@
     </div>
   </div>
 
-  <!-- ══════════════════════════════════════════
-       BOOK SHEET FLOATING BUTTON
-  ══════════════════════════════════════════ -->
- <button
-  class="book-sheet-fab"
-  :class="{ 'fab-hidden': navHidden || bookSheetModal.show || purchaseModal.show || announcementModal || popup.show }"
-  @click="openBookSheet">
-  <i class="fa-solid fa-layer-group" style="font-size:22px;"></i>
-  <span style="font-size:9px;font-weight:800;letter-spacing:0.3px;text-transform:uppercase;">Sheet</span>
-</button>
+  <!-- BOOK SHEET FAB -->
+  <button class="book-sheet-fab"
+    :class="{ 'fab-hidden': navHidden || bookSheetModal.show || purchaseModal.show || announcementModal || popup.show }"
+    @click="openBookSheet">
+    <i class="fa-solid fa-layer-group" style="font-size:22px;"></i>
+    <span style="font-size:9px;font-weight:800;letter-spacing:0.3px;text-transform:uppercase;">Sheet</span>
+  </button>
 
 </div>
 
@@ -779,18 +668,35 @@ createApp({
     };
 
     const popup = ref({ show: false, type: '', title: '', msg: '', btnText: 'OK', confirm: null });
+
+    // ── Purchase Modal (multi-select) ──
     const purchaseModal = ref({
-      show: false, product: {}, packages: [], selectedPkg: null,
-      quantity: 1, playerId: '', selectedRound: '', payMethod: 'wallet',
-      gateway: 'bkash', trxId: '', epsRef: '', verifying: false
+      show: false, product: {}, packages: [],
+      selectedPkgs: [],   // array of selected indices (replaces selectedPkg + quantity)
+      playerId: '', selectedRound: '',
+      payMethod: 'wallet', gateway: 'bkash',
+      trxId: '', epsRef: '', verifying: false
     });
+
+    // Total price = sum of all selected packages
+    const purchaseTotalPrice = computed(() => {
+      const pm = purchaseModal.value;
+      if (!pm.packages || pm.selectedPkgs.length === 0) return 0;
+      return pm.selectedPkgs.reduce((sum, i) => sum + (pm.packages[i]?.price || 0), 0);
+    });
+
+    // Toggle package selection
+    const togglePkg = (i) => {
+      const idx = purchaseModal.value.selectedPkgs.indexOf(i);
+      if (idx >= 0) { purchaseModal.value.selectedPkgs.splice(idx, 1); }
+      else { purchaseModal.value.selectedPkgs.push(i); }
+    };
 
     // ══════════════════════════════════════════
     // BOOK SHEET STATE
     // ══════════════════════════════════════════
     const bsAmounts = [10, 30, 50, 100, 200, 300, 400, 500];
 
-    // Static round list (also populated from Firestore rounds ref)
     const bsRounds = computed(() => {
       if (rounds.value && rounds.value.length > 0) {
         return rounds.value.map(r => {
@@ -798,7 +704,6 @@ createApp({
           return { label: parts[0] || r.label, time: parts[1] || '' };
         });
       }
-      // Fallback
       return [
         {label:'1st',time:'03:00 PM'},{label:'2nd',time:'03:20 PM'},{label:'3rd',time:'03:40 PM'},
         {label:'4th',time:'04:00 PM'},{label:'5th',time:'04:20 PM'},{label:'6th',time:'04:40 PM'},
@@ -813,73 +718,40 @@ createApp({
       ];
     });
 
-    const bookSheetModal = ref({
-      show: false,
-      roundIndex: 0,
-      selectedAmt: null,
-      selectedSheets: [],
-      takenSheetsMap: {},
-      booking: false,
-    });
-
+    const bookSheetModal = ref({ show: false, roundIndex: 0, selectedAmt: null, selectedSheets: [], takenSheetsMap: {}, booking: false });
     const bsCurrentRound = computed(() => bsRounds.value[bookSheetModal.value.roundIndex] || { label: '1st', time: '03:00 PM' });
-
     const bsTakenSheets = computed(() => bookSheetModal.value.takenSheetsMap[bookSheetModal.value.roundIndex] || []);
 
     const openBookSheet = () => {
       if (!isLoggedIn.value) { goPage('login.html'); return; }
-      bookSheetModal.value = {
-        show: true,
-        roundIndex: 0,
-        selectedAmt: null,
-        selectedSheets: [],
-        takenSheetsMap: {},
-        booking: false,
-      };
+      bookSheetModal.value = { show: true, roundIndex: 0, selectedAmt: null, selectedSheets: [], takenSheetsMap: {}, booking: false };
       loadTakenSheets(0);
     };
-
     const closeBookSheet = () => { bookSheetModal.value.show = false; };
-
     const bsChangeRound = (dir) => {
       const bsm = bookSheetModal.value;
       const newIdx = bsm.roundIndex + dir;
       if (newIdx < 0 || newIdx >= bsRounds.value.length) return;
-      bsm.roundIndex = newIdx;
-      bsm.selectedSheets = [];
+      bsm.roundIndex = newIdx; bsm.selectedSheets = [];
       loadTakenSheets(newIdx);
     };
-
     const loadTakenSheets = async (roundIdx) => {
       try {
         const roundLabel = bsRounds.value[roundIdx]?.label;
         if (!roundLabel) return;
-        const q = query(
-          collection(db, 'sheetBookings'),
-          where('roundLabel', '==', roundLabel),
-          where('status', '!=', 'cancelled')
-        );
+        const q = query(collection(db, 'sheetBookings'), where('roundLabel', '==', roundLabel), where('status', '!=', 'cancelled'));
         const snap = await getDocs(q);
         const taken = [];
-        snap.forEach(d => {
-          const sheets = d.data().sheets || [];
-          sheets.forEach(s => { if (!taken.includes(s)) taken.push(s); });
-        });
-        bookSheetModal.value.takenSheetsMap = {
-          ...bookSheetModal.value.takenSheetsMap,
-          [roundIdx]: taken
-        };
+        snap.forEach(d => { const sheets = d.data().sheets || []; sheets.forEach(s => { if (!taken.includes(s)) taken.push(s); }); });
+        bookSheetModal.value.takenSheetsMap = { ...bookSheetModal.value.takenSheetsMap, [roundIdx]: taken };
       } catch (e) {}
     };
-
     const bsToggleSheet = (n) => {
       if (bsTakenSheets.value.includes(n)) return;
       const bsm = bookSheetModal.value;
       const idx = bsm.selectedSheets.indexOf(n);
-      if (idx >= 0) { bsm.selectedSheets.splice(idx, 1); }
-      else { bsm.selectedSheets.push(n); }
+      if (idx >= 0) { bsm.selectedSheets.splice(idx, 1); } else { bsm.selectedSheets.push(n); }
     };
-
     const handleBookSheet = async () => {
       const bsm = bookSheetModal.value;
       if (!bsm.selectedAmt || bsm.selectedSheets.length === 0) return;
@@ -887,39 +759,24 @@ createApp({
       const totalPrice = bsm.selectedAmt * bsm.selectedSheets.length;
       const roundLabel = bsCurrentRound.value.label;
       const roundTime = bsCurrentRound.value.time;
-
       if (userBalance.value < totalPrice) {
-        showPopup('error', 'Low Balance', `৳${totalPrice} প্রয়োজন কিন্তু আপনার ব্যালেন্স ৳${userBalance.value}।`, 'Deposit');
-        return;
+        showPopup('error', 'Low Balance', `৳${totalPrice} প্রয়োজন কিন্তু আপনার ব্যালেন্স ৳${userBalance.value}।`, 'Deposit'); return;
       }
-
       showPopup('confirm', 'Confirm Booking',
         `${roundLabel} Round (${roundTime})\nSheet: ${bsm.selectedSheets.sort((a,b)=>a-b).join(', ')}\nTotal: ৳${totalPrice}`,
         'Confirm',
         async () => {
-          popup.value.show = false;
-          bsm.booking = true;
+          popup.value.show = false; bsm.booking = true;
           try {
             await runTransaction(db, async (t) => {
               const uRef = doc(db, 'users', uid);
               const uDoc = await t.get(uRef);
               if ((uDoc.data().balance || 0) < totalPrice) throw new Error('Low Balance');
               t.update(uRef, { balance: uDoc.data().balance - totalPrice });
-              t.set(doc(collection(db, 'sheetBookings')), {
-                userId: uid,
-                roundLabel,
-                roundTime,
-                sheets: [...bsm.selectedSheets],
-                amountPerSheet: bsm.selectedAmt,
-                totalAmount: totalPrice,
-                status: 'pending',
-                createdAt: serverTimestamp(),
-              });
+              t.set(doc(collection(db, 'sheetBookings')), { userId: uid, roundLabel, roundTime, sheets: [...bsm.selectedSheets], amountPerSheet: bsm.selectedAmt, totalAmount: totalPrice, status: 'pending', createdAt: serverTimestamp() });
             });
             bsm.show = false;
-            showPopup('success', 'বুকিং সফল! 🎉',
-              `${roundLabel} Round-এ ${bsm.selectedSheets.length}টি Sheet বুক হয়েছে। মোট: ৳${totalPrice}`,
-              'OK');
+            showPopup('success', 'বুকিং সফল! 🎉', `${roundLabel} Round-এ ${bsm.selectedSheets.length}টি Sheet বুক হয়েছে। মোট: ৳${totalPrice}`, 'OK');
           } catch (e) {
             if (e.message === 'Low Balance') { showPopup('error', 'Low Balance', 'ব্যালেন্স পর্যাপ্ত নয়।', 'Deposit'); }
             else { showPopup('error', 'Error', 'বুকিং হয়নি। আবার চেষ্টা করুন।'); }
@@ -972,13 +829,14 @@ createApp({
       purchaseModal.value = {
         show: true, product: item,
         packages: item.packages && item.packages.length > 0 ? item.packages : [{ name: 'Default', price: item.price || 0 }],
-        selectedPkg: null, quantity: 1, playerId: '', selectedRound: '',
+        selectedPkgs: [],   // start with nothing selected
+        playerId: '', selectedRound: '',
         payMethod: 'wallet', gateway: 'bkash', trxId: '', epsRef: '', verifying: false
       };
     };
 
     const handleEpsPurchaseRedirect = () => {
-      if (!purchaseModal.value.selectedPkg) { showPopup('error','Select Package','Please choose a package first.'); return; }
+      if (purchaseModal.value.selectedPkgs.length === 0) { showPopup('error','Select Package','Please choose at least one package.'); return; }
       window.open(EPS_PAYMENT_URL, '_blank');
     };
 
@@ -1021,42 +879,59 @@ createApp({
       } catch (e) {}
     };
 
+    // ── handlePurchaseBuy: creates one order per selected package ──
     const handlePurchaseBuy = async () => {
       const pm = purchaseModal.value;
-      if (!pm.selectedPkg) return showPopup('error', 'Select Package', 'Please choose a package.');
+      if (pm.selectedPkgs.length === 0) return showPopup('error', 'Select Package', 'অন্তত একটি প্যাকেজ সিলেক্ট করুন।');
       if (!pm.playerId) return showPopup('error', 'Missing Info', 'Sheet No দিন।');
       if (!pm.selectedRound) return showPopup('error', 'Select Round', 'Round select করুন।');
       const uid = localStorage.getItem('userId');
-      const qty = pm.quantity || 1;
-      const totalPrice = pm.selectedPkg.price * qty;
+      const totalPrice = purchaseTotalPrice.value;
+      const selectedPackages = pm.selectedPkgs.map(i => pm.packages[i]);
 
-      const orderData = {
-        userId: uid, packageName: pm.selectedPkg.name, price: pm.selectedPkg.price,
-        quantity: qty, totalPrice,
-        playerId: pm.playerId, sheetInfo: pm.playerId,
-        selectedRound: pm.selectedRound, roundInfo: pm.selectedRound,
-        productName: pm.product.name, category: pm.product.category,
+      // Build order data for all selected packages
+      const makeOrderData = (pack) => ({
+        userId: uid,
+        packageName: pack.name,
+        price: pack.price,
+        quantity: 1,
+        totalPrice: pack.price,
+        playerId: pm.playerId,
+        sheetInfo: pm.playerId,
+        selectedRound: pm.selectedRound,
+        roundInfo: pm.selectedRound,
+        productName: pm.product.name,
+        category: pm.product.category,
         createdAt: serverTimestamp()
-      };
+      });
 
       if (pm.payMethod === 'wallet') {
-        if (userBalance.value < totalPrice) return showPopup('error', 'Low Balance', 'Insufficient balance.', 'Deposit');
-        showPopup('confirm', 'Confirm Purchase', `Deduct ৳${totalPrice} from wallet? (${qty} × ৳${pm.selectedPkg.price})`, 'Confirm', async () => {
-          popup.value.show = false;
-          purchaseModal.value.show = false;
-          try {
-            await runTransaction(db, async (t) => {
-              const uRef = doc(db, 'users', uid);
-              const uDoc = await t.get(uRef);
-              if (uDoc.data().balance < totalPrice) throw 'Low Balance';
-              t.update(uRef, { balance: uDoc.data().balance - totalPrice });
-              t.set(doc(collection(db, 'orders')), { ...orderData, status: 'pending', paymentMethod: 'wallet' });
-            });
-            await addReferralCommission(uid, totalPrice);
-            await updateTurnoverProgress(uid, totalPrice);
-            showPopup('success', 'Order Placed!', `${qty}টি অর্ডার pending এ আছে।`, 'Orders');
-          } catch (e) { showPopup('error', 'Failed', 'Transaction failed. Try again.'); }
-        });
+        if (userBalance.value < totalPrice) return showPopup('error', 'Low Balance', `৳${totalPrice} প্রয়োজন কিন্তু ব্যালেন্স ৳${userBalance.value}।`, 'Deposit');
+        const pkgSummary = selectedPackages.map(p => `${p.name} ৳${p.price}`).join(', ');
+        showPopup('confirm', 'Confirm Purchase',
+          `নিচের প্যাকেজগুলো কিনবেন?\n${pkgSummary}\n\nমোট: ৳${totalPrice}`,
+          'Confirm',
+          async () => {
+            popup.value.show = false;
+            purchaseModal.value.show = false;
+            try {
+              await runTransaction(db, async (t) => {
+                const uRef = doc(db, 'users', uid);
+                const uDoc = await t.get(uRef);
+                if (uDoc.data().balance < totalPrice) throw 'Low Balance';
+                t.update(uRef, { balance: uDoc.data().balance - totalPrice });
+                // Create one order per selected package
+                for (const pack of selectedPackages) {
+                  t.set(doc(collection(db, 'orders')), { ...makeOrderData(pack), status: 'pending', paymentMethod: 'wallet' });
+                }
+              });
+              await addReferralCommission(uid, totalPrice);
+              await updateTurnoverProgress(uid, totalPrice);
+              showPopup('success', 'Order Placed! 🎉',
+                `${selectedPackages.length}টি প্যাকেজ অর্ডার করা হয়েছে। মোট: ৳${totalPrice}`, 'Orders');
+            } catch (e) { showPopup('error', 'Failed', 'Transaction failed. Try again.'); }
+          }
+        );
       } else if (pm.payMethod === 'direct') {
         if (!pm.trxId || pm.trxId.length < 5) return showPopup('error', 'Invalid TrxID', 'সঠিক Transaction ID দিন।');
         pm.verifying = true;
@@ -1079,10 +954,12 @@ createApp({
             } catch (fe) {}
           }
           if (verifyOk) {
-            await addDoc(collection(db, 'orders'), { ...orderData, status: 'processing', paymentMethod: pm.gateway + '_auto', trxId, isAutoVerified: true });
+            for (const pack of selectedPackages) {
+              await addDoc(collection(db, 'orders'), { ...makeOrderData(pack), status: 'processing', paymentMethod: pm.gateway + '_auto', trxId, isAutoVerified: true });
+            }
             await addReferralCommission(uid, totalPrice);
             pm.show = false;
-            showPopup('success', 'Payment Verified! ✅', `${qty}টি অর্ডার সম্পন্ন হয়েছে।`, 'Orders');
+            showPopup('success', 'Payment Verified! ✅', `${selectedPackages.length}টি অর্ডার সম্পন্ন হয়েছে।`, 'Orders');
           } else { showPopup('error', 'Verification Failed ❌', verifyMsg || 'TrxID মিলছে না।'); }
         } catch (e) { showPopup('error', 'Error', 'Connection failed. Try again.'); }
         finally { pm.verifying = false; }
@@ -1090,7 +967,9 @@ createApp({
         if (!pm.epsRef || pm.epsRef.length < 4) return showPopup('error', 'EPS Reference', 'EPS Reference নম্বর দিন।');
         pm.verifying = true;
         try {
-          await addDoc(collection(db, 'orders'), { ...orderData, status: 'pending', paymentMethod: 'eps', epsRef: pm.epsRef.trim(), isEps: true });
+          for (const pack of selectedPackages) {
+            await addDoc(collection(db, 'orders'), { ...makeOrderData(pack), status: 'pending', paymentMethod: 'eps', epsRef: pm.epsRef.trim(), isEps: true });
+          }
           pm.show = false;
           showPopup('success', 'Order Submitted!', 'EPS পেমেন্ট যাচাই হলে অর্ডার প্রসেস হবে।', 'Orders');
         } catch (e) { showPopup('error', 'Error', 'Order submit failed. Try again.'); }
@@ -1190,12 +1069,11 @@ createApp({
       noticeMessage, logoUrl, banners, mysteryBoxes, specialOffers, gameItems, otherItems,
       socials, iconMap, adminNumbers, announcementLines, announcementModal,
       checkInClaimed, navHidden, rounds, sheetOptions,
-      popup, purchaseModal,
+      popup, purchaseModal, purchaseTotalPrice, togglePkg,
       goPage, goProtected, openSocialLink,
       showPopup, closePopup, imgError, getMinPrice,
       handleBannerClick, openPurchase, handlePurchaseBuy, handleEpsPurchaseRedirect,
       claimDailyBonus, copyNum,
-      // Book Sheet
       bsAmounts, bsRounds, bsCurrentRound, bsTakenSheets,
       bookSheetModal, openBookSheet, closeBookSheet,
       bsChangeRound, bsToggleSheet, handleBookSheet,
