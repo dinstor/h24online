@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=0, viewport-fit=cover">
+    <title>My Account - H24 ONLINE</title>
+
+    <!-- CDNs -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Noto+Sans+Bengali:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+        a, button, div[onclick], [class*="nav-"], [class*="card"], [class*="btn"] { touch-action: manipulation; }
+        body { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+        body { font-family: 'Outfit', 'Noto Sans Bengali', sans-serif; background: #0a0a0f; color: #fff; overflow-x: hidden; }
+        [v-cloak] { display: none !important; }
+        ::-webkit-scrollbar { width: 0; height: 0; }
+
+        :root {
+            --primary: #6c63ff;
+            --primary-dark: #4c44cc;
+            --accent: #ff6b9d;
+            --gold: #ffd700;
+            --bg: #0a0a0f;
+            --surface: #12121a;
+            --surface2: #1c1c28;
+            --surface3: #252535;
+            --border: rgba(255,255,255,0.08);
+            --text: #ffffff;
+            --text-muted: #8888a8;
+            --text-dim: #555570;
+            --green: #22c55e;
+            --red: #ef4444;
+            --orange: #f97316;
+            --nav-height: 64px;
+        }
+
+        /* ── APP WRAPPER ── */
+        #app { max-width: 430px; margin: 0 auto; min-height: 100vh; background: var(--bg); display: flex; flex-direction: column; }
+
+        /* ── HEADER ── */
+        .app-header { background: rgba(10,10,20,0.97); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+
+        /* ── BOTTOM NAV ── */
+        .nav-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 430px; background: rgba(10,10,20,0.98); backdrop-filter: blur(20px); border-top: 1px solid var(--border); z-index: 999; padding-bottom: env(safe-area-inset-bottom); }
+        .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 10px; font-weight: 600; color: var(--text-muted); text-decoration: none; padding: 10px 4px 8px; cursor: pointer; transition: all 0.2s; letter-spacing: 0.3px; }
+        .nav-item i { font-size: 19px; transition: all 0.25s; }
+        .nav-item.active { color: var(--primary); font-weight: 700; }
+        .nav-item.active i { transform: translateY(-1px); }
+        .nav-item:active { transform: scale(0.92); }
+
+        /* ── PAGE SCROLL ── */
+        .page-scroll { overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: calc(var(--nav-height) + env(safe-area-inset-bottom) + 24px); flex: 1; min-height: 0; }
+
+        /* ── STAT CARD ── */
+        .stat-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 16px; padding: 14px; text-align: center; }
+
+        /* ── MENU ROW ── */
+        .menu-row { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.15s; }
+        .menu-row:last-child { border-bottom: none; }
+        .menu-row:active { background: rgba(108,99,255,0.07); }
+        .menu-icon { width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+
+        /* ── AVATAR RING ── */
+        .avatar-ring { background: linear-gradient(135deg, var(--primary), var(--accent)); padding: 3px; border-radius: 50%; }
+        .avatar-inner { border-radius: 50%; background: var(--surface); padding: 3px; overflow: hidden; }
+
+        /* ── SOCIAL ICON ── */
+        .social-icon-btn { width: 38px; height: 38px; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); text-decoration: none; transition: all 0.18s; cursor: pointer; }
+        .social-icon-btn:active { transform: scale(0.82); background: rgba(108,99,255,0.18); border-color: var(--primary); color: var(--primary); }
+
+        /* ── CARD ── */
+        .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; }
+
+        /* ── SECTION TITLE ── */
+        .section-title { font-size: 13px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.2px; display: flex; align-items: center; gap: 8px; }
+        .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+        /* ── BTN ── */
+        .btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; font-weight: 700; border: none; border-radius: 14px; padding: 14px 24px; font-family: inherit; cursor: pointer; transition: all 0.2s; font-size: 14px; }
+        .btn-danger:active { transform: scale(0.97); }
+
+        /* ── PROFILE HERO ── */
+        .profile-hero { background: linear-gradient(135deg, rgba(108,99,255,0.15), rgba(255,107,157,0.08)); border: 1px solid rgba(108,99,255,0.2); border-radius: 20px; padding: 24px 20px; text-align: center; position: relative; overflow: hidden; }
+        .profile-hero::before { content: ''; position: absolute; top: -40px; right: -40px; width: 120px; height: 120px; background: radial-gradient(circle, rgba(108,99,255,0.18) 0%, transparent 70%); pointer-events: none; }
+
+        /* ── BALANCE CARD ── */
+        .balance-card { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); border-radius: 16px; padding: 18px; text-align: center; }
+    </style>
+</head>
+<body>
+
+<div id="app" v-cloak>
+
+    <!-- ── Header ── -->
+    <header class="app-header">
+        <div style="padding:12px 16px;display:flex;justify-content:space-between;align-items:center;">
+            <a href="index.html" style="display:flex;align-items:center;gap:10px;text-decoration:none;">
+                <div style="width:32px;height:32px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));border-radius:10px;display:flex;align-items:center;justify-content:center;">
+                    <i class="fa-solid fa-bolt" style="color:#fff;font-size:14px;"></i>
+                </div>
+                <span style="font-size:16px;font-weight:800;color:#fff;letter-spacing:0.5px;">H24 ONLINE</span>
+            </a>
+            <div style="display:flex;align-items:center;gap:10px;">
+                <div style="background:rgba(108,99,255,0.15);border:1px solid rgba(108,99,255,0.3);border-radius:20px;padding:6px 14px;display:flex;align-items:center;gap:6px;">
+                    <i class="fa-solid fa-wallet" style="color:var(--primary);font-size:12px;"></i>
+                    <span style="font-size:13px;font-weight:700;color:#fff;">{{ user.balance || 0 }} ৳</span>
+                </div>
+                <div class="avatar-ring" style="width:36px;height:36px;">
+                    <div class="avatar-inner" style="width:100%;height:100%;">
+                        <img :src="user.photoURL || 'https://i.pravatar.cc/150?img=12'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ── Page Scroll ── -->
+    <div class="page-scroll">
+        <div style="padding:16px;display:flex;flex-direction:column;gap:16px;">
+
+            <!-- ── Profile Hero ── -->
+            <div class="profile-hero">
+                <div class="avatar-ring" style="width:88px;height:88px;margin:0 auto 14px;display:inline-block;">
+                    <div class="avatar-inner" style="width:100%;height:100%;">
+                        <img :src="user.photoURL || 'https://i.pravatar.cc/150?img=12'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+                    </div>
+                </div>
+                <div style="font-size:18px;font-weight:800;color:#fff;margin-bottom:4px;">Hi, {{ user.name || 'Guest User' }} 👋</div>
+                <div style="font-size:13px;color:var(--text-muted);display:flex;align-items:center;justify-content:center;gap:8px;">
+                    <span>Available Balance: <strong style="color:#fff;">{{ user.balance || 0 }} ৳</strong></span>
+                    <i @click="fetchUserData" class="fa-solid fa-arrows-rotate" style="color:var(--primary);cursor:pointer;font-size:13px;"></i>
+                </div>
+                <div style="margin-top:12px;display:inline-flex;align-items:center;gap:6px;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.3);border-radius:20px;padding:4px 12px;">
+                    <i class="fa-solid fa-circle-check" style="color:var(--green);font-size:11px;"></i>
+                    <span style="font-size:11px;font-weight:700;color:var(--green);">Account Verified</span>
+                </div>
+            </div>
+
+            <!-- ── Stats Grid ── -->
+            <div>
+                <div class="section-title" style="margin-bottom:12px;"><i class="fa-solid fa-chart-simple" style="color:var(--primary);"></i> Stats</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                    <div class="stat-card">
+                        <div style="font-size:9px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Support PIN</div>
+                        <div style="font-size:20px;font-weight:800;color:var(--primary);">{{ supportPin }}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div style="font-size:9px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Weekly Spent</div>
+                        <div style="font-size:20px;font-weight:800;color:var(--accent);">{{ stats.weeklySpent }} ৳</div>
+                    </div>
+                    <div class="stat-card">
+                        <div style="font-size:9px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Total Spent</div>
+                        <div style="font-size:20px;font-weight:800;color:var(--gold);">{{ stats.totalSpent }} ৳</div>
+                    </div>
+                    <div class="stat-card">
+                        <div style="font-size:9px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Total Orders</div>
+                        <div style="font-size:20px;font-weight:800;color:var(--green);">{{ stats.totalOrders }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Balance Card ── -->
+            <div class="balance-card">
+                <div style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Available Balance</div>
+                <div style="font-size:32px;font-weight:900;color:#fff;margin-bottom:4px;">{{ user.balance || 0 }} ৳</div>
+                <div style="font-size:11px;color:rgba(255,255,255,0.6);">Wallet Balance</div>
+            </div>
+
+            <!-- ── Account Information ── -->
+            <div>
+                <div class="section-title" style="margin-bottom:12px;"><i class="fa-solid fa-circle-info" style="color:var(--primary);"></i> Account Information</div>
+                <div class="card" style="overflow:hidden;">
+                    <div class="menu-row">
+                        <div class="menu-icon" style="background:rgba(108,99,255,0.15);color:var(--primary);">
+                            <i class="fa-solid fa-envelope"></i>
+                        </div>
+                        <div style="flex:1;min-width:0;">
+                            <div style="font-size:11px;color:var(--text-dim);font-weight:600;margin-bottom:2px;">Email</div>
+                            <div style="font-size:13px;font-weight:600;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ user.email || 'No email linked' }}</div>
+                        </div>
+                    </div>
+                    <div class="menu-row">
+                        <div class="menu-icon" style="background:rgba(34,197,94,0.15);color:var(--green);">
+                            <i class="fa-solid fa-phone"></i>
+                        </div>
+                        <div style="flex:1;">
+                            <div style="font-size:11px;color:var(--text-dim);font-weight:600;margin-bottom:2px;">Phone</div>
+                            <div style="font-size:13px;font-weight:600;color:#fff;">{{ user.phone || 'No phone linked' }}</div>
+                        </div>
+                    </div>
+                    <div class="menu-row">
+                        <div class="menu-icon" style="background:rgba(255,215,0,0.15);color:var(--gold);">
+                            <i class="fa-solid fa-hashtag"></i>
+                        </div>
+                        <div style="flex:1;">
+                            <div style="font-size:11px;color:var(--text-dim);font-weight:600;margin-bottom:2px;">Support PIN</div>
+                            <div style="font-size:13px;font-weight:600;color:#fff;">{{ supportPin }}</div>
+                        </div>
+                        <div style="font-size:11px;color:var(--text-dim);">Use for support</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Stay Connected ── -->
+            <div>
+                <div class="section-title" style="margin-bottom:12px;"><i class="fa-solid fa-share-nodes" style="color:var(--primary);"></i> Stay Connected</div>
+                <div class="card" style="padding:16px;">
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                        <template v-for="(url, platform) in socials" :key="platform">
+                            <a v-if="url && iconMap[platform]"
+                               :href="url"
+                               target="_blank"
+                               class="social-icon-btn">
+                                <i :class="iconMap[platform]" style="font-size:15px;"></i>
+                            </a>
+                        </template>
+                        <div v-if="!Object.values(socials).some(v => v)" style="color:var(--text-dim);font-size:12px;padding:8px 0;">
+                            Social links loading...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Logout ── -->
+            <button @click="handleLogout" class="btn-danger" style="width:100%;display:flex;align-items:center;justify-content:center;gap:10px;">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                Logout Account
+            </button>
+
+            <!-- ── Footer ── -->
+            <div style="text-align:center;padding:8px 0 4px;">
+                <p style="font-size:11px;color:var(--text-dim);">© H24 Online 2026 | All Rights Reserved</p>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ── Bottom Navigation ── -->
+    <nav class="nav-bar">
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);height:var(--nav-height);">
+            <a href="index.html" class="nav-item">
+                <i class="fa-solid fa-house"></i>
+                <span>Home</span>
+            </a>
+            <a href="add-money.html" class="nav-item">
+                <i class="fa-solid fa-wallet"></i>
+                <span>Add Money</span>
+            </a>
+            <a href="orders.html" class="nav-item">
+                <i class="fa-solid fa-file-invoice"></i>
+                <span>My Orders</span>
+            </a>
+            <a href="codes.html" class="nav-item">
+                <i class="fa-solid fa-gift"></i>
+                <span>My Codes</span>
+            </a>
+            <a href="account.html" class="nav-item active">
+                <i class="fa-solid fa-user"></i>
+                <span>Account</span>
+            </a>
+        </div>
+    </nav>
+
+</div>
+
+<!-- ── Logic Script ── -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { createApp, ref, onMounted } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyACUK207BRvtR5yc1UhYLS9FlMitVVlrrE",
+        authDomain: "freetopup-fd263.firebaseapp.com",
+        projectId: "freetopup-fd263",
+        storageBucket: "freetopup-fd263.firebasestorage.app",
+        messagingSenderId: "756173302110",
+        appId: "1:756173302110:web:14227664f6b5d14d9047cf"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    createApp({
+        setup() {
+            const user = ref({});
+            const stats = ref({ totalSpent: 0, totalOrders: 0, weeklySpent: 0 });
+            const supportPin = ref('------');
+            const socials = ref({});
+
+            const iconMap = {
+                facebook:  'fa-brands fa-facebook-f',
+                instagram: 'fa-brands fa-instagram',
+                tiktok:    'fa-brands fa-tiktok',
+                youtube:   'fa-brands fa-youtube',
+                telegram:  'fa-brands fa-telegram',
+                whatsapp:  'fa-brands fa-whatsapp'
+            };
+
+            const userId = localStorage.getItem('userId');
+
+            const fetchUserData = async () => {
+                if (!userId) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+                try {
+                    const docSnap = await getDoc(doc(db, 'users', userId));
+                    if (docSnap.exists()) {
+                        user.value = docSnap.data();
+                        const uidStr = userId.toString().replace(/\D/g, '');
+                        supportPin.value = uidStr.length > 5 ? uidStr.substring(0, 6) : Math.floor(100000 + Math.random() * 900000);
+                    }
+                } catch (e) {
+                    console.error('Error fetching user:', e);
+                }
+            };
+
+            const fetchUserStats = async () => {
+                if (!userId) return;
+                try {
+                    const q = query(collection(db, 'orders'), where('userId', '==', userId));
+                    const snap = await getDocs(q);
+                    let spent = 0, count = 0, weekly = 0;
+                    const oneWeekAgo = new Date();
+                    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+                    snap.forEach(d => {
+                        const data = d.data();
+                        if (data.status === 'completed') {
+                            spent += Number(data.price || 0);
+                            count++;
+                            const orderDate = data.createdAt ? data.createdAt.toDate() : new Date();
+                            if (orderDate >= oneWeekAgo) weekly += Number(data.price || 0);
+                        }
+                    });
+                    stats.value = { totalSpent: spent, totalOrders: count, weeklySpent: weekly };
+                } catch (e) {
+                    console.error('Error fetching stats:', e);
+                }
+            };
+
+            const fetchSocials = async () => {
+                try {
+                    const docSnap = await getDoc(doc(db, 'admin', 'settings'));
+                    if (docSnap.exists()) socials.value = docSnap.data();
+                } catch (e) {
+                    console.error('Error fetching socials:', e);
+                }
+            };
+
+            const handleLogout = async () => {
+                if (confirm('আপনি কি নিশ্চিত আপনি লগআউট করতে চান?')) {
+                    try { await signOut(auth); } catch (e) {}
+                    localStorage.removeItem('userId');
+                    sessionStorage.clear();
+                    window.location.href = 'login.html';
+                }
+            };
+
+            onMounted(() => {
+                fetchUserData();
+                fetchUserStats();
+                fetchSocials();
+            });
+
+            return { user, stats, supportPin, socials, iconMap, fetchUserData, handleLogout };
+        }
+    }).mount('#app');
+</script>
+</body>
+</html>

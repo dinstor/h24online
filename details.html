@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=0, viewport-fit=cover">
+  <title>Purchase - H24ONLINE</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Noto+Sans+Bengali:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+
+  <style>
+    *{-webkit-tap-highlight-color:transparent;box-sizing:border-box;}
+    a,button,div[onclick],[class*="nav-"],[class*="card"],[class*="btn"]{touch-action:manipulation;}
+    body{
+      -webkit-text-size-adjust:100%;text-size-adjust:100%;
+      font-family:'Outfit','Noto Sans Bengali',sans-serif;
+      background:#0a0a0f;color:#fff;overflow-x:hidden;
+    }
+    :root{
+      --primary:#6c63ff;--primary-dark:#4c44cc;--accent:#ff6b9d;
+      --gold:#ffd700;--bg:#0a0a0f;--surface:#12121a;
+      --surface2:#1c1c28;--surface3:#252535;
+      --border:rgba(255,255,255,0.08);--text:#ffffff;
+      --text-muted:#8888a8;--text-dim:#555570;
+      --green:#22c55e;--red:#ef4444;--orange:#f97316;
+      --nav-height:64px;
+    }
+    [v-cloak]{display:none!important;}
+    ::-webkit-scrollbar{width:0;height:0;}
+
+    /* ── APP HEADER ── */
+    .app-header{
+      background:rgba(10,10,20,0.97);backdrop-filter:blur(20px);
+      border-bottom:1px solid var(--border);
+      position:sticky;top:0;z-index:100;
+    }
+
+    /* ── BOTTOM NAV ── */
+    .nav-bar{
+      position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+      width:100%;max-width:430px;
+      background:rgba(10,10,20,0.98);backdrop-filter:blur(20px);
+      border-top:1px solid var(--border);
+      z-index:999;padding-bottom:env(safe-area-inset-bottom);
+    }
+    .nav-item{
+      display:flex;flex-direction:column;align-items:center;
+      justify-content:center;gap:3px;font-size:10px;font-weight:600;
+      color:var(--text-muted);text-decoration:none;
+      padding:10px 4px 8px;cursor:pointer;transition:all 0.2s;letter-spacing:0.3px;
+    }
+    .nav-item i{font-size:19px;transition:all 0.25s;}
+    .nav-item.active{color:var(--primary);}
+    .nav-item.active i{transform:translateY(-1px);}
+    .nav-item:active{transform:scale(0.92);}
+
+    /* ── STEP CARD ── */
+    .step-card{
+      background:var(--surface);border:1px solid var(--border);
+      border-radius:20px;padding:18px 16px;margin-bottom:12px;
+    }
+    .step-header{
+      display:flex;align-items:center;gap:10px;
+      padding-bottom:14px;margin-bottom:14px;
+      border-bottom:1px solid var(--border);
+    }
+    .step-num{
+      width:26px;height:26px;
+      background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+      border-radius:8px;display:flex;align-items:center;justify-content:center;
+      font-size:12px;font-weight:800;color:#fff;flex-shrink:0;
+    }
+    .step-title{font-size:14px;font-weight:700;color:var(--text);}
+
+    /* ── PACKAGE CARD ── */
+    .pkg-card{
+      background:var(--surface2);border:2px solid var(--border);
+      border-radius:14px;padding:12px 10px;cursor:pointer;
+      transition:all 0.2s;position:relative;text-align:center;
+    }
+    .pkg-card.selected{border-color:var(--primary);background:rgba(108,99,255,0.10);}
+    .pkg-card:active{transform:scale(0.95);}
+    .pkg-check{
+      position:absolute;top:-8px;right:-8px;
+      background:var(--primary);color:#fff;border-radius:50%;
+      width:20px;height:20px;display:flex;align-items:center;
+      justify-content:center;font-size:10px;
+    }
+
+    /* ── INPUT FIELD ── */
+    .input-field{
+      background:var(--surface2);border:1px solid var(--border);
+      border-radius:12px;padding:13px 16px 13px 44px;
+      width:100%;color:#fff;font-family:inherit;font-size:14px;
+      outline:none;transition:border-color 0.2s,box-shadow 0.2s;
+    }
+    .input-field:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(108,99,255,0.15);}
+    .input-field::placeholder{color:var(--text-muted);}
+    .input-wrap{position:relative;}
+    .input-icon{
+      position:absolute;left:14px;top:50%;transform:translateY(-50%);
+      color:var(--text-muted);font-size:15px;pointer-events:none;
+    }
+
+    /* ── PAYMENT TAB ── */
+    .pay-tab{
+      flex:1;padding:10px 8px;border-radius:12px;font-size:12px;
+      font-weight:700;cursor:pointer;transition:all 0.2s;border:none;
+      font-family:inherit;display:flex;align-items:center;
+      justify-content:center;gap:6px;
+    }
+    .pay-tab.wallet-active{
+      background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;
+    }
+    .pay-tab.direct-active{
+      background:linear-gradient(135deg,#e2136e,#b50d56);color:#fff;
+    }
+    .pay-tab.inactive{background:var(--surface2);color:var(--text-muted);}
+
+    /* ── WALLET BOX ── */
+    .wallet-box{
+      background:rgba(108,99,255,0.08);border:1px solid rgba(108,99,255,0.2);
+      border-radius:14px;padding:14px 16px;
+      display:flex;align-items:center;justify-content:space-between;
+    }
+
+    /* ── GATEWAY CARD ── */
+    .gateway-card{
+      background:var(--surface2);border:2px solid var(--border);
+      border-radius:12px;padding:10px 6px;cursor:pointer;
+      transition:all 0.2s;text-align:center;
+    }
+    .gateway-card:active{transform:scale(0.95);}
+    .gateway-card.bkash-active{border-color:#e2136e;background:rgba(226,19,110,0.1);}
+    .gateway-card.nagad-active{border-color:#f97316;background:rgba(249,115,22,0.1);}
+    .gateway-card.rocket-active{border-color:#7c3aed;background:rgba(124,58,237,0.1);}
+
+    /* ── COPY NUMBER BOX ── */
+    .copy-box{
+      background:rgba(34,197,94,0.06);border:1px dashed rgba(34,197,94,0.3);
+      border-radius:14px;padding:14px;cursor:pointer;
+      transition:all 0.2s;text-align:center;
+    }
+    .copy-box:active{transform:scale(0.98);background:rgba(34,197,94,0.1);}
+
+    /* ── TRX INPUT ── */
+    .trx-input{
+      background:var(--surface2);border:1px solid var(--border);
+      border-radius:12px;padding:13px 16px;width:100%;
+      color:#fff;font-family:inherit;font-size:15px;font-weight:700;
+      outline:none;transition:border-color 0.2s;
+      text-transform:uppercase;text-align:center;letter-spacing:3px;
+    }
+    .trx-input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(108,99,255,0.15);}
+    .trx-input::placeholder{color:var(--text-muted);letter-spacing:0;font-size:13px;text-transform:none;}
+
+    /* ── SUMMARY ROW ── */
+    .summary-row{
+      display:flex;justify-content:space-between;align-items:center;
+      padding:10px 0;border-bottom:1px solid var(--border);
+      font-size:13px;
+    }
+    .summary-row:last-child{border-bottom:none;}
+
+    /* ── BUY BUTTON ── */
+    .btn-buy{
+      background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+      color:#fff;font-weight:800;border:none;border-radius:16px;
+      padding:16px;font-family:inherit;cursor:pointer;
+      transition:all 0.2s;font-size:15px;letter-spacing:0.3px;
+      width:100%;display:flex;align-items:center;justify-content:center;gap:8px;
+    }
+    .btn-buy:active{transform:scale(0.97);}
+    .btn-buy:disabled{background:#2a2a40;color:var(--text-dim);cursor:not-allowed;}
+
+    /* ── MODAL ── */
+    .modal-overlay{
+      position:fixed;inset:0;background:rgba(0,0,0,0.75);
+      backdrop-filter:blur(8px);z-index:1000;
+      display:flex;align-items:center;justify-content:center;padding:20px;
+    }
+    .modal-box{
+      background:var(--surface);border:1px solid var(--border);
+      border-radius:24px;padding:28px 22px;width:100%;
+      max-width:340px;text-align:center;
+    }
+    .modal-icon{
+      width:64px;height:64px;border-radius:50%;
+      display:flex;align-items:center;justify-content:center;
+      margin:0 auto 16px;font-size:28px;
+    }
+    .modal-icon.success{background:rgba(34,197,94,0.15);color:var(--green);}
+    .modal-icon.confirm{background:rgba(108,99,255,0.15);color:var(--primary);}
+    .modal-icon.error{background:rgba(239,68,68,0.15);color:var(--red);}
+
+    /* ── POPUP ANIMATIONS ── */
+    .pop-enter-active{transition:all 0.3s ease-out;}
+    .pop-leave-active{transition:all 0.2s ease-in;}
+    .pop-enter-from,.pop-leave-to{opacity:0;transform:scale(0.92) translateY(20px);}
+
+    /* ── LOADING SPINNER ── */
+    .spinner{
+      width:20px;height:20px;
+      border:2px solid rgba(255,255,255,0.3);
+      border-top-color:#fff;border-radius:50%;
+      animation:spin 0.8s linear infinite;display:inline-block;
+    }
+    @keyframes spin{to{transform:rotate(360deg);}}
+
+    /* ── SKELETON ── */
+    .skeleton{
+      background:linear-gradient(90deg,var(--surface2) 25%,var(--surface3) 50%,var(--surface2) 75%);
+      background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px;
+    }
+    @keyframes shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
+
+    /* ── TOAST ── */
+    .toast-msg{
+      position:fixed;bottom:calc(var(--nav-height) + env(safe-area-inset-bottom) + 16px);
+      left:50%;transform:translateX(-50%) translateY(20px);
+      background:rgba(30,30,46,0.97);border:1px solid rgba(108,99,255,0.35);
+      color:#fff;font-size:13px;font-weight:600;
+      padding:12px 22px;border-radius:40px;white-space:nowrap;
+      z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,0.4);
+      pointer-events:none;opacity:0;transition:opacity 0.25s,transform 0.25s;
+    }
+    .toast-msg.show{opacity:1;transform:translateX(-50%) translateY(0);}
+    .toast-msg.terror{border-color:rgba(239,68,68,0.4);}
+
+    /* ── PRODUCT IMAGE ── */
+    .product-img{
+      width:80px;height:80px;border-radius:16px;object-fit:cover;
+      border:1px solid var(--border);flex-shrink:0;
+    }
+
+    /* ── PAGE SCROLL ── */
+    .page-scroll{
+      overflow-y:auto;-webkit-overflow-scrolling:touch;
+      padding-bottom:calc(var(--nav-height) + env(safe-area-inset-bottom) + 24px);
+    }
+  </style>
+</head>
+<body>
+
+<div id="app" v-cloak style="max-width:430px;margin:0 auto;min-height:100vh;background:var(--bg);position:relative;">
+
+  <!-- ══════════════════════════════
+       POPUP MODAL
+  ══════════════════════════════ -->
+  <transition name="pop">
+    <div v-if="popup.show" class="modal-overlay" @click.self="closePopup">
+      <div class="modal-box">
+
+        <!-- আইকন -->
+        <div class="modal-icon" :class="popup.type">
+          <i :class="popup.type === 'success' ? 'fa-solid fa-check' : popup.type === 'confirm' ? 'fa-solid fa-cart-shopping' : 'fa-solid fa-triangle-exclamation'"></i>
+        </div>
+
+        <!-- টেক্সট -->
+        <div style="font-size:18px;font-weight:800;color:var(--text);margin-bottom:8px;">{{ popup.title }}</div>
+        <div style="font-size:13px;color:var(--text-muted);line-height:1.6;margin-bottom:22px;">{{ popup.msg }}</div>
+
+        <!-- কনফার্ম বাটন (দুটো) -->
+        <div v-if="popup.type === 'confirm'" style="display:flex;gap:10px;">
+          <button @click="closePopup"
+            style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text-muted);border-radius:14px;padding:13px;font-family:inherit;font-weight:700;font-size:13px;cursor:pointer;">
+            বাতিল
+          </button>
+          <button @click="processWalletOrder"
+            style="flex:1;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;border:none;border-radius:14px;padding:13px;font-family:inherit;font-weight:800;font-size:13px;cursor:pointer;">
+            নিশ্চিত করুন
+          </button>
+        </div>
+
+        <!-- সিঙ্গেল বাটন -->
+        <button v-else @click="closePopup"
+          :style="popup.type === 'success' ? 'background:linear-gradient(135deg,#22c55e,#16a34a)' : 'background:linear-gradient(135deg,#ef4444,#dc2626)'"
+          style="width:100%;color:#fff;border:none;border-radius:14px;padding:14px;font-family:inherit;font-weight:800;font-size:14px;cursor:pointer;transition:all 0.2s;">
+          {{ popup.btnText }}
+        </button>
+
+      </div>
+    </div>
+  </transition>
+
+  <!-- ══════════════════════════════
+       HEADER
+  ══════════════════════════════ -->
+  <header class="app-header">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;">
+      <a href="index.html" style="display:flex;align-items:center;gap:8px;color:var(--text-muted);text-decoration:none;font-weight:600;font-size:14px;">
+        <i class="fa-solid fa-arrow-left" style="font-size:16px;color:var(--primary);"></i>
+        <span>পেছনে</span>
+      </a>
+      <div style="font-size:15px;font-weight:800;color:var(--text);">পণ্য কিনুন</div>
+      <div style="width:60px;"></div>
+    </div>
+  </header>
+
+  <!-- ══════════════════════════════
+       MAIN CONTENT
+  ══════════════════════════════ -->
+  <div class="page-scroll" style="padding:14px 14px 0;">
+
+    <!-- ── লোডিং স্কেলেটন ── -->
+    <div v-if="loading">
+      <div class="skeleton" style="height:96px;border-radius:20px;margin-bottom:12px;"></div>
+      <div class="skeleton" style="height:180px;border-radius:20px;margin-bottom:12px;"></div>
+      <div class="skeleton" style="height:120px;border-radius:20px;margin-bottom:12px;"></div>
+      <div class="skeleton" style="height:220px;border-radius:20px;margin-bottom:12px;"></div>
+    </div>
+
+    <div v-else>
+
+      <!-- ── প্রোডাক্ট হেডার কার্ড ── -->
+      <div class="step-card" style="display:flex;align-items:center;gap:14px;padding:14px;">
+        <img :src="product.image" class="product-img" @error="handleImageError">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:16px;font-weight:800;color:var(--text);line-height:1.3;margin-bottom:5px;">{{ product.name }}</div>
+          <div style="display:inline-flex;align-items:center;gap:5px;background:rgba(108,99,255,0.12);border:1px solid rgba(108,99,255,0.2);border-radius:20px;padding:3px 10px;">
+            <i class="fa-solid fa-tag" style="font-size:10px;color:var(--primary);"></i>
+            <span style="font-size:11px;font-weight:700;color:var(--primary);text-transform:capitalize;">{{ product.category }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════
+           STEP 1 — প্যাকেজ সিলেক্ট
+      ══════════════════════════ -->
+      <div class="step-card">
+        <div class="step-header">
+          <div class="step-num">1</div>
+          <div class="step-title">প্যাকেজ বেছে নিন</div>
+        </div>
+
+        <div v-if="packages.length > 0" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div
+            v-for="(pack, index) in packages" :key="index"
+            @click="selectedPackage = pack"
+            :class="['pkg-card', selectedPackage?.name === pack.name ? 'selected' : '']"
+          >
+            <div v-if="selectedPackage?.name === pack.name" class="pkg-check">
+              <i class="fa-solid fa-check" style="font-size:9px;"></i>
+            </div>
+            <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;">{{ pack.name }}</div>
+            <div style="font-size:16px;font-weight:800;color:var(--primary);">৳{{ pack.price }}</div>
+          </div>
+        </div>
+
+        <div v-else style="text-align:center;padding:20px 0;color:var(--text-muted);font-size:13px;">
+          <i class="fa-solid fa-box-open" style="font-size:28px;margin-bottom:8px;display:block;opacity:0.4;"></i>
+          এই পণ্যের কোনো প্যাকেজ নেই
+        </div>
+      </div>
+
+      <!-- ══════════════════════════
+           STEP 2 — অ্যাকাউন্ট ইনফো
+      ══════════════════════════ -->
+      <div class="step-card">
+        <div class="step-header">
+          <div class="step-num">2</div>
+          <div class="step-title">অ্যাকাউন্ট ইনফো</div>
+        </div>
+
+        <div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:8px;">
+          {{ inputLabel }}
+        </div>
+        <div class="input-wrap">
+          <i class="fa-solid fa-gamepad input-icon"></i>
+          <input
+            v-model="playerId"
+            type="text"
+            :placeholder="inputPlaceholder"
+            class="input-field"
+          >
+        </div>
+        <div style="font-size:11px;color:var(--text-dim);margin-top:7px;display:flex;align-items:center;gap:5px;">
+          <i class="fa-solid fa-circle-info" style="font-size:10px;"></i>
+          সঠিক তথ্য না দিলে অর্ডার বাতিল হবে।
+        </div>
+      </div>
+
+      <!-- ══════════════════════════
+           STEP 3 — পেমেন্ট মেথড
+      ══════════════════════════ -->
+      <div class="step-card">
+        <div class="step-header">
+          <div class="step-num">3</div>
+          <div class="step-title">পেমেন্ট পদ্ধতি</div>
+        </div>
+
+        <!-- পেমেন্ট ট্যাব -->
+        <div style="display:flex;gap:8px;margin-bottom:16px;">
+          <button
+            @click="paymentMethod = 'wallet'"
+            :class="['pay-tab', paymentMethod === 'wallet' ? 'wallet-active' : 'inactive']"
+          >
+            <i class="fa-solid fa-wallet"></i> ওয়ালেট
+          </button>
+          <button
+            @click="paymentMethod = 'direct'"
+            :class="['pay-tab', paymentMethod === 'direct' ? 'direct-active' : 'inactive']"
+          >
+            <i class="fa-solid fa-bolt"></i> অটো পে
+          </button>
+        </div>
+
+        <!-- ওয়ালেট অপশন -->
+        <div v-if="paymentMethod === 'wallet'">
+          <div class="wallet-box">
+            <div>
+              <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;">আমার ব্যালেন্স</div>
+              <div v-if="isLoggedIn" style="font-size:22px;font-weight:900;color:var(--primary);">৳{{ userBalance }}</div>
+              <div v-else style="font-size:13px;color:var(--text-dim);">লগইন করে ব্যালেন্স দেখুন</div>
+            </div>
+            <a v-if="isLoggedIn" href="add-money.html"
+              style="background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;padding:8px 14px;border-radius:10px;font-size:12px;font-weight:700;text-decoration:none;display:flex;align-items:center;gap:5px;">
+              <i class="fa-solid fa-plus"></i> টাকা যোগ
+            </a>
+          </div>
+          <div style="font-size:11px;color:var(--text-dim);margin-top:10px;text-align:center;display:flex;align-items:center;justify-content:center;gap:5px;">
+            <i class="fa-solid fa-shield-halved" style="color:var(--green);"></i>
+            ওয়ালেট থেকে তাৎক্ষণিক পেমেন্ট হবে
+          </div>
+        </div>
+
+        <!-- অটো পে অপশন -->
+        <div v-if="paymentMethod === 'direct'">
+
+          <!-- গেটওয়ে সিলেক্ট -->
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;">
+
+            <div @click="directGateway = 'bkash'" :class="['gateway-card', directGateway === 'bkash' ? 'bkash-active' : '']">
+              <img src="https://seeklogo.com/images/B/bkash-logo-FBB258B90F-seeklogo.com.png" style="height:22px;margin:0 auto 5px;display:block;object-fit:contain;">
+              <div style="font-size:10px;font-weight:800;color:var(--text);">bKash</div>
+            </div>
+
+            <div @click="directGateway = 'nagad'" :class="['gateway-card', directGateway === 'nagad' ? 'nagad-active' : '']">
+              <img src="https://seeklogo.com/images/N/nagad-logo-7A70CCFEE0-seeklogo.com.png" style="height:18px;margin:2px auto 7px;display:block;object-fit:contain;">
+              <div style="font-size:10px;font-weight:800;color:var(--text);">Nagad</div>
+            </div>
+
+            <div @click="directGateway = 'rocket'" :class="['gateway-card', directGateway === 'rocket' ? 'rocket-active' : '']">
+              <img src="https://seeklogo.com/images/D/dutch-bangla-rocket-logo-B4D1CC458D-seeklogo.com.png" style="height:22px;margin:0 auto 5px;display:block;object-fit:contain;">
+              <div style="font-size:10px;font-weight:800;color:var(--text);">Rocket</div>
+            </div>
+
+          </div>
+
+          <!-- অ্যাডমিন নম্বর কপি বক্স -->
+          <div v-if="adminNumber" @click="copyNumber" class="copy-box" style="margin-bottom:12px;">
+            <div style="font-size:10px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;">
+              <i class="fa-solid fa-paper-plane" style="margin-right:4px;"></i>পাঠানোর নম্বর (Personal)
+            </div>
+            <div style="font-size:22px;font-weight:900;color:var(--text);letter-spacing:2px;margin-bottom:4px;">{{ adminNumber }}</div>
+            <div style="font-size:10px;color:var(--text-dim);display:flex;align-items:center;justify-content:center;gap:4px;">
+              <i class="fa-regular fa-copy"></i> নম্বরটি কপি করতে ট্যাপ করুন
+            </div>
+          </div>
+
+          <!-- TrxID ইনপুট -->
+          <div>
+            <div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:8px;">
+              ট্রানজেকশন আইডি (TrxID)
+            </div>
+            <input
+              v-model="trxId"
+              type="text"
+              placeholder="যেমন: 9G765KH..."
+              class="trx-input"
+            >
+            <div style="font-size:11px;color:var(--text-dim);margin-top:6px;text-align:center;">
+              পেমেন্ট করার পর TrxID এখানে দিন
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ── অর্ডার সারাংশ ── -->
+        <div style="background:var(--surface2);border-radius:14px;padding:14px;margin-top:16px;">
+          <div class="summary-row">
+            <span style="color:var(--text-muted);">প্যাকেজ</span>
+            <span style="font-weight:700;color:var(--text);">{{ selectedPackage ? selectedPackage.name : '—' }}</span>
+          </div>
+          <div class="summary-row">
+            <span style="color:var(--text-muted);">পেমেন্ট</span>
+            <span style="font-weight:700;color:var(--text);">{{ paymentMethod === 'wallet' ? 'ওয়ালেট' : 'অটো পে' }}</span>
+          </div>
+          <div class="summary-row" style="border-bottom:none;padding-bottom:0;">
+            <span style="font-size:15px;font-weight:800;color:var(--text);">মোট পরিশোধযোগ্য</span>
+            <span style="font-size:18px;font-weight:900;color:var(--primary);">৳{{ selectedPackage ? selectedPackage.price : 0 }}</span>
+          </div>
+        </div>
+
+        <!-- ── বায় বাটন ── -->
+        <button
+          @click="handleBuy"
+          :disabled="isButtonDisabled"
+          class="btn-buy"
+          style="margin-top:14px;"
+        >
+          <span v-if="verifying" class="spinner"></span>
+          <template v-else>
+            <i :class="!isLoggedIn ? 'fa-solid fa-right-to-bracket' : 'fa-solid fa-bolt'"></i>
+            <span>
+              {{ !isLoggedIn ? 'লগইন করুন' : (paymentMethod === 'wallet' ? 'ওয়ালেট থেকে পে করুন' : 'যাচাই করে অর্ডার দিন') }}
+            </span>
+            <i v-if="isLoggedIn" class="fa-solid fa-arrow-right" style="font-size:13px;"></i>
+          </template>
+        </button>
+
+      </div>
+      <!-- /step 3 -->
+
+    </div><!-- /v-else -->
+  </div><!-- /page-scroll -->
+
+  <!-- ══════════════════════════════
+       BOTTOM NAVIGATION
+  ══════════════════════════════ -->
+  <nav class="nav-bar">
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);height:var(--nav-height);">
+      <a href="index.html"      class="nav-item active"><i class="fa-solid fa-house"></i><span>হোম</span></a>
+      <a href="add-money.html"  class="nav-item"><i class="fa-solid fa-wallet"></i><span>ওয়ালেট</span></a>
+      <a href="orders.html"     class="nav-item"><i class="fa-solid fa-file-invoice"></i><span>অর্ডার</span></a>
+      <a href="codes.html"      class="nav-item"><i class="fa-solid fa-gift"></i><span>কোডস</span></a>
+      <a href="account.html"    class="nav-item"><i class="fa-solid fa-user"></i><span>অ্যাকাউন্ট</span></a>
+    </div>
+  </nav>
+
+  <!-- টোস্ট -->
+  <div class="toast-msg" :class="[toast.show ? 'show' : '', toast.type === 'error' ? 'terror' : '']">
+    {{ toast.msg }}
+  </div>
+
+</div><!-- /#app -->
+
+<!-- ══════════════════════════════
+     FIREBASE + VUE LOGIC
+══════════════════════════════ -->
+<script type="module">
+  import { initializeApp }        from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  import { getFirestore, doc, getDoc, collection, addDoc, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import { createApp, ref, computed, onMounted } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
+
+  /* ── কনফিগারেশন ── */
+  const SCRIPT_URL     = "https://script.google.com/macros/s/AKfycbygDTGvbG7sUTPAt2lO2iMsPHprZRlP7WjAwq4n4Q3D1SZduenpNPUaayf_c2VsTqC0Xw/exec";
+  const CLIENT_API_KEY = "KEY_LUYAAAKNC_1770036903949";
+
+  const firebaseConfig = {
+    apiKey:            "AIzaSyACUK207BRvtR5yc1UhYLS9FlMitVVlrrE",
+    authDomain:        "freetopup-fd263.firebaseapp.com",
+    projectId:         "freetopup-fd263",
+    storageBucket:     "freetopup-fd263.firebasestorage.app",
+    messagingSenderId: "756173302110",
+    appId:             "1:756173302110:web:14227664f6b5d14d9047cf"
+  };
+
+  const firebaseApp = initializeApp(firebaseConfig);
+  const auth        = getAuth(firebaseApp);
+  const db          = getFirestore(firebaseApp);
+
+  createApp({
+    setup() {
+      /* ── স্টেট ── */
+      const loading         = ref(true);
+      const verifying       = ref(false);
+      const isLoggedIn      = ref(false);
+      const product         = ref({});
+      const packages        = ref([]);
+      const selectedPackage = ref(null);
+      const playerId        = ref('');
+      const userBalance     = ref(0);
+      const userId          = ref(null);
+
+      const paymentMethod   = ref('wallet');
+      const directGateway   = ref('bkash');
+      const trxId           = ref('');
+      const adminNumbers    = ref({ bkash: '', nagad: '', rocket: '' });
+
+      const popup = ref({ show: false, type: '', title: '', msg: '', btnText: 'OK' });
+      const toast = ref({ show: false, msg: '', type: '' });
+
+      /* ── টোস্ট ── */
+      let toastTimer = null;
+      const showToast = (msg, type = '') => {
+        if (toastTimer) clearTimeout(toastTimer);
+        toast.value = { show: true, msg, type };
+        toastTimer = setTimeout(() => { toast.value.show = false; }, 2800);
+      };
+
+      /* ── পপআপ ── */
+      const showPopup = (type, title, msg, btnText = 'ঠিক আছে') => {
+        popup.value = { show: true, type, title, msg, btnText };
+      };
+      const closePopup = () => {
+        if (popup.value.btnText === 'টাকা যোগ করুন') window.location.href = 'add-money.html';
+        else if (popup.value.btnText === 'অর্ডার দেখুন') window.location.href = 'orders.html';
+        else if (popup.value.btnText === 'লগইন করুন')   window.location.href = 'login.html';
+        else popup.value.show = false;
+      };
+
+      /* ── অ্যাডমিন নম্বর কম্পিউটেড ── */
+      const adminNumber = computed(() => adminNumbers.value[directGateway.value] || '');
+
+      /* ── নম্বর কপি ── */
+      const copyNumber = () => {
+        if (adminNumber.value) {
+          navigator.clipboard.writeText(adminNumber.value).then(() => {
+            showToast('✅ নম্বর কপি হয়েছে!');
+          });
+        }
+      };
+
+      /* ── ডাইনামিক লেবেল ── */
+      const inputLabel = computed(() => {
+        if (product.value.category === 'ingame')   return 'অ্যাকাউন্ট ইনফো (Email/Pass/Number)';
+        if (product.value.category === 'giftcard') return 'কোড পাঠানোর ইমেইল';
+        return 'প্লেয়ার আইডি (UID)';
+      });
+      const inputPlaceholder = computed(() => {
+        if (product.value.category === 'ingame')   return 'Email & Password লিখুন';
+        if (product.value.category === 'giftcard') return 'আপনার ইমেইল লিখুন';
+        return 'Player UID লিখুন';
+      });
+
+      /* ── বাটন ডিসেবল ── */
+      const isButtonDisabled = computed(() =>
+        !selectedPackage.value || !playerId.value || verifying.value
+      );
+
+      /* ── ডেটা ফেচ ── */
+      const fetchData = async (uid) => {
+        try {
+          const params = new URLSearchParams(window.location.search);
+          const id = params.get('id');
+          if (!id) { window.location.href = 'index.html'; return; }
+
+          const prodSnap = await getDoc(doc(db, 'products', id));
+          if (prodSnap.exists()) {
+            const data = prodSnap.data();
+            product.value = data;
+            if (data.packages && Array.isArray(data.packages) && data.packages.length > 0) {
+              packages.value = data.packages;
+            } else {
+              packages.value = [{ name: 'Default Pack', price: data.price }];
+            }
+          }
+
+          if (uid) {
+            const userSnap = await getDoc(doc(db, 'users', uid));
+            if (userSnap.exists()) userBalance.value = userSnap.data().balance || 0;
+          }
+
+          const settingsSnap = await getDoc(doc(db, 'settings', 'payment'));
+          if (settingsSnap.exists()) adminNumbers.value = settingsSnap.data();
+
+        } catch (e) { console.error(e); }
+        finally { loading.value = false; }
+      };
+
+      /* ── অথ ── */
+      const initData = () => {
+        onAuthStateChanged(auth, async (user) => {
+          if (user) {
+            isLoggedIn.value = true;
+            userId.value = user.uid;
+            await fetchData(user.uid);
+          } else {
+            isLoggedIn.value = false;
+            userId.value = null;
+            await fetchData(null);
+          }
+        });
+      };
+
+      /* ── বায় হ্যান্ডলার ── */
+      const handleBuy = async () => {
+        if (!isLoggedIn.value) {
+          window.location.href = 'login.html'; return;
+        }
+        if (!selectedPackage.value) {
+          showPopup('error', 'প্যাকেজ বেছে নিন', 'একটি প্যাকেজ সিলেক্ট করুন।'); return;
+        }
+        if (!playerId.value) {
+          showPopup('error', 'তথ্য দিন', 'অ্যাকাউন্ট ইনফো লিখুন।'); return;
+        }
+
+        if (paymentMethod.value === 'wallet') {
+          if (userBalance.value < selectedPackage.value.price) {
+            showPopup('error', 'ব্যালেন্স কম', 'ওয়ালেটে পর্যাপ্ত ব্যালেন্স নেই।', 'টাকা যোগ করুন');
+          } else {
+            showPopup('confirm', 'ওয়ালেট পেমেন্ট নিশ্চিত করুন', `ওয়ালেট থেকে ৳${selectedPackage.value.price} কাটা হবে। নিশ্চিত করুন?`, 'নিশ্চিত করুন');
+          }
+        } else {
+          if (!trxId.value || trxId.value.length < 6) {
+            showPopup('error', 'TrxID দিন', 'সঠিক ট্রানজেকশন আইডি লিখুন।'); return;
+          }
+          await verifyAndPlaceOrder();
+        }
+      };
+
+      /* ── ওয়ালেট অর্ডার প্রসেস ── */
+      const processWalletOrder = async () => {
+        popup.value.show = false;
+        const price = selectedPackage.value.price;
+        const uid   = userId.value;
+        try {
+          await runTransaction(db, async (t) => {
+            const uRef = doc(db, 'users', uid);
+            const uDoc = await t.get(uRef);
+            if (uDoc.data().balance < price) throw 'Low Balance';
+            t.update(uRef, { balance: uDoc.data().balance - price });
+            const oRef = doc(collection(db, 'orders'));
+            t.set(oRef, {
+              userId:        uid,
+              packageName:   selectedPackage.value.name,
+              price,
+              playerId:      playerId.value,
+              productName:   product.value.name,
+              category:      product.value.category,
+              status:        'pending',
+              paymentMethod: 'wallet',
+              createdAt:     serverTimestamp()
+            });
+          });
+          showPopup('success', 'অর্ডার সম্পন্ন! ✅', 'আপনার অর্ডার পেন্ডিং আছে। শীঘ্রই প্রক্রিয়া করা হবে।', 'অর্ডার দেখুন');
+        } catch (e) {
+          if (e === 'Low Balance') showPopup('error', 'ব্যালেন্স কম', 'ওয়ালেটে পর্যাপ্ত ব্যালেন্স নেই।', 'টাকা যোগ করুন');
+          else showPopup('error', 'ব্যর্থ হয়েছে', 'কিছু একটা সমস্যা হয়েছে। আবার চেষ্টা করুন।');
+        }
+      };
+
+      /* ── অটো ভেরিফাই ── */
+      const verifyAndPlaceOrder = async () => {
+        verifying.value = true;
+        try {
+          const amount  = selectedPackage.value.price;
+          const apiUrl  = `${SCRIPT_URL}?trxID=${trxId.value.toUpperCase()}&apiKey=${CLIENT_API_KEY}&amount=${amount}`;
+          const resp    = await fetch(apiUrl);
+          const data    = await resp.json();
+
+          if (data.status === 'success') {
+            await addDoc(collection(db, 'orders'), {
+              userId:        userId.value,
+              packageName:   selectedPackage.value.name,
+              price:         amount,
+              playerId:      playerId.value,
+              productName:   product.value.name,
+              category:      product.value.category,
+              status:        'processing',
+              paymentMethod: directGateway.value + '_auto',
+              trxId:         trxId.value.toUpperCase(),
+              isAutoVerified: true,
+              createdAt:     serverTimestamp()
+            });
+            showPopup('success', 'পেমেন্ট ভেরিফাইড! ✅', 'আপনার অর্ডার সফলভাবে সম্পন্ন হয়েছে।', 'অর্ডার দেখুন');
+          } else {
+            showPopup('error', 'ভেরিফিকেশন ব্যর্থ', data.message || 'TrxID বা পরিমাণ মেলেনি।');
+          }
+        } catch (e) {
+          console.error(e);
+          showPopup('error', 'সংযোগ সমস্যা', 'আবার চেষ্টা করুন।');
+        } finally {
+          verifying.value = false;
+        }
+      };
+
+      /* ── ইমেজ এরর ── */
+      const handleImageError = (e) => {
+        e.target.src = 'https://placehold.co/400x400/1c1c28/6c63ff?text=No+Image';
+      };
+
+      onMounted(initData);
+
+      return {
+        loading, verifying, isLoggedIn, product, packages,
+        selectedPackage, playerId, userBalance,
+        paymentMethod, directGateway, adminNumber, trxId,
+        popup, toast,
+        closePopup, copyNumber, handleImageError, handleBuy,
+        processWalletOrder, isButtonDisabled,
+        inputLabel, inputPlaceholder
+      };
+    }
+  }).mount('#app');
+</script>
+</body>
+</html>

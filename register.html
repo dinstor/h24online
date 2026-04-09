@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=0, viewport-fit=cover">
+  <title>H24ONLINE - Register</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Noto+Sans+Bengali:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+
+  <style>
+    * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+    a, button, div[onclick] { touch-action: manipulation; }
+    body {
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+      font-family: 'Outfit', 'Noto Sans Bengali', sans-serif;
+      background: #0a0a0f;
+      color: #fff;
+      overflow-x: hidden;
+    }
+    :root {
+      --primary: #6c63ff;
+      --primary-dark: #4c44cc;
+      --accent: #ff6b9d;
+      --gold: #ffd700;
+      --bg: #0a0a0f;
+      --surface: #12121a;
+      --surface2: #1c1c28;
+      --surface3: #252535;
+      --border: rgba(255,255,255,0.08);
+      --text: #ffffff;
+      --text-muted: #8888a8;
+      --text-dim: #555570;
+      --green: #22c55e;
+      --red: #ef4444;
+      --orange: #f97316;
+    }
+    [v-cloak] { display: none !important; }
+    ::-webkit-scrollbar { width: 0; height: 0; }
+
+    /* গ্রেডিয়েন্ট টেক্সট */
+    .gradient-text {
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* লোগো গ্লো */
+    .logo-glow {
+      box-shadow: 0 0 32px rgba(108,99,255,0.35), 0 0 8px rgba(108,99,255,0.2);
+    }
+
+    /* হেডার */
+    .page-header {
+      background: rgba(10,10,20,0.97);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* ইনপুট ফিল্ড */
+    .input-field {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 13px 16px 13px 44px;
+      width: 100%;
+      color: #fff;
+      font-family: inherit;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .input-field:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(108,99,255,0.15);
+    }
+    .input-field::placeholder { color: var(--text-muted); }
+    .input-field.error { border-color: var(--red); }
+    .input-field.success { border-color: var(--green); }
+
+    /* ইনপুট র‍্যাপার */
+    .input-wrap { position: relative; }
+    .input-wrap .input-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 15px;
+      pointer-events: none;
+    }
+    .input-wrap .eye-toggle {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 15px;
+      cursor: pointer;
+      padding: 4px;
+    }
+
+    /* প্রাইমারি বাটন */
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #fff;
+      font-weight: 700;
+      border: none;
+      border-radius: 14px;
+      padding: 14px 24px;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 14px;
+      letter-spacing: 0.3px;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-primary:active { transform: scale(0.97); }
+    .btn-primary:disabled {
+      background: #2a2a40;
+      color: var(--text-dim);
+      cursor: not-allowed;
+    }
+
+    /* গুগল বাটন */
+    .btn-google {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 13px 24px;
+      font-family: inherit;
+      color: #fff;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+    }
+    .btn-google:active { transform: scale(0.97); background: var(--surface3); }
+
+    /* লগইন বাটন (আউটলাইন) */
+    .btn-login-link {
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 7px 16px;
+      font-family: inherit;
+      color: var(--primary);
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .btn-login-link:active { transform: scale(0.96); background: rgba(108,99,255,0.1); }
+
+    /* কার্ড */
+    .register-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 24px 20px;
+    }
+
+    /* ডিভাইডার */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--text-dim);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin: 18px 0;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ফর্ম লেবেল */
+    .form-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+      display: block;
+      margin-bottom: 7px;
+      text-transform: uppercase;
+    }
+
+    /* এরর মেসেজ */
+    .err-msg {
+      font-size: 11px;
+      color: var(--red);
+      margin-top: 5px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* পাসওয়ার্ড স্ট্রেন্থ */
+    .pass-strength-bar {
+      height: 3px;
+      border-radius: 4px;
+      margin-top: 7px;
+      transition: all 0.3s;
+      width: 100%;
+      background: var(--border);
+    }
+    .pass-strength-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: all 0.3s;
+    }
+
+    /* সোশ্যাল আইকন */
+    .social-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+    .social-btn:active { transform: scale(0.9); }
+
+    /* ব্যাকগ্রাউন্ড গ্লো */
+    .bg-glow {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .bg-glow-1 {
+      width: 280px; height: 280px;
+      background: rgba(108,99,255,0.10);
+      top: -60px; right: -60px;
+    }
+    .bg-glow-2 {
+      width: 200px; height: 200px;
+      background: rgba(255,107,157,0.07);
+      bottom: 100px; left: -40px;
+    }
+
+    /* স্পিনার */
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      display: inline-block;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* টোস্ট */
+    .toast-msg {
+      position: fixed;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(30,30,46,0.97);
+      border: 1px solid rgba(108,99,255,0.35);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 12px 22px;
+      border-radius: 40px;
+      white-space: nowrap;
+      z-index: 9999;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.25s, transform 0.25s;
+    }
+    .toast-msg.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast-msg.error { border-color: rgba(239,68,68,0.4); }
+    .toast-msg.success-toast { border-color: rgba(34,197,94,0.4); }
+  </style>
+</head>
+<body>
+
+<!-- ব্যাকগ্রাউন্ড গ্লো -->
+<div class="bg-glow bg-glow-1"></div>
+<div class="bg-glow bg-glow-2"></div>
+
+<div id="app" v-cloak style="max-width:430px;margin:0 auto;min-height:100vh;position:relative;background:transparent;z-index:1;">
+
+  <!-- ── স্টিকি হেডার ── -->
+  <header class="page-header">
+    <!-- লোগো -->
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="logo-glow" style="background:linear-gradient(135deg,var(--primary),var(--primary-dark));width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <span style="font-size:16px;font-weight:900;color:#fff;">H</span>
+      </div>
+      <div>
+        <div style="font-size:15px;font-weight:900;letter-spacing:0.5px;" class="gradient-text">H24ONLINE</div>
+        <div style="font-size:9px;color:var(--text-dim);letter-spacing:1.5px;font-weight:600;">GAMING PARTNER</div>
+      </div>
+    </div>
+    <!-- লগইন বাটন -->
+    <a href="login.html" class="btn-login-link">
+      <i class="fa-solid fa-right-to-bracket" style="margin-right:5px;font-size:12px;"></i>লগইন
+    </a>
+  </header>
+
+  <!-- ── মেইন কন্টেন্ট ── -->
+  <div style="padding:20px 16px 40px;">
+
+    <!-- টাইটেল -->
+    <div style="margin-bottom:20px;">
+      <div style="font-size:22px;font-weight:800;color:var(--text);">অ্যাকাউন্ট তৈরি করুন 🚀</div>
+      <div style="font-size:13px;color:var(--text-muted);margin-top:4px;">H24ONLINE-এ স্বাগতম! রেজিস্ট্রেশন করুন।</div>
+    </div>
+
+    <!-- ── রেজিস্ট্রেশন কার্ড ── -->
+    <div class="register-card">
+
+      <!-- গুগল বাটন -->
+      <button @click="handleGoogleRegister" :disabled="loading" class="btn-google">
+        <img src="https://www.svgrepo.com/show/475656/google-color.svg" style="width:20px;height:20px;" alt="Google">
+        <span>Google দিয়ে রেজিস্ট্রেশন করুন</span>
+      </button>
+
+      <!-- ডিভাইডার -->
+      <div class="divider">অথবা ইমেইল দিয়ে</div>
+
+      <!-- ── ফর্ম ── -->
+      <div style="display:flex;flex-direction:column;gap:14px;">
+
+        <!-- নাম -->
+        <div>
+          <label class="form-label">পুরো নাম</label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-user input-icon"></i>
+            <input
+              type="text"
+              v-model="name"
+              placeholder="আপনার পুরো নাম লিখুন"
+              class="input-field"
+              autocomplete="name"
+            >
+          </div>
+        </div>
+
+        <!-- ফোন -->
+        <div>
+          <label class="form-label">ফোন নম্বর</label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-phone input-icon"></i>
+            <input
+              type="tel"
+              v-model="phone"
+              placeholder="01XXXXXXXXX"
+              class="input-field"
+              autocomplete="tel"
+            >
+          </div>
+        </div>
+
+        <!-- ইমেইল -->
+        <div>
+          <label class="form-label">ইমেইল</label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-envelope input-icon"></i>
+            <input
+              type="email"
+              v-model="email"
+              placeholder="আপনার ইমেইল লিখুন"
+              class="input-field"
+              autocomplete="email"
+            >
+          </div>
+        </div>
+
+        <!-- পাসওয়ার্ড -->
+        <div>
+          <label class="form-label">পাসওয়ার্ড</label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-lock input-icon"></i>
+            <input
+              :type="showPass ? 'text' : 'password'"
+              v-model="password"
+              placeholder="কমপক্ষে ৬ অক্ষর"
+              :class="['input-field', password.length > 0 && password.length < 6 ? 'error' : password.length >= 6 ? 'success' : '']"
+              style="padding-right:44px;"
+              autocomplete="new-password"
+            >
+            <span class="eye-toggle" @click="showPass = !showPass">
+              <i :class="showPass ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'"></i>
+            </span>
+          </div>
+          <!-- পাসওয়ার্ড স্ট্রেন্থ বার -->
+          <div v-if="password.length > 0" class="pass-strength-bar">
+            <div class="pass-strength-fill" :style="passStrengthStyle"></div>
+          </div>
+          <div v-if="password.length > 0" style="font-size:10px;margin-top:3px;" :style="{color: passStrengthColor}">
+            {{ passStrengthLabel }}
+          </div>
+        </div>
+
+        <!-- কনফার্ম পাসওয়ার্ড -->
+        <div>
+          <label class="form-label">পাসওয়ার্ড নিশ্চিত করুন</label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-shield-halved input-icon"></i>
+            <input
+              :type="showConfirmPass ? 'text' : 'password'"
+              v-model="confirmPassword"
+              placeholder="পাসওয়ার্ড আবার লিখুন"
+              :class="['input-field', passwordMismatch ? 'error' : confirmPassword.length > 0 && !passwordMismatch ? 'success' : '']"
+              style="padding-right:44px;"
+              autocomplete="new-password"
+            >
+            <span class="eye-toggle" @click="showConfirmPass = !showConfirmPass">
+              <i :class="showConfirmPass ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'"></i>
+            </span>
+          </div>
+          <!-- মিসম্যাচ এরর -->
+          <div v-if="passwordMismatch" class="err-msg">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            পাসওয়ার্ড মিলছে না!
+          </div>
+          <!-- ম্যাচ সাকসেস -->
+          <div v-if="confirmPassword.length > 0 && !passwordMismatch" style="font-size:11px;color:var(--green);margin-top:5px;display:flex;align-items:center;gap:4px;">
+            <i class="fa-solid fa-circle-check"></i> পাসওয়ার্ড মিলেছে
+          </div>
+        </div>
+
+        <!-- রেজিস্ট্রেশন বাটন -->
+        <button
+          @click="handleRegister"
+          :disabled="loading || passwordMismatch"
+          class="btn-primary"
+          style="margin-top:4px;"
+        >
+          <span v-if="loading" class="spinner"></span>
+          <span v-else><i class="fa-solid fa-user-plus" style="margin-right:6px;"></i>রেজিস্ট্রেশন করুন</span>
+        </button>
+
+      </div>
+
+      <!-- লগইন লিংক -->
+      <div style="text-align:center;margin-top:20px;font-size:13px;color:var(--text-muted);">
+        ইতিমধ্যে অ্যাকাউন্ট আছে?
+        <a href="login.html" style="color:var(--primary);font-weight:700;text-decoration:none;margin-left:4px;">লগইন করুন →</a>
+      </div>
+
+    </div>
+
+    <!-- ── ফুটার ── -->
+    <div style="text-align:center;padding-top:28px;">
+      <div style="font-size:11px;font-weight:700;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;">সোশ্যাল মিডিয়া</div>
+      <div style="display:flex;justify-content:center;gap:12px;margin-bottom:16px;">
+        <a href="#" class="social-btn" style="background:rgba(59,130,246,0.12);color:#3b82f6;">
+          <i class="fa-brands fa-facebook-f"></i>
+        </a>
+        <a href="#" class="social-btn" style="background:rgba(14,165,233,0.12);color:#0ea5e9;">
+          <i class="fa-brands fa-telegram"></i>
+        </a>
+        <a href="#" class="social-btn" style="background:rgba(239,68,68,0.12);color:#ef4444;">
+          <i class="fa-brands fa-youtube"></i>
+        </a>
+        <a href="#" class="social-btn" style="background:rgba(168,85,247,0.12);color:#a855f7;">
+          <i class="fa-brands fa-discord"></i>
+        </a>
+      </div>
+      <div style="font-size:10px;color:var(--text-dim);">© H24ONLINE 2026 · সর্বস্বত্ব সংরক্ষিত</div>
+    </div>
+
+  </div>
+
+  <!-- টোস্ট মেসেজ -->
+  <div class="toast-msg" :class="[toast.show ? 'show' : '', toast.type === 'error' ? 'error' : toast.type === 'success' ? 'success-toast' : '']">
+    {{ toast.msg }}
+  </div>
+
+</div>
+
+<!-- Vue & Firebase লজিক -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import { createApp, ref, computed } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyACUK207BRvtR5yc1UhYLS9FlMitVVlrrE",
+    authDomain: "freetopup-fd263.firebaseapp.com",
+    projectId: "freetopup-fd263",
+    storageBucket: "freetopup-fd263.firebasestorage.app",
+    messagingSenderId: "756173302110",
+    appId: "1:756173302110:web:14227664f6b5d14d9047cf"
+  };
+
+  const firebaseApp = initializeApp(firebaseConfig);
+  const auth        = getAuth(firebaseApp);
+  const db          = getFirestore(firebaseApp);
+
+  createApp({
+    setup() {
+      const name            = ref('');
+      const phone           = ref('');
+      const email           = ref('');
+      const password        = ref('');
+      const confirmPassword = ref('');
+      const loading         = ref(false);
+      const showPass        = ref(false);
+      const showConfirmPass = ref(false);
+      const toast           = ref({ show: false, msg: '', type: '' });
+
+      /* ── পাসওয়ার্ড মিসম্যাচ ── */
+      const passwordMismatch = computed(() =>
+        password.value && confirmPassword.value && password.value !== confirmPassword.value
+      );
+
+      /* ── পাসওয়ার্ড স্ট্রেন্থ ── */
+      const passStrength = computed(() => {
+        const p = password.value;
+        if (!p) return 0;
+        let score = 0;
+        if (p.length >= 6)  score++;
+        if (p.length >= 10) score++;
+        if (/[A-Z]/.test(p)) score++;
+        if (/[0-9]/.test(p)) score++;
+        if (/[^A-Za-z0-9]/.test(p)) score++;
+        return score;
+      });
+      const passStrengthStyle = computed(() => {
+        const s = passStrength.value;
+        const w = s <= 1 ? '25%' : s === 2 ? '50%' : s === 3 ? '70%' : '100%';
+        const c = s <= 1 ? '#ef4444' : s === 2 ? '#f97316' : s === 3 ? '#eab308' : '#22c55e';
+        return { width: w, background: c };
+      });
+      const passStrengthColor = computed(() => {
+        const s = passStrength.value;
+        return s <= 1 ? '#ef4444' : s === 2 ? '#f97316' : s === 3 ? '#eab308' : '#22c55e';
+      });
+      const passStrengthLabel = computed(() => {
+        const s = passStrength.value;
+        return s <= 1 ? 'দুর্বল পাসওয়ার্ড' : s === 2 ? 'মোটামুটি' : s === 3 ? 'ভালো' : '✓ শক্তিশালী পাসওয়ার্ড';
+      });
+
+      /* ── টোস্ট ── */
+      let toastTimer = null;
+      const showToast = (msg, type = '') => {
+        if (toastTimer) clearTimeout(toastTimer);
+        toast.value = { show: true, msg, type };
+        toastTimer = setTimeout(() => { toast.value.show = false; }, 3000);
+      };
+
+      /* ── গুগল রেজিস্ট্রেশন ── */
+      const handleGoogleRegister = async () => {
+        if (loading.value) return;
+        loading.value = true;
+        try {
+          const provider = new GoogleAuthProvider();
+          const result   = await signInWithPopup(auth, provider);
+          const user     = result.user;
+
+          const userRef  = doc(db, 'users', user.uid);
+          const userSnap = await getDoc(userRef);
+
+          if (!userSnap.exists()) {
+            await setDoc(userRef, {
+              uid:      user.uid,
+              name:     user.displayName || 'User',
+              email:    user.email,
+              photoURL: user.photoURL || 'https://i.pravatar.cc/150?img=12',
+              balance:  0,
+              phone:    '',
+              joinedAt: new Date().toISOString()
+            });
+          }
+
+          localStorage.setItem('userId', user.uid);
+          showToast('✅ রেজিস্ট্রেশন সফল! রিডাইরেক্ট হচ্ছে...', 'success');
+          setTimeout(() => { window.location.href = 'index.html'; }, 900);
+
+        } catch (err) {
+          console.error('Google Auth Error:', err);
+          showToast('❌ Google সাইন আপ ব্যর্থ হয়েছে!', 'error');
+        } finally {
+          loading.value = false;
+        }
+      };
+
+      /* ── ইমেইল রেজিস্ট্রেশন ── */
+      const handleRegister = async () => {
+        if (!name.value.trim()) { showToast('⚠️ নাম লিখুন!', 'error'); return; }
+        if (!phone.value.trim()) { showToast('⚠️ ফোন নম্বর লিখুন!', 'error'); return; }
+        if (!email.value.trim()) { showToast('⚠️ ইমেইল লিখুন!', 'error'); return; }
+        if (password.value.length < 6) { showToast('⚠️ পাসওয়ার্ড কমপক্ষে ৬ অক্ষর হতে হবে!', 'error'); return; }
+        if (passwordMismatch.value) { showToast('⚠️ পাসওয়ার্ড মিলছে না!', 'error'); return; }
+
+        loading.value = true;
+        try {
+          const result = await createUserWithEmailAndPassword(auth, email.value, password.value);
+
+          await updateProfile(result.user, { displayName: name.value });
+
+          await setDoc(doc(db, 'users', result.user.uid), {
+            uid:      result.user.uid,
+            email:    email.value,
+            name:     name.value,
+            phone:    phone.value,
+            balance:  0,
+            photoURL: 'https://i.pravatar.cc/150?img=12',
+            joinedAt: new Date().toISOString()
+          });
+
+          localStorage.setItem('userId', result.user.uid);
+          showToast('✅ অ্যাকাউন্ট তৈরি সফল! স্বাগতম!', 'success');
+          setTimeout(() => { window.location.href = 'index.html'; }, 900);
+
+        } catch (err) {
+          console.error('Registration Error:', err);
+          let msg = '❌ রেজিস্ট্রেশন ব্যর্থ হয়েছে!';
+          if (err.code === 'auth/email-already-in-use') msg = '⚠️ এই ইমেইল ইতিমধ্যে ব্যবহৃত! লগইন করুন।';
+          if (err.code === 'auth/invalid-email')        msg = '⚠️ ইমেইল ঠিকানা সঠিক নয়!';
+          if (err.code === 'auth/weak-password')        msg = '⚠️ পাসওয়ার্ড আরও শক্তিশালী করুন!';
+          showToast(msg, 'error');
+        } finally {
+          loading.value = false;
+        }
+      };
+
+      return {
+        name, phone, email, password, confirmPassword,
+        loading, showPass, showConfirmPass, toast,
+        passwordMismatch,
+        passStrengthStyle, passStrengthColor, passStrengthLabel,
+        handleRegister, handleGoogleRegister
+      };
+    }
+  }).mount('#app');
+</script>
+</body>
+</html>
