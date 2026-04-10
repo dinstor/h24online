@@ -266,26 +266,14 @@
   }
   @keyframes ldot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.65)} }
 
-  /* ─── FIX 1: Step transitions — no layout jerk ─────────── */
-  /*
-     The key fix: leave element gets position:absolute so it
-     doesn't push the entering element. We clip the parent
-     (.scroll-area already has overflow:hidden) so the absolute
-     element never bleeds outside.
-  */
-  .pg-enter-active {
-    transition: opacity .22s ease, transform .24s ease;
+  /* ─── FIX 1: No-jerk step fade using v-show + CSS ───────── */
+  .step-panel {
+    /* all panels stacked, only the active one visible */
+    transition: opacity .18s ease;
   }
-  .pg-leave-active {
-    transition: opacity .15s ease, transform .15s ease;
-    position: absolute;
-    top: 16px;          /* same as scroll-area padding-top */
-    left: 16px;
-    right: 16px;
-    pointer-events: none;
+  .step-panel.hidden {
+    display: none;
   }
-  .pg-enter-from  { opacity: 0; transform: translateX(20px); }
-  .pg-leave-to    { opacity: 0; transform: translateX(-20px); }
 
   /* popup */
   .pop-enter-active { transition: opacity .22s ease, transform .28s cubic-bezier(.34,1.56,.64,1); }
@@ -352,10 +340,10 @@
 
   <!-- ══ SCROLL AREA ══ -->
   <div class="scroll-area">
-    <transition name="pg" mode="out-in">
+
 
       <!-- ── STEP 1: Amount ── -->
-      <div v-if="step===1" key="s1">
+      <div v-show="step===1">
         <div class="lbl">পরিমাণ লিখুন</div>
         <div class="amt-wrap">
           <span class="amt-prefix">৳</span>
@@ -389,7 +377,7 @@
       </div>
 
       <!-- ── STEP 2: Method ── -->
-      <div v-else-if="step===2" key="s2">
+      <div v-show="step===2">
         <div class="eps-card" @click="pick('EPS')">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
             <div style="display:flex;align-items:center;gap:10px;">
@@ -420,7 +408,7 @@
       </div>
 
       <!-- ── STEP 3: Pay ── -->
-      <div v-else-if="step===3" key="s3">
+      <div v-show="step===3">
         <!-- info bar -->
         <div style="background:rgba(108,99,255,.07);border:1px solid rgba(108,99,255,.15);border-radius:12px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;">
           <div style="width:42px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"
@@ -494,7 +482,7 @@
         </div>
       </div>
 
-    </transition>
+
   </div><!-- scroll-area -->
 
   <!-- ══ BOTTOM NAV ══ -->
