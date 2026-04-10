@@ -7,179 +7,593 @@
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Noto+Sans+Bengali:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css">
+<style>
+  :root {
+    --primary: #6c63ff;
+    --accent: #ff6b9d;
+    --green: #22c55e;
+    --surface: #16162a;
+    --surface2: #1e1e35;
+    --border: rgba(255,255,255,0.08);
+    --text: #ffffff;
+    --text-muted: rgba(255,255,255,0.5);
+    --text-dim: rgba(255,255,255,0.25);
+    --nav-h: 56px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: 'Outfit', 'Noto Sans Bengali', sans-serif;
+    background: #0c0c1a;
+    color: var(--text);
+    height: 100dvh;
+    overflow: hidden;
+  }
+  #app {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    max-width: 430px;
+    margin: 0 auto;
+    overflow: hidden;
+  }
+
+  /* TOP NAV */
+  .top-nav {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    padding-top: max(12px, env(safe-area-inset-top));
+  }
+  .nav-back {
+    width: 38px; height: 38px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--text-muted);
+    text-decoration: none; flex-shrink: 0;
+    font-size: 15px;
+  }
+  .nav-title { font-weight: 800; font-size: 18px; flex: 1; }
+  .nav-balance {
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(108,99,255,0.12);
+    border: 1px solid rgba(108,99,255,0.25);
+    border-radius: 10px;
+    padding: 6px 12px;
+    font-size: 14px; font-weight: 700; color: var(--primary);
+  }
+
+  /* MAIN SCROLL */
+  .main-content {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 14px 16px;
+    scrollbar-width: none;
+  }
+  .main-content::-webkit-scrollbar { display: none; }
+
+  /* STEP INDICATOR */
+  .steps-row {
+    display: flex; align-items: center; gap: 0;
+    margin-bottom: 16px;
+  }
+  .step-dot {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 800;
+    transition: all 0.3s;
+  }
+  .step-dot.done { background: var(--green); color: #fff; }
+  .step-dot.active { background: var(--primary); color: #fff; box-shadow: 0 0 12px rgba(108,99,255,0.5); }
+  .step-dot.idle { background: var(--surface2); border: 1.5px solid var(--border); color: var(--text-dim); }
+  .step-line { flex: 1; height: 2px; background: var(--border); }
+  .step-line.done { background: var(--green); }
+
+  /* AMOUNT SECTION */
+  .section-label {
+    font-size: 11px; font-weight: 800;
+    color: var(--text-dim);
+    letter-spacing: 1.2px; text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .amount-input-wrap {
+    position: relative; margin-bottom: 10px;
+  }
+  .amount-prefix {
+    position: absolute; left: 14px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 20px; font-weight: 800;
+    color: var(--primary);
+  }
+  .amount-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 16px 14px 36px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 22px; font-weight: 800;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .amount-input:focus { border-color: var(--primary); }
+  .amount-input::placeholder { color: var(--text-dim); }
+
+  /* QUICK AMOUNTS */
+  .quick-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .quick-btn {
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: 11px;
+    padding: 10px 4px;
+    font-size: 14px; font-weight: 800;
+    cursor: pointer; color: var(--text-muted);
+    font-family: 'Outfit', sans-serif;
+    transition: all 0.15s;
+    text-align: center;
+  }
+  .quick-btn.active {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: rgba(108,99,255,0.1);
+  }
+  .quick-btn:active { transform: scale(0.93); }
+
+  /* BONUS HINT STRIP */
+  .bonus-hint {
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(34,197,94,0.07);
+    border: 1px solid rgba(34,197,94,0.2);
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin-bottom: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .bonus-hint:active { transform: scale(0.97); }
+  .bonus-badge {
+    background: rgba(34,197,94,0.15);
+    border: 1px solid rgba(34,197,94,0.3);
+    border-radius: 20px;
+    padding: 2px 8px;
+    font-size: 11px; font-weight: 800;
+    color: #4ade80;
+    margin-left: auto;
+  }
+
+  /* METHOD CARDS */
+  .methods-section { margin-bottom: 14px; }
+  .eps-card {
+    background: linear-gradient(135deg, #0d4f3c, #1a6b50);
+    border: 2px solid rgba(34,197,94,0.35);
+    border-radius: 16px; padding: 14px;
+    cursor: pointer; transition: all 0.2s;
+    margin-bottom: 8px;
+  }
+  .eps-card:active { transform: scale(0.97); }
+  .method-row {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px; padding: 12px 14px;
+    cursor: pointer; margin-bottom: 8px;
+    transition: all 0.15s;
+  }
+  .method-row:active { transform: scale(0.97); background: var(--surface2); }
+
+  /* STEP 3 */
+  .copy-box {
+    background: rgba(108,99,255,0.07);
+    border: 1px dashed rgba(108,99,255,0.35);
+    border-radius: 14px; padding: 14px;
+    text-align: center; cursor: pointer;
+    transition: all 0.2s; margin-bottom: 10px;
+  }
+  .copy-box:active { transform: scale(0.97); }
+  .input-field {
+    width: 100%;
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 13px 16px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 15px; font-weight: 600;
+    color: var(--text); outline: none;
+    transition: border-color 0.2s;
+  }
+  .input-field:focus { border-color: var(--primary); }
+  .input-field::placeholder { color: var(--text-dim); }
+
+  /* BUTTON */
+  .btn-primary {
+    width: 100%;
+    background: linear-gradient(135deg, #6c63ff, #8b5cf6);
+    border: none; border-radius: 14px;
+    color: #fff; font-size: 16px; font-weight: 800;
+    padding: 15px;
+    font-family: 'Outfit', sans-serif;
+    cursor: pointer; transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    box-shadow: 0 4px 20px rgba(108,99,255,0.35);
+  }
+  .btn-primary:disabled { background: var(--surface2); color: var(--text-dim); box-shadow: none; cursor: not-allowed; }
+  .btn-primary:not(:disabled):active { transform: scale(0.97); }
+
+  /* BONUS POPUP OVERLAY */
+  .bonus-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(14px);
+    z-index: 500;
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .bonus-popup {
+    background: linear-gradient(160deg, #0f1a2e 0%, #0c0c1a 100%);
+    border: 1px solid rgba(34,197,94,0.3);
+    border-radius: 24px;
+    width: 100%; max-width: 360px;
+    overflow: hidden;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.7), 0 0 40px rgba(34,197,94,0.08) inset;
+  }
+  .bonus-popup-header {
+    background: linear-gradient(135deg, rgba(34,197,94,0.15), rgba(34,197,94,0.05));
+    border-bottom: 1px solid rgba(34,197,94,0.15);
+    padding: 20px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .bonus-icon-wrap {
+    width: 48px; height: 48px;
+    background: rgba(34,197,94,0.2);
+    border: 2px solid rgba(34,197,94,0.4);
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+  .bonus-tiers-list { padding: 16px; }
+  .bonus-tier-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px;
+    border-radius: 12px;
+    margin-bottom: 6px;
+    border: 1.5px solid transparent;
+    transition: all 0.2s;
+  }
+  .bonus-tier-row.active-tier {
+    background: rgba(34,197,94,0.12);
+    border-color: rgba(34,197,94,0.35);
+  }
+  .you-badge {
+    background: #4ade80; color: #000;
+    font-size: 9px; font-weight: 800;
+    border-radius: 4px; padding: 2px 5px;
+    margin-left: 6px;
+  }
+  .bonus-result {
+    margin: 4px 16px 16px;
+    padding: 12px 16px;
+    background: rgba(34,197,94,0.1);
+    border: 1px solid rgba(34,197,94,0.25);
+    border-radius: 14px;
+    text-align: center;
+  }
+  .bonus-close-btn {
+    margin: 0 16px 16px;
+    width: calc(100% - 32px);
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    border: none; border-radius: 12px;
+    color: #fff; font-size: 15px; font-weight: 800;
+    padding: 13px;
+    font-family: 'Outfit', sans-serif;
+    cursor: pointer;
+  }
+  .bonus-close-btn:active { transform: scale(0.97); }
+
+  /* SUCCESS */
+  .success-box {
+    background: rgba(34,197,94,0.08);
+    border: 1px solid rgba(34,197,94,0.25);
+    border-radius: 14px; padding: 16px;
+    text-align: center; margin-bottom: 10px;
+  }
+
+  /* TOAST */
+  .toast-msg {
+    position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: rgba(30,30,50,0.96); border: 1px solid var(--border);
+    border-radius: 12px; padding: 10px 20px;
+    font-size: 14px; font-weight: 600;
+    opacity: 0; transition: all 0.3s; pointer-events: none;
+    z-index: 9999; white-space: nowrap;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+  }
+  .toast-msg.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* SPINNER */
+  .spinner {
+    width: 18px; height: 18px;
+    border: 2.5px solid rgba(255,255,255,0.2);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: inline-block;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ANIMATIONS */
+  [v-cloak] { display: none; }
+  .fade-enter-active, .fade-leave-active { transition: all 0.25s; }
+  .fade-enter-from, .fade-leave-to { opacity: 0; transform: scale(0.92); }
+
+  .slide-up-enter-active { transition: all 0.3s cubic-bezier(0.16,1,0.3,1); }
+  .slide-up-leave-active { transition: all 0.2s ease-in; }
+  .slide-up-enter-from, .slide-up-leave-to { opacity: 0; transform: translateY(30px); }
+
+  .pop-enter-active { transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+  .pop-leave-active { transition: all 0.2s ease-in; }
+  .pop-enter-from, .pop-leave-to { opacity: 0; transform: scale(0.85); }
+
+  /* Back btn step */
+  .back-step-btn {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--text-muted);
+    font-size: 13px; flex-shrink: 0;
+  }
+  .step-header {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 14px;
+  }
+  .step-title { font-weight: 800; font-size: 16px; }
+
+  .error-box {
+    background: rgba(239,68,68,0.1);
+    border-radius: 10px; padding: 10px 14px;
+    font-size: 13px; color: #f87171;
+    margin-bottom: 10px;
+  }
+</style>
 </head>
 <body>
 <div id="app" v-cloak>
+
   <div id="toast-el" class="toast-msg"></div>
-  <div style="display:flex;flex-direction:column;height:100vh;">
-    <header class="app-header">
-      <div style="padding:14px 16px;display:flex;align-items:center;gap:12px;">
-        <a href="index.html" style="background:var(--surface2);border:none;border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);text-decoration:none;">
-          <i class="fa-solid fa-arrow-left"></i>
-        </a>
-        <div style="font-weight:800;font-size:17px;">Deposit</div>
+
+  <!-- BONUS POPUP -->
+  <transition name="pop">
+    <div v-if="showBonusPopup" class="bonus-overlay" @click.self="showBonusPopup=false">
+      <div class="bonus-popup" @click.stop>
+        <div class="bonus-popup-header">
+          <div class="bonus-icon-wrap">🎁</div>
+          <div>
+            <div style="font-weight:800;font-size:17px;color:#4ade80;">Deposit Bonus</div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:2px;">জমার পরিমাণ অনুযায়ী বোনাস</div>
+          </div>
+          <span style="margin-left:auto;background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);border-radius:20px;padding:3px 9px;font-size:10px;font-weight:800;color:#4ade80;">AUTO ADD</span>
+        </div>
+        <div class="bonus-tiers-list">
+          <div v-for="tier in bonusTiers" :key="tier.min"
+               class="bonus-tier-row"
+               :class="{['active-tier']: isActiveTier(tier)}">
+            <span style="font-size:14px;color:rgba(255,255,255,0.6);font-weight:600;">৳{{ tier.min }}{{ tier.max ? '–'+tier.max : '+' }}</span>
+            <div style="display:flex;align-items:center;">
+              <span style="font-size:16px;font-weight:800;" :style="{color: isActiveTier(tier) ? '#4ade80' : 'rgba(255,255,255,0.4)'}">+{{ tier.pct }}%</span>
+              <span v-if="isActiveTier(tier)" class="you-badge">আপনি</span>
+            </div>
+          </div>
+        </div>
+        <div v-if="bonusAmount > 0" class="bonus-result">
+          <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:4px;">৳{{ addAmount }} জমা দিলে আপনি পাবেন</div>
+          <div style="font-size:26px;font-weight:900;color:#4ade80;">+৳{{ bonusAmount }} <span style="font-size:15px;">Bonus</span></div>
+        </div>
+        <button class="bonus-close-btn" @click="showBonusPopup=false">বুঝলাম, চালিয়ে যাই →</button>
       </div>
-    </header>
-    <main class="page-scroll" style="padding:16px;">
+    </div>
+  </transition>
 
-      <!-- Step 1: Amount -->
-      <div v-if="step===1">
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:24px;margin-bottom:16px;">
-          <div style="width:60px;height:60px;background:rgba(108,99,255,0.15);border-radius:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
-            <i class="fa-solid fa-bolt" style="font-size:28px;color:var(--primary);"></i>
-          </div>
-          <div style="text-align:center;margin-bottom:20px;">
-            <div style="font-size:20px;font-weight:800;margin-bottom:4px;">Instant Deposit</div>
-            <div style="font-size:13px;color:var(--text-muted);">Choose your payment method</div>
-          </div>
-
-          <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:8px;">Enter Amount</div>
-          <div style="position:relative;margin-bottom:16px;">
-            <span style="position:absolute;left:16px;top:50%;transform:translateY(-50%);font-size:16px;font-weight:700;color:var(--text-muted);">৳</span>
-            <input v-model="addAmount" type="number" class="input-field" style="padding-left:34px;font-size:20px;font-weight:700;" placeholder="0">
-          </div>
-          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;">
-            <button v-for="a in quickAmounts" :key="a" @click="addAmount=a"
-              style="background:var(--surface2);border:1px solid;border-radius:10px;padding:8px 4px;font-size:13px;font-weight:700;cursor:pointer;"
-              :style="{borderColor:addAmount==a?'var(--primary)':'var(--border)',color:addAmount==a?'var(--primary)':'var(--text-muted)'}">{{ a }}</button>
-          </div>
-
-          <!-- Deposit Bonus Section -->
-          <div style="background:linear-gradient(135deg,rgba(34,197,94,0.08),rgba(34,197,94,0.03));border:1px solid rgba(34,197,94,0.2);border-radius:16px;padding:16px;margin-bottom:16px;">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-              <i class="fa-solid fa-gift" style="color:#4ade80;font-size:16px;"></i>
-              <span style="font-weight:800;font-size:13px;color:#4ade80;">Deposit Bonus</span>
-              <span style="margin-left:auto;background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700;color:#4ade80;">AUTO ADD</span>
-            </div>
-            <div style="display:flex;flex-direction:column;gap:6px;">
-              <div v-for="tier in bonusTiers" :key="tier.min"
-                   style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:10px;transition:all 0.2s;"
-                   :style="{background: isActiveTier(tier) ? 'rgba(34,197,94,0.15)' : 'transparent', border: isActiveTier(tier) ? '1px solid rgba(34,197,94,0.4)' : '1px solid transparent'}">
-                <span style="font-size:12px;color:var(--text-muted);">৳{{ tier.min }}{{ tier.max ? '–'+tier.max : '+' }}</span>
-                <div style="display:flex;align-items:center;gap:6px;">
-                  <span style="font-size:13px;font-weight:800;" :style="{color: isActiveTier(tier) ? '#4ade80' : 'var(--text-muted)'}">+{{ tier.pct }}% Bonus</span>
-                  <span v-if="isActiveTier(tier)" style="font-size:10px;background:#4ade80;color:#000;border-radius:4px;padding:1px 5px;font-weight:800;">YOU</span>
-                </div>
-              </div>
-            </div>
-            <div v-if="bonusAmount > 0" style="margin-top:12px;padding:10px;background:rgba(34,197,94,0.12);border-radius:10px;text-align:center;">
-              <span style="font-size:12px;color:rgba(255,255,255,0.6);">আপনি পাবেন: </span>
-              <span style="font-size:16px;font-weight:800;color:#4ade80;">+৳{{ bonusAmount }} Bonus</span>
-            </div>
-          </div>
-
-          <button @click="step=2" class="btn-primary" style="width:100%;" :disabled="!addAmount||addAmount<=0">
-            Next Step <i class="fa-solid fa-arrow-right" style="margin-left:4px;"></i>
-          </button>
-        </div>
-      </div>
-
-      <!-- Step 2: Method -->
-      <div v-else-if="step===2">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
-          <button @click="step=1" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);">
-            <i class="fa-solid fa-arrow-left"></i>
-          </button>
-          <div style="font-weight:700;font-size:16px;">Select Payment Method</div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:10px;">
-          <div @click="addSelectMethod('eps')" class="eps-card">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-              <div style="display:flex;align-items:center;gap:12px;">
-                <div style="width:42px;height:42px;background:rgba(255,255,255,0.12);border-radius:12px;display:flex;align-items:center;justify-content:center;">
-                  <i class="fa-solid fa-shield-halved" style="font-size:20px;color:#4ade80;"></i>
-                </div>
-                <div>
-                  <div style="font-weight:800;font-size:15px;color:#fff;">EPS Payment</div>
-                  <div style="font-size:11px;color:rgba(255,255,255,0.6);">Secure Gateway</div>
-                </div>
-              </div>
-              <div style="background:rgba(34,197,94,0.2);border:1px solid rgba(34,197,94,0.4);border-radius:8px;padding:4px 10px;font-size:10px;font-weight:700;color:#4ade80;">PSO LICENSED</div>
-            </div>
-            <div style="font-size:12px;color:rgba(255,255,255,0.7);line-height:1.6;">বিকাশ, নগদ, রকেট, কার্ড সহ সকল পেমেন্ট মেথড সাপোর্ট করে।</div>
-          </div>
-          <div v-for="m in ['bkash','nagad','rocket']" :key="m" @click="addSelectMethod(m)"
-               style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px;display:flex;align-items:center;gap:14px;cursor:pointer;" class="card-hover">
-            <div :style="{background:m==='bkash'?'#e2156a':m==='nagad'?'#f47920':'#8b1fa8'}" style="width:52px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;">
-              <span style="color:#fff;font-size:11px;font-weight:800;text-transform:capitalize;">{{ m }}</span>
-            </div>
-            <div><div style="font-weight:700;font-size:14px;text-transform:capitalize;">{{ m }}</div><div style="font-size:11px;color:var(--text-muted);">Manual payment</div></div>
-            <i class="fa-solid fa-chevron-right" style="margin-left:auto;color:var(--text-dim);font-size:12px;"></i>
-          </div>
-        </div>
-      </div>
-
-      <!-- Step 3: Payment Details -->
-      <div v-else-if="step===3">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
-          <button @click="step=2" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);">
-            <i class="fa-solid fa-arrow-left"></i>
-          </button>
-          <div style="font-weight:700;font-size:16px;text-transform:capitalize;">{{ addMethod }} — ৳{{ addAmount }}</div>
-        </div>
-
-        <!-- Bonus reminder -->
-        <div v-if="bonusAmount > 0" style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.25);border-radius:12px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;gap:8px;">
-          <i class="fa-solid fa-gift" style="color:#4ade80;"></i>
-          <span style="font-size:13px;color:#4ade80;font-weight:700;">+৳{{ bonusAmount }} Bonus অটো যোগ হবে!</span>
-        </div>
-
-        <!-- EPS -->
-        <div v-if="addMethod==='eps'">
-          <div class="eps-card" style="margin-bottom:14px;" @click="window.open('https://pg.eps.com.bd/PaymentLink?id=D37C6FF8','_blank')">
-            <div style="font-weight:800;font-size:15px;color:#fff;margin-bottom:10px;">Tap to Open EPS Gateway</div>
-            <div style="font-size:12px;color:rgba(255,255,255,0.7);line-height:1.6;margin-bottom:14px;">Amount: <strong style="color:#fff;">৳{{ addAmount }}</strong></div>
-            <div style="background:rgba(255,255,255,0.1);border-radius:12px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">
-              <span style="font-size:13px;color:rgba(255,255,255,0.8);font-weight:600;">Open Gateway</span>
-              <i class="fa-solid fa-arrow-right" style="color:#4ade80;font-size:14px;"></i>
-            </div>
-          </div>
-          <div style="margin-bottom:10px;">
-            <div style="font-size:11px;color:var(--text-muted);font-weight:600;margin-bottom:6px;">পেমেন্টের পর EPS Reference নম্বর দিন</div>
-            <input v-model="addEpsRef" class="input-field" placeholder="EPS Reference Number">
-          </div>
-          <div v-if="addError" style="background:rgba(239,68,68,0.1);border-radius:10px;padding:10px 14px;font-size:13px;color:#f87171;margin-bottom:12px;">{{ addError }}</div>
-          <div v-if="addSuccess" style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:14px;padding:16px;text-align:center;margin-bottom:12px;">
-            <i class="fa-solid fa-check-circle" style="color:#4ade80;font-size:32px;margin-bottom:8px;display:block;"></i>
-            <div style="font-weight:700;color:#4ade80;">Request Submitted!</div>
-            <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">অ্যাডমিন যাচাই করে ব্যালেন্স যোগ করবেন।</div>
-          </div>
-          <button v-if="!addSuccess" @click="submitEpsDeposit" class="btn-primary" style="width:100%;" :disabled="addLoading">
-            <span v-if="addLoading" class="spinner"></span>
-            <span v-else>Submit EPS Reference</span>
-          </button>
-        </div>
-
-        <!-- Manual -->
-        <div v-else>
-          <div class="copy-box" @click="copyNum(adminNumbers[addMethod])" style="margin-bottom:14px;">
-            <div style="font-size:10px;color:var(--primary);font-weight:700;margin-bottom:4px;">SEND MONEY (PERSONAL)</div>
-            <div style="font-size:20px;font-weight:800;letter-spacing:2px;">{{ adminNumbers[addMethod]||'Loading...' }}</div>
-            <div style="font-size:11px;color:var(--text-muted);margin-top:4px;"><i class="fa-regular fa-copy"></i> Tap to copy</div>
-          </div>
-          <input v-model="addTrxId" class="input-field" placeholder="Transaction ID (TrxID)" style="text-transform:uppercase;text-align:center;letter-spacing:2px;font-weight:700;margin-bottom:10px;">
-          <div v-if="addError" style="background:rgba(239,68,68,0.1);border-radius:10px;padding:10px 14px;font-size:13px;color:#f87171;margin-bottom:12px;">{{ addError }}</div>
-          <div v-if="addSuccess" style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:14px;padding:16px;text-align:center;margin-bottom:12px;">
-            <i class="fa-solid fa-check-circle" style="color:#4ade80;font-size:32px;margin-bottom:8px;display:block;"></i>
-            <div style="font-weight:700;color:#4ade80;">Deposit Successful!</div>
-            <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">৳{{ addAmount }} + ৳{{ bonusAmount }} Bonus আপনার ওয়ালেটে যোগ হয়েছে।</div>
-          </div>
-          <button v-if="!addSuccess" @click="verifyAddMoney" class="btn-primary" style="width:100%;" :disabled="addLoading">
-            <span v-if="addLoading" class="spinner"></span>
-            <span v-else>Verify &amp; Add Money</span>
-          </button>
-        </div>
-      </div>
-
-    </main>
+  <!-- TOP NAV -->
+  <div class="top-nav">
+    <button class="nav-back" @click="goBack">
+      <i class="fa-solid fa-arrow-left"></i>
+    </button>
+    <div class="nav-title">{{ step===1 ? 'Deposit' : step===2 ? 'পেমেন্ট মেথড' : addMethod }}</div>
+    <div class="nav-balance">
+      <i class="fa-solid fa-wallet" style="font-size:12px;"></i>
+      <span>৳{{ userBalance }}</span>
+    </div>
   </div>
+
+  <!-- STEPS INDICATOR -->
+  <div style="padding:10px 16px 0;flex-shrink:0;background:#0c0c1a;">
+    <div class="steps-row">
+      <div class="step-dot" :class="step===1?'active':step>1?'done':'idle'">
+        <i v-if="step>1" class="fa-solid fa-check" style="font-size:10px;"></i>
+        <span v-else>1</span>
+      </div>
+      <div class="step-line" :class="step>=2?'done':''"></div>
+      <div class="step-dot" :class="step===2?'active':step>2?'done':'idle'">
+        <i v-if="step>2" class="fa-solid fa-check" style="font-size:10px;"></i>
+        <span v-else>2</span>
+      </div>
+      <div class="step-line" :class="step>=3?'done':''"></div>
+      <div class="step-dot" :class="step===3?'active':'idle'">3</div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main-content">
+
+    <!-- STEP 1: Amount -->
+    <transition name="slide-up" mode="out-in">
+    <div v-if="step===1" key="s1">
+      <div class="section-label">পরিমাণ লিখুন</div>
+      <div class="amount-input-wrap">
+        <span class="amount-prefix">৳</span>
+        <input v-model="addAmount" type="number" class="amount-input" placeholder="0" @input="onAmountChange">
+      </div>
+
+      <div class="quick-grid">
+        <button v-for="a in quickAmounts" :key="a"
+          class="quick-btn"
+          :class="{active: addAmount==a}"
+          @click="addAmount=a; onAmountChange()">{{ a }}</button>
+      </div>
+
+      <!-- Bonus hint strip (only show when amount entered) -->
+      <div v-if="bonusAmount>0" class="bonus-hint" @click="showBonusPopup=true">
+        <i class="fa-solid fa-gift" style="color:#4ade80;font-size:16px;"></i>
+        <div>
+          <div style="font-size:14px;font-weight:800;color:#4ade80;">+৳{{ bonusAmount }} বোনাস পাবেন!</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.4);">বিস্তারিত দেখতে ট্যাপ করুন</div>
+        </div>
+        <span class="bonus-badge">{{ calcBonus(addAmount).pct }}% অফ</span>
+      </div>
+      <!-- Bonus hint when no amount -->
+      <div v-else class="bonus-hint" @click="showBonusPopup=true" style="cursor:pointer;">
+        <i class="fa-solid fa-gift" style="color:#4ade80;font-size:16px;"></i>
+        <div>
+          <div style="font-size:14px;font-weight:700;color:rgba(255,255,255,0.7);">Deposit Bonus পাওয়া যাচ্ছে!</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.35);">পরিমাণ লিখলে বোনাস দেখাবে</div>
+        </div>
+        <i class="fa-solid fa-chevron-right" style="color:rgba(255,255,255,0.25);margin-left:auto;font-size:12px;"></i>
+      </div>
+
+      <button @click="step=2" class="btn-primary" :disabled="!addAmount||addAmount<=0">
+        পেমেন্ট মেথড বেছে নিন <i class="fa-solid fa-arrow-right" style="font-size:13px;"></i>
+      </button>
+    </div>
+    </transition>
+
+    <!-- STEP 2: Method -->
+    <transition name="slide-up" mode="out-in">
+    <div v-else-if="step===2" key="s2">
+
+      <div class="eps-card" @click="addSelectMethod('eps')">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:38px;height:38px;background:rgba(255,255,255,0.1);border-radius:10px;display:flex;align-items:center;justify-content:center;">
+              <i class="fa-solid fa-shield-halved" style="font-size:18px;color:#4ade80;"></i>
+            </div>
+            <div>
+              <div style="font-weight:800;font-size:15px;">EPS Payment</div>
+              <div style="font-size:11px;color:rgba(255,255,255,0.55);">Secure Gateway</div>
+            </div>
+          </div>
+          <span style="background:rgba(34,197,94,0.2);border:1px solid rgba(34,197,94,0.4);border-radius:8px;padding:3px 8px;font-size:10px;font-weight:700;color:#4ade80;">PSO LICENSED</span>
+        </div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.6);">বিকাশ, নগদ, রকেট, কার্ড — সব সাপোর্ট করে</div>
+      </div>
+
+      <div v-for="m in ['bkash','nagad','rocket']" :key="m"
+           class="method-row" @click="addSelectMethod(m)">
+        <div :style="{background:m==='bkash'?'#e2156a':m==='nagad'?'#f47920':'#8b1fa8'}"
+             style="width:50px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;">
+          <span style="color:#fff;font-size:11px;font-weight:800;text-transform:capitalize;">{{ m }}</span>
+        </div>
+        <div>
+          <div style="font-weight:700;font-size:15px;text-transform:capitalize;">{{ m }}</div>
+          <div style="font-size:11px;color:var(--text-muted);">Manual payment</div>
+        </div>
+        <i class="fa-solid fa-chevron-right" style="margin-left:auto;color:var(--text-dim);font-size:12px;"></i>
+      </div>
+    </div>
+    </transition>
+
+    <!-- STEP 3: Payment Details -->
+    <transition name="slide-up" mode="out-in">
+    <div v-else-if="step===3" key="s3">
+      <div style="background:rgba(108,99,255,0.07);border:1px solid rgba(108,99,255,0.15);border-radius:12px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;">
+        <div :style="{background:addMethod==='bkash'?'#e2156a':addMethod==='nagad'?'#f47920':addMethod==='rocket'?'#8b1fa8':'rgba(34,197,94,0.2)'}" style="width:42px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <i v-if="addMethod==='eps'" class="fa-solid fa-shield-halved" style="font-size:14px;color:#4ade80;"></i>
+          <span v-else style="color:#fff;font-size:10px;font-weight:800;text-transform:capitalize;">{{ addMethod }}</span>
+        </div>
+        <div>
+          <div style="font-size:13px;font-weight:700;text-transform:capitalize;">{{ addMethod === 'eps' ? 'EPS Payment' : addMethod }}</div>
+          <div style="font-size:11px;color:var(--text-muted);">পরিমাণ: <strong style="color:#fff;">৳{{ addAmount }}</strong></div>
+        </div>
+      </div>
+
+      <!-- Bonus reminder -->
+      <div v-if="bonusAmount>0" style="background:rgba(34,197,94,0.07);border:1px solid rgba(34,197,94,0.2);border-radius:12px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+        <i class="fa-solid fa-gift" style="color:#4ade80;"></i>
+        <span style="font-size:14px;font-weight:700;color:#4ade80;">+৳{{ bonusAmount }} Bonus অটো যোগ হবে!</span>
+      </div>
+
+      <!-- EPS -->
+      <div v-if="addMethod==='eps'">
+        <div class="eps-card" style="margin-bottom:12px;" @click="window.open('https://pg.eps.com.bd/PaymentLink?id=D37C6FF8','_blank')">
+          <div style="font-weight:800;font-size:15px;color:#fff;margin-bottom:6px;">EPS Gateway খুলুন</div>
+          <div style="font-size:13px;color:rgba(255,255,255,0.65);margin-bottom:12px;">Amount: <strong style="color:#fff;">৳{{ addAmount }}</strong></div>
+          <div style="background:rgba(255,255,255,0.08);border-radius:10px;padding:9px 14px;display:flex;align-items:center;justify-content:space-between;">
+            <span style="font-size:13px;color:rgba(255,255,255,0.75);font-weight:600;">Open Gateway</span>
+            <i class="fa-solid fa-arrow-right" style="color:#4ade80;"></i>
+          </div>
+        </div>
+        <div style="margin-bottom:10px;">
+          <div class="section-label" style="margin-bottom:6px;">EPS Reference নম্বর</div>
+          <input v-model="addEpsRef" class="input-field" placeholder="EPS Reference Number">
+        </div>
+        <div v-if="addError" class="error-box">{{ addError }}</div>
+        <div v-if="addSuccess" class="success-box">
+          <i class="fa-solid fa-check-circle" style="color:#4ade80;font-size:28px;margin-bottom:6px;display:block;"></i>
+          <div style="font-weight:700;color:#4ade80;font-size:15px;">Request Submitted!</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">অ্যাডমিন যাচাই করে ব্যালেন্স যোগ করবেন।</div>
+        </div>
+        <button v-if="!addSuccess" @click="submitEpsDeposit" class="btn-primary" :disabled="addLoading">
+          <span v-if="addLoading" class="spinner"></span>
+          <span v-else>Submit EPS Reference</span>
+        </button>
+      </div>
+
+      <!-- Manual -->
+      <div v-else>
+        <div class="section-label" style="margin-bottom:6px;">Send Money (Personal)</div>
+        <div class="copy-box" @click="copyNum(adminNumbers[addMethod])">
+          <div style="font-size:11px;color:var(--primary);font-weight:700;margin-bottom:4px;text-transform:uppercase;">{{ addMethod }} নম্বরে পাঠান</div>
+          <div style="font-size:22px;font-weight:800;letter-spacing:3px;">{{ adminNumbers[addMethod]||'Loading...' }}</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:4px;"><i class="fa-regular fa-copy"></i> ট্যাপ করে কপি করুন</div>
+        </div>
+        <div style="margin-bottom:10px;">
+          <div class="section-label" style="margin-bottom:6px;">Transaction ID</div>
+          <input v-model="addTrxId" class="input-field" placeholder="TrxID এখানে লিখুন" style="text-transform:uppercase;text-align:center;letter-spacing:2px;font-weight:700;">
+        </div>
+        <div v-if="addError" class="error-box">{{ addError }}</div>
+        <div v-if="addSuccess" class="success-box">
+          <i class="fa-solid fa-check-circle" style="color:#4ade80;font-size:28px;margin-bottom:6px;display:block;"></i>
+          <div style="font-weight:700;color:#4ade80;font-size:15px;">Deposit Successful!</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">৳{{ addAmount }} + ৳{{ bonusAmount }} Bonus আপনার ওয়ালেটে যোগ হয়েছে।</div>
+        </div>
+        <button v-if="!addSuccess" @click="verifyAddMoney" class="btn-primary" :disabled="addLoading">
+          <span v-if="addLoading" class="spinner"></span>
+          <span v-else>Verify &amp; Add Money</span>
+        </button>
+      </div>
+    </div>
+    </transition>
+
+  </div><!-- end main-content -->
+
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, doc, getDoc, collection, addDoc, updateDoc, increment, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, doc, getDoc, collection, addDoc, updateDoc, increment, runTransaction, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { createApp, ref, computed, onMounted } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
 
 const FIRESTORE_REST_BASE = `https://firestore.googleapis.com/v1/projects/h24-online/databases/(default)/documents`;
@@ -210,7 +624,6 @@ const fireApp = initializeApp(firebaseConfig);
 const auth = getAuth(fireApp);
 const db = getFirestore(fireApp);
 
-// Deposit bonus tiers
 const BONUS_TIERS = [
   { min: 50,   max: 500,  pct: 5   },
   { min: 501,  max: 1000, pct: 7.5 },
@@ -244,12 +657,21 @@ createApp({
     const adminNumbers = ref({ bkash: '', nagad: '', rocket: '' });
     const quickAmounts = ref([100, 300, 500, 1000]);
     const bonusTiers = ref(BONUS_TIERS);
+    const showBonusPopup = ref(false);
+    const userBalance = ref(0);
 
     const bonusAmount = computed(() => calcBonus(addAmount.value).bonus);
     const isActiveTier = (tier) => {
       const a = Number(addAmount.value);
       if (!a) return false;
       return a >= tier.min && (tier.max === null || a <= tier.max);
+    };
+
+    const onAmountChange = () => {
+      // auto-show popup when bonus is earned
+      if (bonusAmount.value > 0) {
+        // just update, don't auto-popup — user taps hint strip
+      }
     };
 
     let toastTimer = null;
@@ -267,7 +689,8 @@ createApp({
     };
 
     const addSelectMethod = (m) => {
-      addMethod.value = m; step.value = 3;
+      addMethod.value = m;
+      step.value = 3;
       addTrxId.value = ''; addEpsRef.value = ''; addError.value = ''; addSuccess.value = false;
     };
 
@@ -336,7 +759,6 @@ createApp({
           bonusAmount: bonus, totalCredit: depositAmount + bonus,
           trxId, status: 'approved', type: 'verified', createdAt: serverTimestamp()
         });
-        // Turnover = 50% of deposit (not bonus)
         await addDoc(collection(db, 'turnovers'), {
           userId: uid, type: 'deposit',
           label: `Deposit Turnover (৳${Math.ceil(depositAmount * 0.5)})`,
@@ -352,15 +774,29 @@ createApp({
     };
 
     onMounted(async () => {
-      onAuthStateChanged(auth, (user) => { if (!user) window.location.href = 'login.html'; });
+      onAuthStateChanged(auth, (user) => {
+        if (!user) window.location.href = 'login.html';
+        else {
+          onSnapshot(doc(db, 'users', user.uid), (d) => {
+            if (d.exists()) userBalance.value = d.data().balance || 0;
+          });
+        }
+      });
       try { const s = await getDoc(doc(db, 'settings', 'payment')); if (s.exists()) adminNumbers.value = s.data(); } catch(e) {}
       try { const s = await getDoc(doc(db, 'settings', 'amounts')); if (s.exists() && s.data().depositAmounts) quickAmounts.value = s.data().depositAmounts; } catch(e) {}
     });
 
+    const goBack = () => {
+      if (step.value === 3) { step.value = 2; addError.value = ''; addSuccess.value = false; }
+      else if (step.value === 2) { step.value = 1; }
+      else { window.location.href = 'index.html'; }
+    };
+
     return {
       step, addAmount, addMethod, addTrxId, addEpsRef, addError, addLoading, addSuccess,
-      adminNumbers, quickAmounts, bonusTiers, bonusAmount, isActiveTier,
-      addSelectMethod, submitEpsDeposit, verifyAddMoney, copyNum
+      adminNumbers, quickAmounts, bonusTiers, bonusAmount, isActiveTier, showBonusPopup,
+      userBalance, calcBonus,
+      addSelectMethod, submitEpsDeposit, verifyAddMoney, copyNum, onAmountChange, goBack
     };
   }
 }).mount('#app');

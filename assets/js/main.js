@@ -5,16 +5,65 @@ import { createApp, ref, computed, onMounted, nextTick, watch } from "https://un
 
 const EPS_PAYMENT_URL = "https://pg.eps.com.bd/PaymentLink?id=D37C6FF8";
 const APP_BASE_URL = window.location.origin + window.location.pathname;
-
-let PAYMENT_SCRIPT_URL  = null;
-let PAYMENT_CLIENT_KEY  = null;
-let PAYMENT_CONFIG_READY = false;
-
 const CURRENT_APP_VERSION = "1.0.6";
-
 const FIRESTORE_REST_BASE = `https://firestore.googleapis.com/v1/projects/h24-online/databases/(default)/documents`;
 
-async function loadPaymentConfig() {
+// ══════════════════════════════════════════
+// IN-MEMORY + SESSION CACHE SYSTEM
+// ══════════════════════════════════════════
+const _memCache = {};
+const CACHE_TTL = 5 * 60 * 1000; // 5 min in-memory
+
+const mem = {
+  get(key) {
+    const e = _memCache[key];
+    if (!e) return null;
+    if (Date.now() - e.ts > CACHE_TTL) { delete _memCache[key]; return null; }
+    return e.data;
+  },
+  set(key, data) { _memCache[key] = { data, ts: Date.now() }; },
+  del(key) { delete _memCache[key]; }
+};
+
+const sess = {
+  get(key) { try { const r = sessionStorage.getItem('h24_'+key); return r ? JSON.parse(r) : null; } catch { return null; } },
+  set(key, data) { try { sessionStorage.setItem('h24_'+key, JSON.stringify(data)); } catch {} },
+  del(key) { try { sessionStorage.removeItem('h24_'+key); } catch {} }
+};
+
+// Smart cached fetch: memory → session → Firebase
+const smartGet = async (docRef, key) => {
+  const m = mem.get(key); if (m) return m;
+  const s = sess.get(key); if (s) { mem.set(key, s); return s; }
+  const snap = await getDoc(docRef);
+  if (snap.exists()) { const d = snap.data(); mem.set(key, d); sess.set(key, d); return d; }
+  return null;
+};
+
+const smartGetDocs = async (colRef, key) => {
+  const m = mem.get(key); if (m) return m;
+  const s = sess.get(key); if (s) { mem.set(key, s); return s; }
+  const snap = await getDocs(colRef);
+  const arr = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  mem.set(key, arr); sess.set(key, arr);
+  return arr;
+};
+
+const invalidateCache = (key) => { mem.del(key); sess.del(key); };
+
+// ══════════════════════════════════════════
+// PAYMENT CONFIG
+// ══════════════════════════════════════════
+let PAYMENT_SCRIPT_URL = null, PAYMENT_CLIENT_KEY = null, PAYMENT_CONFIG_READY = false;
+
+const loadPaymentConfig = async () => {
+  const cached = mem.get('paymentConfig') || sess.get('paymentConfig');
+  if (cached) {
+    PAYMENT_SCRIPT_URL = cached.script_url;
+    PAYMENT_CLIENT_KEY = cached.api_key;
+    PAYMENT_CONFIG_READY = !!PAYMENT_SCRIPT_URL;
+    return;
+  }
   try {
     const res = await fetch(`${FIRESTORE_REST_BASE}/AppConfig/payment_config`);
     if (res.ok) {
@@ -22,12 +71,19 @@ async function loadPaymentConfig() {
       const fields = data.fields || {};
       PAYMENT_SCRIPT_URL = fields.script_url?.stringValue || null;
       PAYMENT_CLIENT_KEY = fields.api_key?.stringValue || null;
-      if (PAYMENT_SCRIPT_URL) PAYMENT_CONFIG_READY = true;
+      if (PAYMENT_SCRIPT_URL) {
+        PAYMENT_CONFIG_READY = true;
+        const cfg = { script_url: PAYMENT_SCRIPT_URL, api_key: PAYMENT_CLIENT_KEY };
+        mem.set('paymentConfig', cfg); sess.set('paymentConfig', cfg);
+      }
     }
   } catch (e) {}
-}
+};
 loadPaymentConfig();
 
+// ══════════════════════════════════════════
+// FIREBASE INIT
+// ══════════════════════════════════════════
 const firebaseConfig = {
   apiKey: "AIzaSyCZWRcCP0hXTkfQoRhqxczgdD6cw5kp39c",
   authDomain: "h24-online.firebaseapp.com",
@@ -42,10 +98,12 @@ const auth = getAuth(fireApp);
 setPersistence(auth, browserLocalPersistence).catch(() => {});
 const db = getFirestore(fireApp);
 
+// ══════════════════════════════════════════
+// VUE APP
+// ══════════════════════════════════════════
 createApp({
   setup() {
     const page = ref('home');
-    const loading = ref(true);
     const isLoggedIn = ref(false);
     const userBalance = ref(0);
     const userAvatar = ref('https://i.pravatar.cc/150?img=12');
@@ -59,49 +117,66 @@ createApp({
     const otherItems = ref([]);
     const socials = ref({});
     const liveUrl = ref('');
-    const liveLoading = ref(true);
+    const liveLoading = ref(false);
     const adminNumbers = ref({ bkash: '', nagad: '', rocket: '' });
     const supportPin = ref('---');
     const stats = ref({ totalSpent: 0, totalOrders: 0, weeklySpent: 0 });
-
     const minWithdraw = ref(500);
     const depositQuickAmounts = ref([100, 300, 500, 1000]);
     const withdrawQuickAmounts = ref([500, 1000, 1500, 2000]);
+    const rounds = ref([]);
+    const sheetOptions = ref([]);
+    const navHidden = ref(false);
 
-    // ── Pull to Refresh ──
+    // Pre-load from session cache immediately (no Firebase needed)
+    const preloadFromCache = () => {
+      const n = sess.get('settings_notice'); if (n) noticeMessage.value = n.text || noticeMessage.value;
+      const a = sess.get('settings_announcement'); if (a) announcementLines.value = a.lines || [];
+      const l = sess.get('settings_logo'); if (l) logoUrl.value = l.url || '';
+      const p = sess.get('settings_payment'); if (p) adminNumbers.value = p;
+      const s = sess.get('admin_settings'); if (s) socials.value = s;
+      const r = sess.get('settings_rounds'); if (r?.list) rounds.value = r.list;
+      const sh = sess.get('settings_sheetInfo'); if (sh?.list) sheetOptions.value = sh.list;
+      const amt = sess.get('settings_amounts');
+      if (amt) {
+        if (amt.depositAmounts?.length) depositQuickAmounts.value = amt.depositAmounts;
+        if (amt.withdrawAmounts?.length) withdrawQuickAmounts.value = amt.withdrawAmounts;
+        if (amt.minWithdraw) minWithdraw.value = Number(amt.minWithdraw);
+      }
+      const prods = sess.get('products_cache');
+      if (prods) {
+        prods.forEach(item => {
+          const cat = item.category;
+          if (cat === 'mystery') mysteryBoxes.value.push(item);
+          else if (cat === 'special') specialOffers.value.push(item);
+          else if (cat === 'freefire' || cat === 'ingame') gameItems.value.push(item);
+          else if (cat === 'shell' || cat === 'giftcard' || cat === 'subscription') otherItems.value.push(item);
+          else gameItems.value.push(item);
+        });
+      }
+      const bn = sess.get('banners_cache'); if (bn) banners.value = bn;
+    };
+
+    // ── PTR ──
     const ptrVisible = ref(false);
     const ptrLoading = ref(false);
-    let ptrStartY = 0;
-    let ptrTriggered = false;
-
+    let ptrStartY = 0, ptrTriggered = false;
     const ptrTouchStart = (e) => {
       const el = document.getElementById('accountScroll');
-      if (el && el.scrollTop <= 0) {
-        ptrStartY = e.touches[0].clientY;
-        ptrTriggered = false;
-      } else { ptrStartY = 0; }
+      if (el && el.scrollTop <= 0) { ptrStartY = e.touches[0].clientY; ptrTriggered = false; } else ptrStartY = 0;
     };
     const ptrTouchMove = (e) => {
       if (!ptrStartY) return;
-      const dy = e.touches[0].clientY - ptrStartY;
-      if (dy > 60 && !ptrTriggered) { ptrVisible.value = true; ptrTriggered = true; }
+      if (e.touches[0].clientY - ptrStartY > 60 && !ptrTriggered) { ptrVisible.value = true; ptrTriggered = true; }
     };
     const ptrTouchEnd = async () => {
       if (!ptrTriggered) return;
       ptrLoading.value = true;
-      try {
-        const user = auth.currentUser;
-        if (user) {
-          await fetchStats();
-          await fetchTurnovers();
-          await fetchReferralStats();
-          await checkTodayCheckin(user.uid);
-        }
-      } catch(e) {}
-      ptrLoading.value = false;
-      ptrVisible.value = false;
-      ptrTriggered = false;
-      ptrStartY = 0;
+      // Invalidate relevant caches and refresh
+      ['settings_notice','settings_announcement','settings_logo','settings_payment','admin_settings'].forEach(k => { mem.del(k); sess.del(k); });
+      try { const user = auth.currentUser; if (user) { await fetchStats(); await fetchTurnovers(); await fetchReferralStats(); await checkTodayCheckin(user.uid); } }
+      catch(e) {}
+      ptrLoading.value = false; ptrVisible.value = false; ptrTriggered = false; ptrStartY = 0;
       showToast('✅ Refreshed!');
     };
 
@@ -111,38 +186,33 @@ createApp({
     const turnoverLoading = ref(false);
     const activeTurnovers = ref([]);
     const completedTurnovers = ref([]);
+    const _turnoversLoaded = ref(false);
 
     const fetchTurnovers = async () => {
       const uid = localStorage.getItem('userId');
       if (!uid) return;
       turnoverLoading.value = true;
-      activeTurnovers.value = [];
-      completedTurnovers.value = [];
+      activeTurnovers.value = []; completedTurnovers.value = [];
       try {
         const snap = await getDocs(query(collection(db, 'turnovers'), where('userId', '==', uid)));
         snap.forEach(d => {
-          const data = d.data();
-          const item = { id: d.id, ...data };
-          if (data.status === 'completed') completedTurnovers.value.push(item);
+          const item = { id: d.id, ...d.data() };
+          if (d.data().status === 'completed') completedTurnovers.value.push(item);
           else activeTurnovers.value.push(item);
         });
+        _turnoversLoaded.value = true;
       } catch (e) {}
       finally { turnoverLoading.value = false; }
     };
-
-    const openTurnoverModal = () => {
-      turnoverTab.value = 'active';
-      turnoverModal.value = true;
-    };
+    const openTurnoverModal = () => { turnoverTab.value = 'active'; turnoverModal.value = true; };
 
     // ── Announcement ──
     const announcementLines = ref([]);
     const announcementModal = ref(false);
     const showAnnouncement = () => { announcementModal.value = true; };
 
-    // ── Daily Check-In ──
+    // ── Check-In ──
     const checkInClaimed = ref(false);
-
     const claimDailyBonus = async () => {
       if (!isLoggedIn.value) { navigateTo('login'); return; }
       if (checkInClaimed.value) return;
@@ -153,77 +223,30 @@ createApp({
       const checkinRef = doc(db, 'checkins', `${uid}_${today}`);
       try {
         const snap = await getDoc(checkinRef);
-        if (snap.exists()) {
-          checkInClaimed.value = true;
-          showPopup('error', 'Already Claimed', 'আজকের বোনাস আগেই নেওয়া হয়েছে। কাল আবার আসুন!');
-          return;
-        }
+        if (snap.exists()) { checkInClaimed.value = true; showPopup('error', 'Already Claimed', 'আজকের বোনাস আগেই নেওয়া হয়েছে। কাল আবার আসুন!'); return; }
         await setDoc(checkinRef, { userId: uid, date: today, amount: 10, claimedAt: serverTimestamp() });
         await updateDoc(doc(db, 'users', uid), { balance: increment(10) });
-        await addDoc(collection(db, 'balanceLogs'), {
-          userId: uid, type: 'daily_bonus', amount: 10,
-          note: 'Daily Check-In', createdAt: serverTimestamp()
-        });
-        await addDoc(collection(db, 'turnovers'), {
-          userId: uid, type: 'daily_bonus', label: 'Daily Bonus Turnover (৳10)',
-          required: 10, done: 0, status: 'active', createdAt: serverTimestamp()
-        });
+        await addDoc(collection(db, 'balanceLogs'), { userId: uid, type: 'daily_bonus', amount: 10, note: 'Daily Check-In', createdAt: serverTimestamp() });
+        await addDoc(collection(db, 'turnovers'), { userId: uid, type: 'daily_bonus', label: 'Daily Bonus Turnover (৳10)', required: 10, done: 0, status: 'active', createdAt: serverTimestamp() });
         await fetchTurnovers();
         checkInClaimed.value = true;
         showPopup('success', 'বোনাস পেয়েছেন! 🎉', '৳১০ আপনার ওয়ালেটে যোগ হয়েছে। আবার আসুন কাল!');
-      } catch (e) {
-        showPopup('error', 'Error', 'কিছু সমস্যা হয়েছে। আবার চেষ্টা করুন।');
-      }
+      } catch (e) { showPopup('error', 'Error', 'কিছু সমস্যা হয়েছে।'); }
     };
-
     const checkTodayCheckin = async (uid) => {
       const today = new Date().toISOString().slice(0, 10);
-      try {
-        const snap = await getDoc(doc(db, 'checkins', `${uid}_${today}`));
-        checkInClaimed.value = snap.exists();
-      } catch (e) {}
+      try { const snap = await getDoc(doc(db, 'checkins', `${uid}_${today}`)); checkInClaimed.value = snap.exists(); } catch (e) {}
     };
 
-    // ── Rounds & Sheets ──
-    const rounds = ref([]);
-    const sheetOptions = ref([]);
-
+    // ── Rounds ──
     const loadRounds = async () => {
+      // Already loaded from session cache in preloadFromCache
+      if (rounds.value.length > 0) return;
       try {
-        const snap = await getDoc(doc(db, 'settings', 'rounds'));
-        if (snap.exists() && snap.data().list) {
-          rounds.value = snap.data().list;
-        } else {
-          rounds.value = Array.from({length:28},(_,i)=>{
-            const h=Math.floor(i/3)+15, m=(i%3)*20;
-            const period=h<12||h===24?'AM':'PM';
-            const hh=h>12?h-12:h;
-            return {label:`${i+1}${['st','nd','rd'][i]||'th'} Round - ${String(hh).padStart(2,'0')}:${String(m).padStart(2,'0')} ${period}`};
-          });
-        }
-      } catch (e) {
-        rounds.value = [
-          {label:'1st Round - 03:00 PM'},{label:'2nd Round - 03:20 PM'},
-          {label:'3rd Round - 03:40 PM'},{label:'4th Round - 04:00 PM'},
-          {label:'5th Round - 04:20 PM'},{label:'6th Round - 04:40 PM'},
-          {label:'7th Round - 05:00 PM'},{label:'8th Round - 05:20 PM'},
-          {label:'9th Round - 05:40 PM'},{label:'10th Round - 06:00 PM'},
-          {label:'11th Round - 06:20 PM'},{label:'12th Round - 06:40 PM'},
-          {label:'13th Round - 07:00 PM'},{label:'14th Round - 07:20 PM'},
-          {label:'15th Round - 07:40 PM'},{label:'16th Round - 08:00 PM'},
-          {label:'17th Round - 08:20 PM'},{label:'18th Round - 08:40 PM'},
-          {label:'19th Round - 09:00 PM'},{label:'20th Round - 09:20 PM'},
-          {label:'21st Round - 09:40 PM'},{label:'22nd Round - 10:00 PM'},
-          {label:'23rd Round - 10:20 PM'},{label:'24th Round - 10:40 PM'},
-          {label:'25th Round - 11:00 PM'},{label:'26th Round - 11:20 PM'},
-          {label:'27th Round - 11:40 PM'},{label:'28th Round - 12:00 AM'},
-        ];
-      }
-      try {
-        const sheetSnap = await getDoc(doc(db, 'settings', 'sheetInfo'));
-        if (sheetSnap.exists() && sheetSnap.data().list) {
-          sheetOptions.value = sheetSnap.data().list;
-        }
+        const data = await smartGet(doc(db, 'settings', 'rounds'), 'settings_rounds');
+        if (data?.list) { rounds.value = data.list; }
+        const sheetData = await smartGet(doc(db, 'settings', 'sheetInfo'), 'settings_sheetInfo');
+        if (sheetData?.list) sheetOptions.value = sheetData.list;
       } catch (e) {}
     };
 
@@ -233,26 +256,21 @@ createApp({
       const uid = localStorage.getItem('userId') || '';
       return `${APP_BASE_URL}?ref=${uid.substring(0, 8)}`;
     });
-
-    const copyReferralLink = () => {
-      navigator.clipboard.writeText(referralLink.value);
-      showToast('✅ লিংক কপি হয়েছে!');
-    };
-
+    const copyReferralLink = () => { navigator.clipboard.writeText(referralLink.value); showToast('✅ লিংক কপি হয়েছে!'); };
     const shareReferral = async () => {
-      if (navigator.share) {
-        try { await navigator.share({ title: 'H24 Online', text: 'H24 Online-এ যোগ দিন!', url: referralLink.value }); }
-        catch (e) {}
-      } else { copyReferralLink(); }
+      if (navigator.share) { try { await navigator.share({ title: 'H24 Online', text: 'H24 Online-এ যোগ দিন!', url: referralLink.value }); } catch (e) {} }
+      else copyReferralLink();
     };
-
     const fetchReferralStats = async () => {
       const uid = localStorage.getItem('userId');
       if (!uid) return;
       try {
+        const cached = mem.get('referralStats_'+uid);
+        if (cached) { referralStats.value = cached; return; }
         const snap = await getDoc(doc(db, 'referrals', uid));
         if (snap.exists()) {
-          referralStats.value = { totalRefs: snap.data().totalRefs || 0, totalEarned: snap.data().totalEarned || 0 };
+          const d = { totalRefs: snap.data().totalRefs || 0, totalEarned: snap.data().totalEarned || 0 };
+          referralStats.value = d; mem.set('referralStats_'+uid, d);
         }
       } catch (e) {}
     };
@@ -260,38 +278,23 @@ createApp({
     const openSocialLink = (url) => {
       if (!url) return '#';
       if (url.startsWith('http://') || url.startsWith('https://')) return url;
-      if (url.startsWith('whatsapp://')) {
-        const m = url.match(/phone=(\d+)/);
-        return m ? `https://wa.me/${m[1]}` : 'https://wa.me';
-      }
+      if (url.startsWith('whatsapp://')) { const m = url.match(/phone=(\d+)/); return m ? `https://wa.me/${m[1]}` : 'https://wa.me'; }
       if (url.startsWith('tg://')) return url.replace('tg://resolve?domain=', 'https://t.me/');
       return 'https://' + url;
     };
 
-    // ── Live ──
-    const goLive = () => {
-      if (!liveUrl.value) return;
-      window.location.href = liveUrl.value;
-    };
-
-    const resetZoom = () => {
-      const meta = document.querySelector('meta[name=viewport]');
-      if (meta) {
-        meta.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=0');
-        setTimeout(() => {
-          meta.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=0, viewport-fit=cover');
-        }, 50);
-      }
-    };
-
-    const openLiveLink = async () => { navigateTo('live'); };
-
     // ── Popup ──
     const popup = ref({ show: false, type: '', title: '', msg: '', btnText: 'OK', confirm: null });
+    const showPopup = (type, title, msg, btnText = 'OK', confirm = null) => { popup.value = { show: true, type, title, msg, btnText, confirm }; };
+    const closePopup = () => {
+      if (popup.value.btnText === 'Deposit') { popup.value.show = false; navigateTo('add-money'); }
+      else if (popup.value.btnText === 'Orders') { popup.value.show = false; navigateTo('orders'); }
+      else if (popup.value.btnText === 'Balance History') { popup.value.show = false; navigateTo('balance-history'); }
+      else popup.value.show = false;
+    };
 
-    // ── App Update Modal ──
+    // ── App Version ──
     const updateModal = ref({ show: false, newVersion: '', message: '', changelog: [], updateUrl: '', forceUpdate: false });
-
     const checkAppVersion = async () => {
       try {
         const snap = await getDoc(doc(db, 'settings', 'appVersion'));
@@ -300,47 +303,23 @@ createApp({
         const latestVersion = data.version || '';
         if (!latestVersion || latestVersion === CURRENT_APP_VERSION) return;
         const parseV = (v) => v.split('.').map(Number);
-        const latest = parseV(latestVersion);
-        const current = parseV(CURRENT_APP_VERSION);
+        const latest = parseV(latestVersion), current = parseV(CURRENT_APP_VERSION);
         let needsUpdate = false;
         for (let i = 0; i < Math.max(latest.length, current.length); i++) {
           const l = latest[i] || 0, c = current[i] || 0;
-          if (l > c) { needsUpdate = true; break; }
-          if (l < c) break;
+          if (l > c) { needsUpdate = true; break; } if (l < c) break;
         }
         if (!needsUpdate) return;
-        updateModal.value = {
-          show: true, newVersion: latestVersion,
-          message: data.message || 'নতুন আপডেট পাওয়া গেছে!',
-          changelog: data.changelog || [],
-          updateUrl: data.updateUrl || '',
-          forceUpdate: data.forceUpdate || false
-        };
+        updateModal.value = { show: true, newVersion: latestVersion, message: data.message || 'নতুন আপডেট!', changelog: data.changelog || [], updateUrl: data.updateUrl || '', forceUpdate: data.forceUpdate || false };
       } catch (e) {}
     };
 
-    const showPopup = (type, title, msg, btnText = 'OK', confirm = null) => {
-      popup.value = { show: true, type, title, msg, btnText, confirm };
-    };
-    const closePopup = () => {
-      if (popup.value.btnText === 'Deposit') { popup.value.show = false; navigateTo('add-money'); }
-      else if (popup.value.btnText === 'Orders') { popup.value.show = false; navigateTo('orders'); }
-      else if (popup.value.btnText === 'Balance History') { popup.value.show = false; navigateTo('balance-history'); }
-      else { popup.value.show = false; }
-    };
-
-    // ── Withdraw Modal ──
+    // ── Withdraw ──
     const withdrawModal = ref({ show: false, amount: '', gateway: 'bkash', accountNumber: '', loading: false, error: '' });
-
     const openWithdrawModal = () => {
       if (!isLoggedIn.value) { navigateTo('login'); return; }
-      withdrawModal.value = {
-        show: true, amount: '', gateway: 'bkash',
-        accountNumber: userData.value.phone || '',
-        loading: false, error: ''
-      };
+      withdrawModal.value = { show: true, amount: '', gateway: 'bkash', accountNumber: userData.value.phone || '', loading: false, error: '' };
     };
-
     const submitWithdraw = async () => {
       const wm = withdrawModal.value;
       wm.error = '';
@@ -348,36 +327,32 @@ createApp({
       if (!wm.amount || Number(wm.amount) < minAmt) { wm.error = `সর্বনিম্ন ৳${minAmt} উইথড্র করুন।`; return; }
       if (Number(wm.amount) > userBalance.value) { wm.error = 'আপনার ব্যালেন্স পর্যাপ্ত নয়।'; return; }
       if (!wm.accountNumber || wm.accountNumber.length < 10) { wm.error = 'সঠিক নম্বর দিন (১০ ডিজিট)।'; return; }
-      if (activeTurnovers.value.length > 0) { wm.error = '⚠️ Turnover Complete হয়নি। Turnover শেষ করুন।'; return; }
+      if (activeTurnovers.value.length > 0) { wm.error = '⚠️ Turnover Complete হয়নি।'; return; }
       wm.loading = true;
       try {
         const uid = localStorage.getItem('userId');
-        const pendingQ = query(collection(db, 'withdrawals'), where('userId', '==', uid), where('status', '==', 'pending'));
-        const pendingSnap = await getDocs(pendingQ);
-        if (!pendingSnap.empty) { wm.error = 'একটি উইথড্র রিকোয়েস্ট ইতিমধ্যে পেন্ডিং আছে।'; wm.loading = false; return; }
+        const pendingSnap = await getDocs(query(collection(db, 'withdrawals'), where('userId', '==', uid), where('status', '==', 'pending')));
+        if (!pendingSnap.empty) { wm.error = 'একটি উইথড্র রিকোয়েস্ট পেন্ডিং।'; wm.loading = false; return; }
         const amount = Number(wm.amount);
         await runTransaction(db, async (t) => {
           const uRef = doc(db, 'users', uid);
           const uDoc = await t.get(uRef);
           if (uDoc.data().balance < amount) throw new Error('Low Balance');
           t.update(uRef, { balance: uDoc.data().balance - amount });
-          t.set(doc(collection(db, 'withdrawals')), {
-            userId: uid, amount, gateway: wm.gateway,
-            accountNumber: wm.accountNumber, status: 'pending', createdAt: serverTimestamp()
-          });
+          t.set(doc(collection(db, 'withdrawals')), { userId: uid, amount, gateway: wm.gateway, accountNumber: wm.accountNumber, status: 'pending', createdAt: serverTimestamp() });
         });
         withdrawModal.value.show = false;
         showPopup('success', '✅ রিকোয়েস্ট সফল!', `৳${amount} উইথড্র রিকোয়েস্ট পাঠানো হয়েছে।`, 'Balance History');
       } catch (e) {
-        if (e.message === 'Low Balance') { wm.error = 'আপনার ব্যালেন্স পর্যাপ্ত নয়।'; }
+        if (e.message === 'Low Balance') wm.error = 'ব্যালেন্স পর্যাপ্ত নয়।';
         else { showPopup('error', '❌ সমস্যা হয়েছে', 'উইথড্র রিকোয়েস্ট পাঠানো যায়নি।'); withdrawModal.value.show = false; }
       } finally { wm.loading = false; }
     };
 
     // ── Auth ──
-    const loginEmail = ref(''); const loginPass = ref(''); const loginLoading = ref(false);
-    const regName = ref(''); const regPhone = ref(''); const regEmail = ref('');
-    const regPass = ref(''); const regConfirm = ref(''); const regLoading = ref(false);
+    const loginEmail = ref(''), loginPass = ref(''), loginLoading = ref(false);
+    const regName = ref(''), regPhone = ref(''), regEmail = ref('');
+    const regPass = ref(''), regConfirm = ref(''), regLoading = ref(false);
     const regReferralCode = ref('');
     const urlRef = new URLSearchParams(window.location.search).get('ref');
     if (urlRef) regReferralCode.value = urlRef;
@@ -390,13 +365,9 @@ createApp({
         const userRef = doc(db, 'users', user.uid);
         const snap = await getDoc(userRef);
         if (!snap.exists()) {
-          await setDoc(userRef, {
-            uid: user.uid, name: user.displayName||'User', email: user.email,
-            photoURL: user.photoURL||'', balance: 0, phone: '',
-            referralCode: user.uid.substring(0, 8), joinedAt: new Date().toISOString()
-          });
+          await setDoc(userRef, { uid: user.uid, name: user.displayName || 'User', email: user.email, photoURL: user.photoURL || '', balance: 0, phone: '', referralCode: user.uid.substring(0, 8), joinedAt: new Date().toISOString() });
         }
-        await updateDoc(doc(db, 'users', user.uid), { lastSeen: serverTimestamp(), isOnline: true }).catch(()=>{});
+        await updateDoc(doc(db, 'users', user.uid), { lastSeen: serverTimestamp(), isOnline: true }).catch(() => {});
         localStorage.setItem('userId', user.uid);
         navigateTo('home');
       } catch (e) { alert('Google login failed: ' + e.message); }
@@ -407,7 +378,7 @@ createApp({
       loginLoading.value = true;
       try {
         const result = await signInWithEmailAndPassword(auth, loginEmail.value, loginPass.value);
-        await updateDoc(doc(db, 'users', result.user.uid), { lastSeen: serverTimestamp(), isOnline: true }).catch(()=>{});
+        await updateDoc(doc(db, 'users', result.user.uid), { lastSeen: serverTimestamp(), isOnline: true }).catch(() => {});
         localStorage.setItem('userId', result.user.uid);
         navigateTo('home');
       } catch (e) { alert('Invalid email or password!'); }
@@ -421,33 +392,23 @@ createApp({
         const result = await createUserWithEmailAndPassword(auth, regEmail.value, regPass.value);
         await updateProfile(result.user, { displayName: regName.value });
         const uid = result.user.uid;
-        await setDoc(doc(db, 'users', uid), {
-          uid, name: regName.value, email: regEmail.value,
-          phone: regPhone.value, balance: 0, photoURL: '',
-          referralCode: uid.substring(0, 8),
-          referredBy: regReferralCode.value || '',
-          joinedAt: new Date().toISOString(),
-          lastSeen: serverTimestamp(), isOnline: true
-        });
+        await setDoc(doc(db, 'users', uid), { uid, name: regName.value, email: regEmail.value, phone: regPhone.value, balance: 0, photoURL: '', referralCode: uid.substring(0, 8), referredBy: regReferralCode.value || '', joinedAt: new Date().toISOString(), lastSeen: serverTimestamp(), isOnline: true });
         if (regReferralCode.value) {
           try {
-            const refQuery = query(collection(db, 'users'), where('referralCode', '==', regReferralCode.value));
-            const refSnap = await getDocs(refQuery);
+            const refSnap = await getDocs(query(collection(db, 'users'), where('referralCode', '==', regReferralCode.value)));
             if (!refSnap.empty) {
               const referrerId = refSnap.docs[0].id;
               const refDocRef = doc(db, 'referrals', referrerId);
               const refDoc = await getDoc(refDocRef);
-              if (refDoc.exists()) { await updateDoc(refDocRef, { totalRefs: increment(1) }); }
-              else { await setDoc(refDocRef, { totalRefs: 1, totalEarned: 0 }); }
+              if (refDoc.exists()) await updateDoc(refDocRef, { totalRefs: increment(1) });
+              else await setDoc(refDocRef, { totalRefs: 1, totalEarned: 0 });
             }
           } catch (re) {}
         }
         localStorage.setItem('userId', uid);
         navigateTo('home');
       } catch (e) {
-        let msg = 'Registration failed!';
-        if (e.code === 'auth/email-already-in-use') msg = 'Email already in use!';
-        alert(msg);
+        alert(e.code === 'auth/email-already-in-use' ? 'Email already in use!' : 'Registration failed!');
       } finally { regLoading.value = false; }
     };
 
@@ -455,10 +416,10 @@ createApp({
       if (confirm('আপনি কি নিশ্চিত লগআউট করতে চান?')) {
         if (chatUnsubscribe.value) chatUnsubscribe.value();
         const uid = localStorage.getItem('userId');
-        if (uid) { await updateDoc(doc(db, 'users', uid), { isOnline: false, lastSeen: serverTimestamp() }).catch(()=>{}); }
+        if (uid) await updateDoc(doc(db, 'users', uid), { isOnline: false, lastSeen: serverTimestamp() }).catch(() => {});
         try { await signOut(auth); } catch (e) {}
         localStorage.removeItem('userId');
-        sessionStorage.clear();
+        sessionStorage.clear(); // Clear all caches on logout
         isLoggedIn.value = false; userBalance.value = 0; userData.value = {};
         navigateTo('login');
       }
@@ -466,15 +427,15 @@ createApp({
 
     const goProtected = (p) => { isLoggedIn.value ? navigateTo(p) : navigateTo('login'); };
 
-    // ── Banner Click ──
+    // ── Banner ──
     const handleBannerClick = (banner) => {
       if (!banner) return;
       if (banner.productId) {
-        const allProducts = [...mysteryBoxes.value, ...specialOffers.value, ...gameItems.value, ...otherItems.value];
-        const product = allProducts.find(p => p.id === banner.productId);
-        if (product) { openPurchase(product); return; }
+        const all = [...mysteryBoxes.value, ...specialOffers.value, ...gameItems.value, ...otherItems.value];
+        const p = all.find(x => x.id === banner.productId);
+        if (p) { openPurchase(p); return; }
       }
-      if (banner.link) { window.open(openSocialLink(banner.link), '_blank'); }
+      if (banner.link) window.open(openSocialLink(banner.link), '_blank');
     };
 
     // ── Purchase Modal ──
@@ -483,19 +444,17 @@ createApp({
       playerId: '', selectedRound: '', payMethod: 'wallet',
       gateway: 'bkash', trxId: '', epsRef: '', verifying: false
     });
-
     const openPurchase = (item) => {
       if (!isLoggedIn.value) { navigateTo('login'); return; }
       purchaseModal.value = {
         show: true, product: item,
-        packages: item.packages && item.packages.length > 0 ? item.packages : [{ name: 'Default', price: item.price || 0 }],
+        packages: item.packages?.length > 0 ? item.packages : [{ name: 'Default', price: item.price || 0 }],
         selectedPkg: null, playerId: '', selectedRound: '',
         payMethod: 'wallet', gateway: 'bkash', trxId: '', epsRef: '', verifying: false
       };
     };
-
     const handleEpsPurchaseRedirect = () => {
-      if (!purchaseModal.value.selectedPkg) { showPopup('error','Select Package','Please choose a package first.'); return; }
+      if (!purchaseModal.value.selectedPkg) { showPopup('error', 'Select Package', 'Please choose a package first.'); return; }
       window.open(EPS_PAYMENT_URL, '_blank');
     };
 
@@ -506,13 +465,11 @@ createApp({
         let remaining = spentAmount;
         for (const d of snap.docs) {
           if (remaining <= 0) break;
-          const data = d.data();
-          const needed = data.required - (data.done || 0);
+          const data = d.data(), needed = data.required - (data.done || 0);
           if (needed <= 0) { await updateDoc(doc(db, 'turnovers', d.id), { status: 'completed', done: data.required }); continue; }
-          const toAdd = Math.min(remaining, needed);
-          const newDone = (data.done || 0) + toAdd;
-          if (newDone >= data.required) { await updateDoc(doc(db, 'turnovers', d.id), { done: data.required, status: 'completed' }); }
-          else { await updateDoc(doc(db, 'turnovers', d.id), { done: newDone }); }
+          const toAdd = Math.min(remaining, needed), newDone = (data.done || 0) + toAdd;
+          if (newDone >= data.required) await updateDoc(doc(db, 'turnovers', d.id), { done: data.required, status: 'completed' });
+          else await updateDoc(doc(db, 'turnovers', d.id), { done: newDone });
           remaining -= toAdd;
         }
         await fetchTurnovers();
@@ -526,8 +483,7 @@ createApp({
         if (!buyerSnap.exists()) return;
         const referredBy = buyerSnap.data().referredBy;
         if (!referredBy) return;
-        const refQuery = query(collection(db, 'users'), where('referralCode', '==', referredBy));
-        const refSnap = await getDocs(refQuery);
+        const refSnap = await getDocs(query(collection(db, 'users'), where('referralCode', '==', referredBy)));
         if (refSnap.empty) return;
         const referrerId = refSnap.docs[0].id;
         const commission = Math.floor(orderPrice * 0.10);
@@ -535,12 +491,10 @@ createApp({
         await updateDoc(doc(db, 'users', referrerId), { balance: increment(commission) });
         const refDocRef = doc(db, 'referrals', referrerId);
         const refDoc = await getDoc(refDocRef);
-        if (refDoc.exists()) { await updateDoc(refDocRef, { totalEarned: increment(commission) }); }
-        else { await setDoc(refDocRef, { totalRefs: 0, totalEarned: commission }); }
-        await addDoc(collection(db, 'balanceLogs'), {
-          userId: referrerId, type: 'referral', amount: commission,
-          note: 'Refer Bonus', createdAt: serverTimestamp()
-        });
+        if (refDoc.exists()) await updateDoc(refDocRef, { totalEarned: increment(commission) });
+        else await setDoc(refDocRef, { totalRefs: 0, totalEarned: commission });
+        await addDoc(collection(db, 'balanceLogs'), { userId: referrerId, type: 'referral', amount: commission, note: 'Refer Bonus', createdAt: serverTimestamp() });
+        mem.del('referralStats_'+referrerId); // Invalidate referral cache
       } catch (e) {}
     };
 
@@ -550,7 +504,6 @@ createApp({
       if (!pm.playerId) return showPopup('error', 'Missing Info', 'Sheet No দিন।');
       if (!pm.selectedRound) return showPopup('error', 'Select Round', 'Round select করুন।');
       const uid = localStorage.getItem('userId');
-
       const orderData = {
         userId: uid, packageName: pm.selectedPkg.name, price: pm.selectedPkg.price,
         playerId: pm.playerId, sheetInfo: pm.playerId,
@@ -558,12 +511,10 @@ createApp({
         productName: pm.product.name, category: pm.product.category,
         createdAt: serverTimestamp()
       };
-
       if (pm.payMethod === 'wallet') {
         if (userBalance.value < pm.selectedPkg.price) return showPopup('error', 'Low Balance', 'Insufficient balance.', 'Deposit');
         showPopup('confirm', 'Confirm Purchase', `Deduct ৳${pm.selectedPkg.price} from wallet?`, 'Confirm', async () => {
-          popup.value.show = false;
-          purchaseModal.value.show = false;
+          popup.value.show = false; purchaseModal.value.show = false;
           try {
             await runTransaction(db, async (t) => {
               const uRef = doc(db, 'users', uid);
@@ -574,6 +525,7 @@ createApp({
             });
             await addReferralCommission(uid, pm.selectedPkg.price);
             await updateTurnoverProgress(uid, pm.selectedPkg.price);
+            mem.del('orders_'+uid); sess.del('orders_'+uid); // Invalidate orders cache
             showPopup('success', 'Order Placed!', 'Your order is pending for delivery.', 'Orders');
           } catch (e) { showPopup('error', 'Failed', 'Transaction failed. Try again.'); }
         });
@@ -581,31 +533,21 @@ createApp({
         if (!pm.trxId || pm.trxId.length < 5) return showPopup('error', 'Invalid TrxID', 'সঠিক Transaction ID দিন।');
         pm.verifying = true;
         try {
-          const trxId = pm.trxId.trim().toUpperCase();
-          const price = pm.selectedPkg.price;
-          let verifyOk = false;
-          let verifyMsg = '';
+          const trxId = pm.trxId.trim().toUpperCase(), price = pm.selectedPkg.price;
+          let verifyOk = false, verifyMsg = '';
           try {
             const txSnap = await getDoc(doc(db, 'transactions', trxId));
             if (txSnap.exists()) {
               const txData = txSnap.data();
-              if (txData.status === 'used') { verifyMsg = 'এই TrxID আগেই ব্যবহার হয়েছে।'; }
-              else if (Number(txData.amount) !== price) { verifyMsg = `Amount মিলছে না।`; }
-              else {
-                await updateDoc(doc(db, 'transactions', trxId), { status: 'used', usedBy: uid, usedAt: serverTimestamp() });
-                verifyOk = true;
-              }
+              if (txData.status === 'used') verifyMsg = 'এই TrxID আগেই ব্যবহার হয়েছে।';
+              else if (Number(txData.amount) !== price) verifyMsg = `Amount মিলছে না।`;
+              else { await updateDoc(doc(db, 'transactions', trxId), { status: 'used', usedBy: uid, usedAt: serverTimestamp() }); verifyOk = true; }
             }
           } catch (fe) {}
           if (!verifyOk && !verifyMsg && PAYMENT_CONFIG_READY && PAYMENT_SCRIPT_URL) {
             try {
-              const verifyUrl = `${PAYMENT_SCRIPT_URL}?trxID=${trxId}&apiKey=${PAYMENT_CLIENT_KEY}&amount=${price}`;
-              const vRes = await fetch(verifyUrl);
-              if (vRes.ok) {
-                const vData = await vRes.json();
-                verifyOk = vData.status === 'success';
-                verifyMsg = vData.message || '';
-              }
+              const vRes = await fetch(`${PAYMENT_SCRIPT_URL}?trxID=${trxId}&apiKey=${PAYMENT_CLIENT_KEY}&amount=${price}`);
+              if (vRes.ok) { const vData = await vRes.json(); verifyOk = vData.status === 'success'; verifyMsg = vData.message || ''; }
             } catch (fe) {}
           }
           if (verifyOk) {
@@ -613,7 +555,7 @@ createApp({
             await addReferralCommission(uid, price);
             pm.show = false;
             showPopup('success', 'Payment Verified! ✅', 'আপনার অর্ডার সম্পন্ন হয়েছে।', 'Orders');
-          } else { showPopup('error', 'Verification Failed ❌', verifyMsg || 'TrxID মিলছে না।'); }
+          } else showPopup('error', 'Verification Failed ❌', verifyMsg || 'TrxID মিলছে না।');
         } catch (e) { showPopup('error', 'Error', 'Connection failed. Try again.'); }
         finally { pm.verifying = false; }
       } else if (pm.payMethod === 'eps') {
@@ -629,46 +571,26 @@ createApp({
     };
 
     // ── Add Money ──
-    const addMoneyStep = ref(1);
-    const addAmount = ref('');
-    const addMethod = ref('');
-    const addTrxId = ref('');
-    const addEpsRef = ref('');
-    const addError = ref('');
-    const addLoading = ref(false);
-    const addSuccess = ref(false);
-
-    const addSelectMethod = (m) => {
-      addMethod.value = m; addMoneyStep.value = 3;
-      addTrxId.value = ''; addEpsRef.value = ''; addError.value = '';
-    };
-
-    const copyLiveUrl = () => {
-      if (liveUrl.value) { navigator.clipboard.writeText(liveUrl.value).catch(()=>{}); showToast('✅ Live link copied!'); }
-    };
-
+    const addMoneyStep = ref(1), addAmount = ref(''), addMethod = ref('');
+    const addTrxId = ref(''), addEpsRef = ref(''), addError = ref('');
+    const addLoading = ref(false), addSuccess = ref(false);
+    const addSelectMethod = (m) => { addMethod.value = m; addMoneyStep.value = 3; addTrxId.value = ''; addEpsRef.value = ''; addError.value = ''; };
     const openEpsDepositUrl = () => { window.open(EPS_PAYMENT_URL, '_blank'); };
-
     const submitEpsDeposit = async () => {
       if (!addEpsRef.value || addEpsRef.value.length < 4) { addError.value = 'EPS Reference নম্বর দিন।'; return; }
       addLoading.value = true; addError.value = '';
       try {
         const uid = localStorage.getItem('userId');
-        await addDoc(collection(db, 'deposits'), {
-          userId: uid, method: 'eps', amount: Number(addAmount.value),
-          epsRef: addEpsRef.value.trim(), status: 'pending', type: 'eps_pending', createdAt: serverTimestamp()
-        });
+        await addDoc(collection(db, 'deposits'), { userId: uid, method: 'eps', amount: Number(addAmount.value), epsRef: addEpsRef.value.trim(), status: 'pending', type: 'eps_pending', createdAt: serverTimestamp() });
         addSuccess.value = true;
       } catch (e) { addError.value = 'Server error. Try again.'; }
       finally { addLoading.value = false; }
     };
-
     const verifyAddMoney = async () => {
       if (!addTrxId.value || addTrxId.value.length < 5) { addError.value = '⚠️ সঠিক Transaction ID দিন।'; return; }
       if (!addAmount.value || Number(addAmount.value) <= 0) { addError.value = '⚠️ Amount দিন।'; return; }
       addLoading.value = true; addError.value = '';
-      const trxId = addTrxId.value.trim().toUpperCase();
-      const depositAmount = Number(addAmount.value);
+      const trxId = addTrxId.value.trim().toUpperCase(), depositAmount = Number(addAmount.value);
       const uid = localStorage.getItem('userId');
       try {
         try {
@@ -684,14 +606,8 @@ createApp({
               t.update(doc(db, 'transactions', trxId), { status: 'used', usedBy: uid, usedAt: serverTimestamp() });
               t.update(doc(db, 'users', uid), { balance: increment(depositAmount) });
             });
-            await addDoc(collection(db, 'deposits'), {
-              userId: uid, method: addMethod.value, amount: depositAmount,
-              trxId: trxId, status: 'approved', type: 'verified', createdAt: serverTimestamp()
-            }).catch(() => {});
-            await addDoc(collection(db, 'turnovers'), {
-              userId: uid, type: 'deposit', label: `Deposit Turnover (৳${Math.ceil(depositAmount * 0.5)})`,
-              required: Math.ceil(depositAmount * 0.5), done: 0, status: 'active', createdAt: serverTimestamp()
-            }).catch(() => {});
+            await addDoc(collection(db, 'deposits'), { userId: uid, method: addMethod.value, amount: depositAmount, trxId, status: 'approved', type: 'verified', createdAt: serverTimestamp() }).catch(() => {});
+            await addDoc(collection(db, 'turnovers'), { userId: uid, type: 'deposit', label: `Deposit Turnover (৳${Math.ceil(depositAmount * 0.5)})`, required: Math.ceil(depositAmount * 0.5), done: 0, status: 'active', createdAt: serverTimestamp() }).catch(() => {});
             await fetchTurnovers().catch(() => {});
             addSuccess.value = true;
             return;
@@ -701,83 +617,60 @@ createApp({
           if (fbErr.message && fbErr.message !== 'Transaction not found') { addError.value = '❌ Internet connection error।'; return; }
         }
         if (!PAYMENT_CONFIG_READY || !PAYMENT_SCRIPT_URL) { addError.value = '❌ Payment verification system setup হয়নি।'; return; }
-        const verifyUrl = `${PAYMENT_SCRIPT_URL}?trxID=${trxId}&apiKey=${PAYMENT_CLIENT_KEY}&amount=${depositAmount}`;
-        const vRes = await fetch(verifyUrl);
+        const vRes = await fetch(`${PAYMENT_SCRIPT_URL}?trxID=${trxId}&apiKey=${PAYMENT_CLIENT_KEY}&amount=${depositAmount}`);
         if (!vRes.ok) { addError.value = '❌ Server error।'; return; }
         const vData = await vRes.json();
-        if (vData.status === 'success') { await _creditDeposit(uid, depositAmount); }
-        else { addError.value = '❌ ' + (vData.message || 'Verification failed.'); }
+        if (vData.status === 'success') await _creditDeposit(uid, depositAmount);
+        else addError.value = '❌ ' + (vData.message || 'Verification failed.');
       } catch (e) { addError.value = '❌ Internet connection error।'; }
       finally { addLoading.value = false; }
     };
-
     const _creditDeposit = async (uid, depositAmount) => {
       await updateDoc(doc(db, 'users', uid), { balance: increment(depositAmount) });
-      await addDoc(collection(db, 'deposits'), {
-        userId: uid, method: addMethod.value, amount: depositAmount,
-        trxId: addTrxId.value.trim().toUpperCase(), status: 'approved', type: 'verified', createdAt: serverTimestamp()
-      });
-      await addDoc(collection(db, 'turnovers'), {
-        userId: uid, type: 'deposit', label: `Deposit Turnover (৳${Math.ceil(depositAmount * 0.5)})`,
-        required: Math.ceil(depositAmount * 0.5), done: 0, status: 'active', createdAt: serverTimestamp()
-      });
+      await addDoc(collection(db, 'deposits'), { userId: uid, method: addMethod.value, amount: depositAmount, trxId: addTrxId.value.trim().toUpperCase(), status: 'approved', type: 'verified', createdAt: serverTimestamp() });
+      await addDoc(collection(db, 'turnovers'), { userId: uid, type: 'deposit', label: `Deposit Turnover (৳${Math.ceil(depositAmount * 0.5)})`, required: Math.ceil(depositAmount * 0.5), done: 0, status: 'active', createdAt: serverTimestamp() });
       await fetchTurnovers();
       addSuccess.value = true;
     };
 
     // ── Orders ──
-    const orders = ref([]);
-    const ordersLoading = ref(false);
-    const orderFilter = ref('all');
-    const filteredOrders = computed(() => {
-      if (orderFilter.value === 'all') return orders.value;
-      return orders.value.filter(o => o.status === orderFilter.value);
-    });
-
+    const orders = ref([]), ordersLoading = ref(false), orderFilter = ref('all');
+    const filteredOrders = computed(() => orderFilter.value === 'all' ? orders.value : orders.value.filter(o => o.status === orderFilter.value));
     const fetchOrders = async () => {
       const uid = localStorage.getItem('userId');
       if (!uid) return;
       ordersLoading.value = true;
       try {
-        const q = query(collection(db, 'orders'), where('userId', '==', uid));
-        const snap = await getDocs(q);
+        const cached = mem.get('orders_'+uid);
+        if (cached) { orders.value = cached; ordersLoading.value = false; return; }
+        const snap = await getDocs(query(collection(db, 'orders'), where('userId', '==', uid)));
         let list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         list.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
         orders.value = list;
+        mem.set('orders_'+uid, list);
       } catch (e) {} finally { ordersLoading.value = false; }
     };
 
     // ── Codes ──
-    const codes = ref([]);
-    const codesLoading = ref(false);
+    const codes = ref([]), codesLoading = ref(false);
     const fetchCodes = async () => {
       const uid = localStorage.getItem('userId');
       if (!uid) return;
       codesLoading.value = true;
       try {
-        const q = query(collection(db, 'orders'), where('userId', '==', uid), where('type', '==', 'code'));
-        const snap = await getDocs(q);
+        const snap = await getDocs(query(collection(db, 'orders'), where('userId', '==', uid), where('type', '==', 'code')));
         codes.value = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       } catch (e) {} finally { codesLoading.value = false; }
     };
 
     // ── Chat ──
-    const chatMessages = ref([]);
-    const chatInput = ref('');
-    const adminTyping = ref(false);
-    const adminOnline = ref(false);
+    const chatMessages = ref([]), chatInput = ref(''), adminTyping = ref(false), adminOnline = ref(false);
     const chatUnsubscribe = ref(null);
     let chatRoomId = null;
-
     const watchAdminStatus = () => {
-      try {
-        onSnapshot(doc(db, 'settings', 'adminStatus'), (snap) => {
-          if (snap.exists()) adminOnline.value = snap.data().online === true;
-          else adminOnline.value = false;
-        });
-      } catch(e) { adminOnline.value = false; }
+      try { onSnapshot(doc(db, 'settings', 'adminStatus'), (snap) => { adminOnline.value = snap.exists() ? snap.data().online === true : false; }); }
+      catch(e) { adminOnline.value = false; }
     };
-
     const initChat = async () => {
       const user = auth.currentUser;
       if (!user) return;
@@ -786,13 +679,7 @@ createApp({
       const roomRef = doc(db, 'chats', chatRoomId);
       try {
         const roomSnap = await getDoc(roomRef);
-        if (!roomSnap.exists()) {
-          await setDoc(roomRef, {
-            userId: uid, userName: userData.value.name || 'User',
-            userEmail: userData.value.email || '',
-            lastMsg: '', lastMsgAt: serverTimestamp(), unreadAdmin: 0
-          });
-        }
+        if (!roomSnap.exists()) await setDoc(roomRef, { userId: uid, userName: userData.value.name || 'User', userEmail: userData.value.email || '', lastMsg: '', lastMsgAt: serverTimestamp(), unreadAdmin: 0 });
       } catch (e) {}
       const msgsRef = collection(db, 'chats', chatRoomId, 'messages');
       const q = query(msgsRef, orderBy('createdAt', 'asc'), limit(100));
@@ -800,30 +687,26 @@ createApp({
       chatUnsubscribe.value = onSnapshot(q, (snap) => {
         chatMessages.value = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         nextTick(() => { const el = document.getElementById('chatBox'); if (el) el.scrollTop = el.scrollHeight; });
-      }, (err) => {
+      }, () => {
         getDocs(collection(db, 'chats', chatRoomId, 'messages')).then(snap => {
           let msgs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
           msgs.sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
           chatMessages.value = msgs;
         });
       });
-      try { onSnapshot(roomRef, (snap) => { if (snap.exists()) adminTyping.value = snap.data().adminTyping || false; }); }
-      catch(e) {}
+      try { onSnapshot(roomRef, (snap) => { if (snap.exists()) adminTyping.value = snap.data().adminTyping || false; }); } catch(e) {}
     };
-
     const sendChat = async () => {
       if (!chatInput.value.trim()) return;
       const user = auth.currentUser;
       if (!user) { navigateTo('login'); return; }
-      const uid = user.uid;
-      const text = chatInput.value.trim();
+      const uid = user.uid, text = chatInput.value.trim();
       chatInput.value = '';
       try {
         await addDoc(collection(db, 'chats', uid, 'messages'), { text, sender: 'user', createdAt: serverTimestamp(), read: false });
         await updateDoc(doc(db, 'chats', uid), { lastMsg: text, lastMsgAt: serverTimestamp(), unreadAdmin: increment(1) });
-      } catch (e) { chatInput.value = text; showPopup('error','Chat Error','মেসেজ পাঠানো যায়নি।'); }
+      } catch (e) { chatInput.value = text; showPopup('error', 'Chat Error', 'মেসেজ পাঠানো যায়নি।'); }
     };
-
     const formatMsgTime = (ts) => {
       if (!ts) return '';
       const d = ts.toDate ? ts.toDate() : new Date(ts.seconds * 1000);
@@ -831,14 +714,10 @@ createApp({
     };
 
     // ── Balance History ──
-    const balanceHistory = ref([]);
-    const balanceHistoryLoading = ref(false);
-    const pendingWithdrawals = ref([]);
-
+    const balanceHistory = ref([]), balanceHistoryLoading = ref(false), pendingWithdrawals = ref([]);
     const cancelWithdraw = async (wdId, amount) => {
       const pw = pendingWithdrawals.value.find(p => p.id === wdId);
-      if (!pw) return;
-      if (!confirm('এই উইথড্র রিকোয়েস্ট বাতিল করতে চান?')) return;
+      if (!pw || !confirm('এই উইথড্র রিকোয়েস্ট বাতিল করতে চান?')) return;
       pw.cancelling = true;
       try {
         const uid = localStorage.getItem('userId');
@@ -850,43 +729,35 @@ createApp({
           t.update(doc(db, 'users', uid), { balance: increment(amount) });
         });
         pendingWithdrawals.value = pendingWithdrawals.value.filter(p => p.id !== wdId);
-        showToast('✅ বাতিল হয়েছে, ব্যালেন্স ফেরত দেওয়া হয়েছে।');
+        showToast('✅ বাতিল হয়েছে।');
       } catch (e) { showToast('❌ বাতিল করা যায়নি।'); }
       finally { if (pw) pw.cancelling = false; }
     };
-
     const fetchBalanceHistory = async () => {
       const uid = localStorage.getItem('userId');
       if (!uid) return;
       balanceHistoryLoading.value = true;
-      balanceHistory.value = [];
-      pendingWithdrawals.value = [];
+      balanceHistory.value = []; pendingWithdrawals.value = [];
       try {
         const items = [];
-        const depSnap = await getDocs(query(collection(db, 'deposits'), where('userId', '==', uid)));
+        const [depSnap, wdSnap] = await Promise.all([
+          getDocs(query(collection(db, 'deposits'), where('userId', '==', uid))),
+          getDocs(query(collection(db, 'withdrawals'), where('userId', '==', uid)))
+        ]);
         depSnap.forEach(d => {
           const data = d.data();
-          if (data.status === 'completed' || data.status === 'approved') {
-            items.push({ id: d.id, type: 'deposit', label: 'Deposit', amount: Number(data.amount || 0), note: data.method ? data.method.toUpperCase() : 'Manual', createdAt: data.createdAt });
-          }
+          if (data.status === 'completed' || data.status === 'approved') items.push({ id: d.id, type: 'deposit', label: 'Deposit', amount: Number(data.amount || 0), note: data.method ? data.method.toUpperCase() : 'Manual', createdAt: data.createdAt });
         });
-        const wdSnap = await getDocs(query(collection(db, 'withdrawals'), where('userId', '==', uid)));
         wdSnap.forEach(d => {
           const data = d.data();
-          if (data.status === 'pending') {
-            pendingWithdrawals.value.push({ id: d.id, amount: Number(data.amount || 0), gateway: data.gateway || '', accountNumber: data.accountNumber || '', createdAt: data.createdAt, cancelling: false });
-          } else if (data.status === 'completed' || data.status === 'approved') {
-            items.push({ id: d.id, type: 'withdraw', label: 'Withdraw', amount: Number(data.amount || 0), note: data.gateway ? data.gateway.toUpperCase() : '', createdAt: data.createdAt });
-          }
+          if (data.status === 'pending') pendingWithdrawals.value.push({ id: d.id, amount: Number(data.amount || 0), gateway: data.gateway || '', accountNumber: data.accountNumber || '', createdAt: data.createdAt, cancelling: false });
+          else if (data.status === 'completed' || data.status === 'approved') items.push({ id: d.id, type: 'withdraw', label: 'Withdraw', amount: Number(data.amount || 0), note: data.gateway ? data.gateway.toUpperCase() : '', createdAt: data.createdAt });
         });
         try {
           const logSnap = await getDocs(query(collection(db, 'balanceLogs'), where('userId', '==', uid)));
           logSnap.forEach(d => {
             const data = d.data();
-            const typeMap = {
-              'daily_bonus': { label: 'Daily Bonus' }, 'referral': { label: 'Refer Earn' },
-              'admin_credit': { label: data.note || 'Admin Credit' }, 'admin_debit': { label: 'Admin Debit' },
-            };
+            const typeMap = { 'daily_bonus': { label: 'Daily Bonus' }, 'referral': { label: 'Refer Earn' }, 'admin_credit': { label: data.note || 'Admin Credit' }, 'admin_debit': { label: 'Admin Debit' } };
             const t = typeMap[data.type] || { label: data.type || 'Adjustment' };
             items.push({ id: d.id, type: data.type, label: t.label, amount: Math.abs(Number(data.amount || 0)), isDebit: data.type === 'admin_debit' || data.amount < 0, note: data.note || data.reason || '', createdAt: data.createdAt });
           });
@@ -901,9 +772,10 @@ createApp({
     const fetchStats = async () => {
       const uid = localStorage.getItem('userId');
       if (!uid) return;
+      const cached = mem.get('stats_'+uid);
+      if (cached) { stats.value = cached; return; }
       try {
-        const q = query(collection(db, 'orders'), where('userId', '==', uid));
-        const snap = await getDocs(q);
+        const snap = await getDocs(query(collection(db, 'orders'), where('userId', '==', uid)));
         let spent = 0, count = 0, weekly = 0;
         const oneWeekAgo = new Date(); oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
         snap.forEach(d => {
@@ -914,21 +786,21 @@ createApp({
             if (od >= oneWeekAgo) weekly += Number(data.price || 0);
           }
         });
-        stats.value = { totalSpent: spent, totalOrders: count, weeklySpent: weekly };
+        const result = { totalSpent: spent, totalOrders: count, weeklySpent: weekly };
+        stats.value = result; mem.set('stats_'+uid, result);
       } catch (e) {}
     };
 
     // ── Utilities ──
-    const copyNum = (num) => { if (num) { navigator.clipboard.writeText(num).catch(()=>{}); showToast('✅ Copied: ' + num); } };
-    const copyCode = (code) => { navigator.clipboard.writeText(code).catch(()=>{}); showToast('✅ Code Copied!'); };
+    const copyNum = (num) => { if (num) { navigator.clipboard.writeText(num).catch(() => {}); showToast('✅ Copied: ' + num); } };
+    const copyCode = (code) => { navigator.clipboard.writeText(code).catch(() => {}); showToast('✅ Code Copied!'); };
     const imgError = (e) => { e.target.src = 'https://placehold.co/400x400/1c1c28/6c63ff?text=H24'; };
-    const getMinPrice = (item) => { if (item.packages && item.packages.length > 0) return Math.min(...item.packages.map(p => p.price)); return item.price || 0; };
+    const getMinPrice = (item) => { if (item.packages?.length > 0) return Math.min(...item.packages.map(p => p.price)); return item.price || 0; };
     const formatDate = (ts) => {
       if (!ts) return 'Processing...';
       const d = ts.toDate ? ts.toDate() : new Date(ts.seconds * 1000);
       return d.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
     };
-
     const iconMap = {
       facebook: 'fa-brands fa-facebook-f', instagram: 'fa-brands fa-instagram',
       tiktok: 'fa-brands fa-tiktok', youtube: 'fa-brands fa-youtube',
@@ -948,40 +820,32 @@ createApp({
 
     // ── Navigation ──
     const pageHistory = ref(['home']);
-    const navHidden = ref(false);
     let toastTimer = null;
-
     const showToast = (msg, duration = 2200) => {
       const el = document.getElementById('toast-el');
       if (!el) return;
-      el.textContent = msg;
-      el.classList.add('show');
+      el.textContent = msg; el.classList.add('show');
       clearTimeout(toastTimer);
       toastTimer = setTimeout(() => el.classList.remove('show'), duration);
     };
 
-    let backPressedOnce = false;
-    let backPressTimer = null;
-
+    let backPressedOnce = false, backPressTimer = null;
     const navigateTo = (newPage) => {
       if (newPage === page.value) return;
       pageHistory.value.push(newPage);
       page.value = newPage;
       history.pushState({ depth: pageHistory.value.length }, '', window.location.href);
     };
-
     const navigateBack = () => {
       if (pageHistory.value.length > 1) {
         pageHistory.value.pop();
         page.value = pageHistory.value[pageHistory.value.length - 1];
-        backPressedOnce = false;
-        clearTimeout(backPressTimer);
+        backPressedOnce = false; clearTimeout(backPressTimer);
       } else {
         if (backPressedOnce) {
-          backPressedOnce = false;
-          clearTimeout(backPressTimer);
-          if (window.Android && window.Android.closeApp) { window.Android.closeApp(); }
-          else { history.go(-(history.length)); }
+          backPressedOnce = false; clearTimeout(backPressTimer);
+          if (window.Android?.closeApp) window.Android.closeApp();
+          else history.go(-(history.length));
         } else {
           backPressedOnce = true;
           showToast('🔙 আবার Back চাপুন বের হতে');
@@ -991,59 +855,133 @@ createApp({
       }
     };
 
+    const openLiveLink = () => navigateTo('live');
+    const copyLiveUrl = () => { if (liveUrl.value) { navigator.clipboard.writeText(liveUrl.value).catch(() => {}); showToast('✅ Live link copied!'); } };
+    const resetZoom = () => {
+      const meta = document.querySelector('meta[name=viewport]');
+      if (meta) { meta.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=0'); setTimeout(() => { meta.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=0, viewport-fit=cover'); }, 50); }
+    };
+    const goLive = () => { if (liveUrl.value) window.location.href = liveUrl.value; };
+
     watch(page, async (newPage) => {
       if (newPage === 'orders') fetchOrders();
       if (newPage === 'codes') fetchCodes();
-      if (newPage === 'account') { fetchStats(); fetchReferralStats(); fetchTurnovers(); }
+      if (newPage === 'account') { fetchStats(); fetchReferralStats(); if (!_turnoversLoaded.value) fetchTurnovers(); }
       if (newPage === 'referral') fetchReferralStats();
       if (newPage === 'balance-history') fetchBalanceHistory();
       if (newPage === 'chat') { await nextTick(); initChat(); }
       if (newPage === 'live') {
         liveLoading.value = true;
         try {
-          const snap = await getDoc(doc(db, 'settings', 'live'));
-          if (snap.exists()) liveUrl.value = snap.data().url || '';
+          const data = await smartGet(doc(db, 'settings', 'live'), 'settings_live');
+          if (data) liveUrl.value = data.url || '';
         } catch (e) { liveUrl.value = ''; }
         liveLoading.value = false;
       }
       if (newPage === 'add-money') { addMoneyStep.value = 1; addSuccess.value = false; addError.value = ''; addEpsRef.value = ''; }
     });
 
+    // ══════════════════════════════════════════
+    // PARALLEL DATA LOADING WITH CACHE
+    // ══════════════════════════════════════════
+    const loadAllSettingsAndProducts = async () => {
+      // Load all settings in parallel
+      const [nSnap, annSnap, logoSnap, pSnap, sSnap, amtSnap, roundsSnap, sheetsSnap] = await Promise.all([
+        getDoc(doc(db, 'settings', 'notice')),
+        getDoc(doc(db, 'settings', 'announcement')),
+        getDoc(doc(db, 'settings', 'logo')),
+        getDoc(doc(db, 'settings', 'payment')),
+        getDoc(doc(db, 'admin', 'settings')),
+        getDoc(doc(db, 'settings', 'amounts')),
+        getDoc(doc(db, 'settings', 'rounds')),
+        getDoc(doc(db, 'settings', 'sheetInfo'))
+      ]);
+
+      if (nSnap.exists()) { noticeMessage.value = nSnap.data().text; sess.set('settings_notice', nSnap.data()); }
+      if (annSnap.exists()) { announcementLines.value = annSnap.data().lines || []; sess.set('settings_announcement', annSnap.data()); }
+      if (logoSnap.exists()) { logoUrl.value = logoSnap.data().url || ''; sess.set('settings_logo', logoSnap.data()); }
+      if (pSnap.exists()) { adminNumbers.value = pSnap.data(); sess.set('settings_payment', pSnap.data()); }
+      if (sSnap.exists()) { socials.value = sSnap.data(); sess.set('admin_settings', sSnap.data()); }
+      if (amtSnap.exists()) {
+        const d = amtSnap.data();
+        if (d.depositAmounts?.length) depositQuickAmounts.value = d.depositAmounts;
+        if (d.withdrawAmounts?.length) withdrawQuickAmounts.value = d.withdrawAmounts;
+        if (d.minWithdraw) minWithdraw.value = Number(d.minWithdraw);
+        sess.set('settings_amounts', d);
+      }
+      if (roundsSnap.exists() && roundsSnap.data().list) { rounds.value = roundsSnap.data().list; sess.set('settings_rounds', roundsSnap.data()); }
+      if (sheetsSnap.exists() && sheetsSnap.data().list) { sheetOptions.value = sheetsSnap.data().list; sess.set('settings_sheetInfo', sheetsSnap.data()); }
+
+      // Load products and banners in parallel only if not cached
+      const hasCachedProds = !!sess.get('products_cache');
+      const hasCachedBanners = !!sess.get('banners_cache');
+      if (!hasCachedProds || !hasCachedBanners) {
+        const [prodSnap, bannerSnap] = await Promise.all([
+          hasCachedProds ? Promise.resolve(null) : getDocs(collection(db, 'products')),
+          hasCachedBanners ? Promise.resolve(null) : getDocs(collection(db, 'banners'))
+        ]);
+        if (prodSnap) {
+          const prodArr = [];
+          prodSnap.forEach(d => {
+            const item = { id: d.id, ...d.data() };
+            prodArr.push(item);
+            const cat = item.category;
+            if (cat === 'mystery') mysteryBoxes.value.push(item);
+            else if (cat === 'special') specialOffers.value.push(item);
+            else if (cat === 'freefire' || cat === 'ingame') gameItems.value.push(item);
+            else if (cat === 'shell' || cat === 'giftcard' || cat === 'subscription') otherItems.value.push(item);
+            else gameItems.value.push(item);
+          });
+          sess.set('products_cache', prodArr);
+        }
+        if (bannerSnap) {
+          const bArr = bannerSnap.docs.map(d => ({ image: d.data().image || '', link: d.data().link || '', productId: d.data().productId || '' }));
+          banners.value = bArr; sess.set('banners_cache', bArr);
+        }
+      }
+    };
+
     onMounted(async () => {
+      // Anti-zoom
       document.addEventListener('touchstart', (e) => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
       let lastTouchEnd = 0;
       document.addEventListener('touchend', (e) => { const now = Date.now(); if (now - lastTouchEnd < 300) e.preventDefault(); lastTouchEnd = now; }, { passive: false });
       document.addEventListener('wheel', (e) => { if (e.ctrlKey) e.preventDefault(); }, { passive: false });
-      document.addEventListener('gesturestart', (e) => { e.preventDefault(); }, { passive: false });
-      document.addEventListener('gesturechange', (e) => { e.preventDefault(); }, { passive: false });
-      document.addEventListener('gestureend', (e) => { e.preventDefault(); }, { passive: false });
+      document.addEventListener('gesturestart', (e) => e.preventDefault(), { passive: false });
+      document.addEventListener('gesturechange', (e) => e.preventDefault(), { passive: false });
+      document.addEventListener('gestureend', (e) => e.preventDefault(), { passive: false });
 
-      await loadRounds();
-
+      // Scroll hide nav
       let lastScrollY = 0;
       document.addEventListener('scroll', (e) => {
-        if (e.target && e.target.classList && e.target.classList.contains('page-scroll')) {
-          const currentY = e.target.scrollTop;
-          if (currentY > lastScrollY + 8 && currentY > 50) { navHidden.value = true; }
-          else if (currentY < lastScrollY - 8 || currentY < 10) { navHidden.value = false; }
-          lastScrollY = currentY;
+        if (e.target?.classList?.contains('page-scroll')) {
+          const cy = e.target.scrollTop;
+          if (cy > lastScrollY + 8 && cy > 50) navHidden.value = true;
+          else if (cy < lastScrollY - 8 || cy < 10) navHidden.value = false;
+          lastScrollY = cy;
         }
       }, true);
 
       history.pushState({ depth: 1 }, '', window.location.href);
-      window.addEventListener('popstate', () => { navigateBack(); });
+      window.addEventListener('popstate', () => navigateBack());
+
+      // ── INSTANT: Load from session cache (no Firebase) ──
+      preloadFromCache();
 
       watchAdminStatus();
 
+      // ── Auth listener ──
       onAuthStateChanged(auth, (user) => {
         if (user) {
           isLoggedIn.value = true;
-          const markOnline = () => { updateDoc(doc(db, 'users', user.uid), { isOnline: true, lastSeen: serverTimestamp() }).catch(()=>{}); };
+          const markOnline = () => updateDoc(doc(db, 'users', user.uid), { isOnline: true, lastSeen: serverTimestamp() }).catch(() => {});
           markOnline();
+          // Mark online every 60s
           setInterval(markOnline, 60000);
-          const markOffline = () => { updateDoc(doc(db, 'users', user.uid), { isOnline: false, lastSeen: serverTimestamp() }).catch(()=>{}); };
+          const markOffline = () => updateDoc(doc(db, 'users', user.uid), { isOnline: false, lastSeen: serverTimestamp() }).catch(() => {});
           window.addEventListener('beforeunload', markOffline);
           document.addEventListener('visibilitychange', () => { if (document.hidden) markOffline(); else markOnline(); });
+          // Real-time balance listener (always fresh)
           onSnapshot(doc(db, 'users', user.uid), (d) => {
             if (d.exists()) {
               userBalance.value = d.data().balance || 0;
@@ -1058,50 +996,21 @@ createApp({
         } else { isLoggedIn.value = false; }
       });
 
-      try { const nSnap = await getDoc(doc(db, 'settings', 'notice')); if (nSnap.exists()) noticeMessage.value = nSnap.data().text; } catch (e) {}
-      try { const annSnap = await getDoc(doc(db, 'settings', 'announcement')); if (annSnap.exists() && annSnap.data().lines) announcementLines.value = annSnap.data().lines || []; } catch (e) {}
-      try { const logoSnap = await getDoc(doc(db, 'settings', 'logo')); if (logoSnap.exists()) logoUrl.value = logoSnap.data().url || ''; } catch (e) {}
-      try { const pSnap = await getDoc(doc(db, 'settings', 'payment')); if (pSnap.exists()) adminNumbers.value = pSnap.data(); } catch (e) {}
-      try {
-        const wSnap = await getDoc(doc(db, 'settings', 'amounts'));
-        if (wSnap.exists()) {
-          const d = wSnap.data();
-          if (d.depositAmounts && d.depositAmounts.length) depositQuickAmounts.value = d.depositAmounts;
-          if (d.withdrawAmounts && d.withdrawAmounts.length) withdrawQuickAmounts.value = d.withdrawAmounts;
-          if (d.minWithdraw) minWithdraw.value = Number(d.minWithdraw); else minWithdraw.value = 500;
+      // ── Background: fetch fresh from Firebase (parallel) ──
+      loadAllSettingsAndProducts().then(async () => {
+        await nextTick();
+        if (banners.value.length > 0) {
+          setTimeout(() => {
+            new Swiper('.mySwiper', { loop: true, autoplay: { delay: 3500, disableOnInteraction: false }, pagination: { el: '.swiper-pagination', clickable: true } });
+          }, 100);
         }
-      } catch (e) {}
-      try { const sSnap = await getDoc(doc(db, 'admin', 'settings')); if (sSnap.exists()) socials.value = sSnap.data(); } catch (e) {}
-      try {
-        const prodSnap = await getDocs(collection(db, 'products'));
-        prodSnap.forEach(d => {
-          const item = { id: d.id, ...d.data() };
-          const cat = item.category;
-          if (cat === 'mystery') mysteryBoxes.value.push(item);
-          else if (cat === 'special') specialOffers.value.push(item);
-          else if (cat === 'freefire' || cat === 'ingame') gameItems.value.push(item);
-          else if (cat === 'shell' || cat === 'giftcard' || cat === 'subscription') otherItems.value.push(item);
-          else gameItems.value.push(item);
-        });
-        const bannerSnap = await getDocs(collection(db, 'banners'));
-        banners.value = bannerSnap.docs.map(d => ({ image: d.data().image || '', link: d.data().link || '', productId: d.data().productId || '' }));
-      } catch (e) {}
+      }).catch(() => {});
 
-      loading.value = false;
       checkAppVersion();
-      await nextTick();
-      if (banners.value.length > 0) {
-        setTimeout(() => {
-          new Swiper('.mySwiper', {
-            loop: true, autoplay: { delay: 3500, disableOnInteraction: false },
-            pagination: { el: '.swiper-pagination', clickable: true }
-          });
-        }, 300);
-      }
     });
 
     return {
-      page, loading, isLoggedIn, userBalance, userAvatar, userData,
+      page, isLoggedIn, userBalance, userAvatar, userData,
       noticeMessage, logoUrl, banners, mysteryBoxes, specialOffers, gameItems, otherItems,
       socials, iconMap, liveUrl, liveLoading, adminNumbers, supportPin,
       stats, minWithdraw, rounds, sheetOptions, navHidden,

@@ -11,118 +11,512 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css"/>
 <link rel="stylesheet" href="assets/css/style.css">
 <style>
-/* ── Multi-select Package Cards ── */
-.pkg-multi-card {
-  background: var(--surface2);
-  border: 2px solid var(--border);
-  border-radius: 14px;
-  padding: 12px 14px;
-  cursor: pointer;
-  transition: all 0.18s;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  position: relative;
+/* ═══════════════════════════════════════
+   PURCHASE MODAL - REDESIGNED
+═══════════════════════════════════════ */
+.purchase-overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,0.75);
+  backdrop-filter:blur(12px);
+  z-index:2000;
+  display:flex;align-items:flex-end;justify-content:center;
 }
-.pkg-multi-card.selected {
-  border-color: var(--primary);
-  background: rgba(108,99,255,0.10);
+.purchase-sheet{
+  background:linear-gradient(180deg,#16162a 0%,#0e0e1c 100%);
+  border-radius:28px 28px 0 0;
+  width:100%;max-width:430px;
+  padding:0 0 max(env(safe-area-inset-bottom),16px);
+  border-top:1px solid rgba(108,99,255,0.25);
+  max-height:92vh;
+  overflow-y:auto;
+  box-shadow:0 -20px 60px rgba(0,0,0,0.6);
 }
-.pkg-multi-card:active { transform: scale(0.97); }
-
-.pkg-checkbox {
-  width: 22px; height: 22px;
-  border-radius: 7px;
-  border: 2px solid var(--border);
-  background: var(--surface);
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-  transition: all 0.15s;
-  font-size: 11px;
-  color: #fff;
+.purchase-handle{
+  width:44px;height:5px;
+  background:rgba(255,255,255,0.12);
+  border-radius:3px;
+  margin:12px auto 0;
 }
-.pkg-multi-card.selected .pkg-checkbox {
-  background: var(--primary);
-  border-color: var(--primary);
+.purchase-header{
+  padding:16px 20px;
+  display:flex;align-items:center;gap:12px;
+  border-bottom:1px solid rgba(255,255,255,0.06);
+  position:sticky;top:0;
+  background:linear-gradient(180deg,#16162a,#14142580);
+  backdrop-filter:blur(8px);
+  z-index:10;
+}
+.purchase-product-img{
+  width:52px;height:52px;
+  border-radius:14px;
+  object-fit:cover;
+  border:2px solid rgba(108,99,255,0.3);
+  flex-shrink:0;
+}
+.purchase-close{
+  margin-left:auto;
+  width:32px;height:32px;
+  background:rgba(255,255,255,0.06);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;color:rgba(255,255,255,0.5);
+  flex-shrink:0;transition:all 0.15s;
+}
+.purchase-close:active{background:rgba(239,68,68,0.15);color:#f87171;}
+
+/* Step Label */
+.step-label{
+  font-size:10.5px;font-weight:700;
+  color:rgba(255,255,255,0.35);
+  letter-spacing:1px;text-transform:uppercase;
+  display:flex;align-items:center;gap:8px;
+  margin-bottom:10px;
+}
+.step-num{
+  width:20px;height:20px;
+  background:var(--primary);
+  border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:800;color:#fff;
 }
 
-.pkg-multi-info { flex: 1; }
-.pkg-multi-name { font-weight: 700; font-size: 13px; color: #fff; }
-.pkg-multi-price { font-size: 15px; font-weight: 800; color: var(--primary); margin-top: 2px; }
-
-.pkg-multi-card.selected .pkg-multi-price { color: var(--primary); }
-
-/* Selected summary bar */
-.selected-summary {
-  background: rgba(108,99,255,0.08);
-  border: 1px solid rgba(108,99,255,0.22);
-  border-radius: 12px;
-  padding: 10px 14px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 10px;
-  font-size: 13px;
+/* Package Grid */
+.pkg-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
 }
-.selected-summary-label { color: var(--text-muted); font-weight: 600; }
-.selected-summary-val { color: var(--primary); font-weight: 800; font-size: 16px; }
+.pkg-card-new{
+  background:rgba(255,255,255,0.04);
+  border:1.5px solid rgba(255,255,255,0.08);
+  border-radius:14px;
+  padding:12px 14px;
+  cursor:pointer;
+  transition:all 0.18s;
+  position:relative;
+  overflow:hidden;
+}
+.pkg-card-new::before{
+  content:'';
+  position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(108,99,255,0.12),transparent);
+  opacity:0;transition:opacity 0.18s;
+}
+.pkg-card-new.active{
+  border-color:var(--primary);
+  background:rgba(108,99,255,0.1);
+  box-shadow:0 0 0 1px rgba(108,99,255,0.2),inset 0 1px 0 rgba(108,99,255,0.15);
+}
+.pkg-card-new.active::before{opacity:1;}
+.pkg-card-new:active{transform:scale(0.96);}
+.pkg-name{font-size:12.5px;font-weight:700;color:#fff;margin-bottom:4px;}
+.pkg-price{font-size:18px;font-weight:800;color:var(--primary);}
+.pkg-check-badge{
+  position:absolute;top:8px;right:8px;
+  width:18px;height:18px;
+  background:var(--primary);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:9px;color:#fff;
+  opacity:0;transform:scale(0.5);
+  transition:all 0.2s cubic-bezier(0.34,1.56,0.64,1);
+}
+.pkg-card-new.active .pkg-check-badge{opacity:1;transform:scale(1);}
 
-/* ── Book Sheet FAB ── */
+/* Dropdown */
+.styled-select-wrap{position:relative;}
+.styled-select{
+  width:100%;
+  background:rgba(255,255,255,0.05);
+  border:1.5px solid rgba(255,255,255,0.1);
+  border-radius:14px;
+  padding:13px 40px 13px 16px;
+  color:#fff;
+  font-family:'Outfit',sans-serif;
+  font-size:14px;font-weight:600;
+  outline:none;
+  appearance:none;-webkit-appearance:none;
+  cursor:pointer;
+  transition:border-color 0.2s;
+}
+.styled-select:focus{border-color:var(--primary);}
+.styled-select option{background:#1c1c2e;color:#fff;}
+.styled-select-icon{
+  position:absolute;right:14px;top:50%;transform:translateY(-50%);
+  color:rgba(255,255,255,0.35);
+  pointer-events:none;font-size:13px;
+}
+
+/* Payment Tabs */
+.pay-tabs{display:flex;gap:6px;margin-bottom:14px;}
+.pay-tab{
+  flex:1;padding:9px 6px;
+  border-radius:11px;
+  font-size:11.5px;font-weight:700;
+  cursor:pointer;transition:all 0.2s;
+  text-align:center;
+  border:1.5px solid rgba(255,255,255,0.08);
+  color:rgba(255,255,255,0.4);
+  background:rgba(255,255,255,0.03);
+  display:flex;align-items:center;justify-content:center;gap:5px;
+}
+.pay-tab.active{
+  background:rgba(108,99,255,0.15);
+  border-color:var(--primary);
+  color:#fff;
+}
+
+/* Total Bar */
+.total-bar{
+  background:rgba(108,99,255,0.08);
+  border:1px solid rgba(108,99,255,0.18);
+  border-radius:14px;
+  padding:12px 16px;
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:12px;
+}
+
+/* Multi-select chips for sheet & round in purchase modal */
+.multi-chip-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
+.multi-chip{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:7px 12px;
+  border-radius:10px;
+  border:1.5px solid rgba(255,255,255,0.09);
+  background:rgba(255,255,255,0.04);
+  font-size:12px;font-weight:700;
+  color:rgba(255,255,255,0.45);
+  cursor:pointer;transition:all 0.15s;
+}
+.multi-chip.active{
+  border-color:var(--primary);
+  background:rgba(108,99,255,0.14);
+  color:#a5b4fc;
+  box-shadow:0 0 10px rgba(108,99,255,0.15);
+}
+.multi-chip:active{transform:scale(0.92);}
+.multi-chip-check{
+  width:14px;height:14px;
+  border-radius:4px;
+  border:1.5px solid rgba(255,255,255,0.2);
+  background:transparent;
+  display:flex;align-items:center;justify-content:center;
+  font-size:8px;flex-shrink:0;
+  transition:all 0.15s;
+}
+.multi-chip.active .multi-chip-check{
+  background:var(--primary);border-color:var(--primary);color:#fff;
+}
+.selected-tags{
+  display:flex;flex-wrap:wrap;gap:4px;
+  padding:8px 10px;
+  background:rgba(108,99,255,0.06);
+  border:1px solid rgba(108,99,255,0.15);
+  border-radius:12px;
+  margin-top:6px;
+}
+.sel-tag{
+  display:inline-flex;align-items:center;gap:3px;
+  background:rgba(108,99,255,0.2);
+  border:1px solid rgba(108,99,255,0.3);
+  border-radius:20px;
+  padding:2px 8px;
+  font-size:11px;font-weight:700;color:#a5b4fc;
+}
+.sel-tag-x{cursor:pointer;color:rgba(165,180,252,0.6);font-size:10px;margin-left:2px;}
+.sel-tag-x:hover{color:#f87171;}
+
+/* Copy box */
+.copy-box{
+  background:rgba(108,99,255,0.07);
+  border:1px dashed rgba(108,99,255,0.35);
+  border-radius:14px;padding:14px;
+  text-align:center;cursor:pointer;transition:all 0.2s;
+}
+.copy-box:active{transform:scale(0.97);}
+
+/* EPS Card */
+.eps-card{
+  background:linear-gradient(135deg,#0d4f3c,#1a6b50);
+  border:2px solid rgba(34,197,94,0.35);
+  border-radius:16px;padding:18px;
+  cursor:pointer;transition:all 0.2s;
+}
+.eps-card:active{transform:scale(0.97);}
+
+/* Wallet info */
+.wallet-info-card{
+  background:rgba(108,99,255,0.07);
+  border:1px solid rgba(108,99,255,0.18);
+  border-radius:14px;
+  padding:14px 16px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+
+/* ═══════════════════════════════════════
+   BOOK SHEET POPUP - CIRCULAR DESIGN (matches screenshot)
+═══════════════════════════════════════ */
+.bs-overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,0.85);
+  backdrop-filter:blur(20px);
+  z-index:2100;
+  display:flex;align-items:center;justify-content:center;
+  padding:16px;
+}
+.bs-popup{
+  background:linear-gradient(160deg,#1a1035 0%,#0f0c22 60%,#09091a 100%);
+  border:1px solid rgba(139,92,246,0.25);
+  border-radius:28px;
+  width:100%;max-width:420px;
+  max-height:92vh;
+  overflow:hidden;
+  display:flex;flex-direction:column;
+  box-shadow:0 30px 80px rgba(0,0,0,0.8),0 0 60px rgba(139,92,246,0.08) inset;
+}
+.bs-popup-handle{
+  width:40px;height:4px;
+  background:rgba(255,255,255,0.15);
+  border-radius:2px;
+  margin:14px auto 0;
+  flex-shrink:0;
+}
+
+/* Round Nav */
+.bs-round-nav{
+  display:flex;align-items:center;gap:12px;
+  padding:18px 20px 16px;
+  border-bottom:1px solid rgba(255,255,255,0.07);
+  background:linear-gradient(180deg,rgba(139,92,246,0.07),transparent);
+  flex-shrink:0;
+}
+.bs-nav-arrow{
+  width:48px;height:48px;
+  background:rgba(255,255,255,0.07);
+  border:1px solid rgba(255,255,255,0.12);
+  border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;color:#fff;font-size:22px;
+  transition:all 0.15s;flex-shrink:0;
+  user-select:none;
+}
+.bs-nav-arrow:not(.disabled):active{transform:scale(0.88);background:rgba(139,92,246,0.2);border-color:#8b5cf6;}
+.bs-nav-arrow.disabled{opacity:0.2;cursor:not-allowed;}
+.bs-round-center{flex:1;text-align:center;}
+.bs-round-title{font-size:22px;font-weight:900;color:#fff;letter-spacing:-0.5px;}
+.bs-round-time{
+  font-size:15px;font-weight:700;
+  color:#8b5cf6;
+  margin-top:4px;
+}
+.bs-close{
+  width:48px;height:48px;
+  background:rgba(255,255,255,0.07);
+  border:1px solid rgba(255,255,255,0.12);
+  border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;color:rgba(255,255,255,0.5);font-size:17px;
+  transition:all 0.15s;flex-shrink:0;
+}
+.bs-close:active{background:rgba(239,68,68,0.2);color:#f87171;}
+
+/* Scrollable inner content */
+.bs-scrollable{
+  overflow-y:auto;
+  overflow-x:hidden;
+  flex:1;
+  scrollbar-width:none;
+}
+.bs-scrollable::-webkit-scrollbar{display:none;}
+
+/* Section header */
+.bs-section-header{
+  font-size:12px;font-weight:800;
+  color:rgba(255,255,255,0.28);
+  letter-spacing:1.5px;text-transform:uppercase;
+  padding:16px 20px 10px;
+  display:flex;align-items:center;gap:8px;
+  flex-shrink:0;
+}
+.bs-section-header::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.06);}
+
+/* Amount row — horizontal scroll */
+.bs-amt-scroll{
+  overflow-x:auto;
+  padding:0 20px 6px;
+  scrollbar-width:none;
+}
+.bs-amt-scroll::-webkit-scrollbar{display:none;}
+.bs-amt-row{
+  display:flex;
+  gap:10px;
+  width:max-content;
+}
+.bs-amt{
+  background:rgba(255,255,255,0.05);
+  border:1.5px solid rgba(255,255,255,0.1);
+  border-radius:14px;
+  color:rgba(255,255,255,0.45);
+  font-size:16px;font-weight:800;
+  padding:11px 20px;
+  cursor:pointer;
+  transition:all 0.15s;
+  font-family:'Outfit',sans-serif;
+  white-space:nowrap;
+  flex-shrink:0;
+}
+.bs-amt.active{
+  background:rgba(249,115,22,0.18);
+  border-color:#f97316;
+  color:#fb923c;
+  box-shadow:0 0 14px rgba(249,115,22,0.3);
+}
+.bs-amt:not(.active):active{transform:scale(0.9);}
+
+/* Legend */
+.bs-legend{
+  display:flex;gap:16px;
+  padding:10px 20px 12px;
+  align-items:center;
+}
+.bs-leg{display:flex;align-items:center;gap:6px;font-size:13px;color:rgba(255,255,255,0.4);font-weight:600;}
+.bs-leg-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;}
+
+/* Sheet grid — 2 rows, horizontal scroll, CIRCULAR */
+.bs-sheets-scroll{
+  overflow-x:auto;
+  padding:0 20px 12px;
+  scrollbar-width:none;
+}
+.bs-sheets-scroll::-webkit-scrollbar{display:none;}
+.bs-sheets-grid{
+  display:grid;
+  grid-template-rows:1fr 1fr;
+  grid-auto-flow:column;
+  gap:12px;
+  width:max-content;
+}
+
+/* Circular sheet button */
+.bs-sheet{
+  width:72px;height:72px;
+  border-radius:50%;
+  background:rgba(255,255,255,0.06);
+  border:2px solid rgba(255,255,255,0.12);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  font-size:12px;font-weight:800;
+  color:rgba(255,255,255,0.55);
+  transition:all 0.2s;
+  position:relative;overflow:hidden;
+  text-align:center;line-height:1.2;
+  padding:4px;flex-shrink:0;
+  user-select:none;
+}
+.bs-sheet:not(.taken):not(.selected):active{transform:scale(0.88);}
+.bs-sheet.selected{
+  background:rgba(249,115,22,0.15);
+  border-color:#f97316;
+  border-width:3px;
+  color:#fff;
+  box-shadow:0 0 0 5px rgba(249,115,22,0.18), 0 0 22px rgba(249,115,22,0.4);
+}
+.bs-sheet.taken{
+  background:rgba(239,68,68,0.07);
+  border-color:rgba(239,68,68,0.3);
+  color:rgba(239,68,68,0.35);
+  cursor:not-allowed;
+}
+.bs-taken-line{
+  position:absolute;
+  width:78%;height:2px;
+  background:rgba(239,68,68,0.45);
+  transform:rotate(-35deg);
+  border-radius:2px;
+  pointer-events:none;
+}
+
+/* Selected sheet tags */
+.bs-selected-tags{
+  display:flex;flex-wrap:wrap;gap:5px;
+  margin:4px 20px 4px;
+  padding:10px 14px;
+  background:rgba(249,115,22,0.06);
+  border:1px solid rgba(249,115,22,0.18);
+  border-radius:14px;
+}
+.bs-sel-tag{
+  display:inline-flex;align-items:center;
+  background:rgba(249,115,22,0.15);
+  border:1px solid rgba(249,115,22,0.3);
+  border-radius:20px;
+  padding:3px 10px;
+  font-size:12px;font-weight:700;color:#fb923c;
+}
+
+/* Footer */
+.bs-footer{
+  display:flex;align-items:center;gap:10px;
+  padding:14px 20px 6px;
+  border-top:1px solid rgba(255,255,255,0.07);
+  flex-shrink:0;
+}
+.bs-stat-box{
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:16px;
+  padding:12px 14px;
+  text-align:center;
+  flex:1;
+}
+.bs-stat-label{font-size:11px;color:rgba(255,255,255,0.3);font-weight:700;text-transform:uppercase;letter-spacing:0.8px;}
+.bs-stat-val{font-size:22px;font-weight:900;color:#fff;margin-top:4px;}
+.bs-book-btn{
+  background:linear-gradient(135deg,#f97316,#ea580c);
+  border:none;border-radius:16px;
+  color:#fff;font-size:16px;font-weight:800;
+  height:60px;
+  cursor:pointer;flex:1.8;
+  font-family:'Outfit',sans-serif;
+  transition:all 0.2s;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  box-shadow:0 4px 20px rgba(249,115,22,0.4),0 0 0 1px rgba(249,115,22,0.12) inset;
+}
+.bs-book-btn:not(:disabled):active{transform:scale(0.95);}
+.bs-book-btn:disabled{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.18);box-shadow:none;cursor:not-allowed;}
+
+/* Animations */
+.pop-enter-active{transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);}
+.pop-leave-active{transition:all 0.2s ease-in;}
+.pop-enter-from,.pop-leave-to{opacity:0;transform:scale(0.88) translateY(24px);}
+
+.slide-enter-active{transition:all 0.35s cubic-bezier(0.16,1,0.3,1);}
+.slide-leave-active{transition:all 0.22s ease-in;}
+.slide-enter-from,.slide-leave-to{opacity:0;transform:scale(0.92);}
+
+/* Purchase slide up */
+.purchase-slide-enter-active{transition:all 0.38s cubic-bezier(0.16,1,0.3,1);}
+.purchase-slide-leave-active{transition:all 0.25s ease-in;}
+.purchase-slide-enter-from,.purchase-slide-leave-to{transform:translateY(100%);}
+
+/* FAB */
 .book-sheet-fab{
   position:fixed;
-  bottom:calc(var(--nav-height) + env(safe-area-inset-bottom) + 20px);
-  right:20px;
-  width:64px; height:64px;
+  bottom:calc(var(--nav-height) + env(safe-area-inset-bottom) + 16px);
+  right:18px;
+  width:60px;height:60px;
   background:linear-gradient(145deg,#f97316,#ea580c);
-  color:#fff; border:none; border-radius:50%;
-  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
+  color:#fff;border:none;border-radius:50%;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
   z-index:500;
-  box-shadow:0 4px 18px rgba(249,115,22,0.5), 0 0 0 5px rgba(249,115,22,0.15);
-  cursor:pointer; transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1); font-family:inherit;
+  box-shadow:0 4px 20px rgba(249,115,22,0.5),0 0 0 6px rgba(249,115,22,0.12);
+  cursor:pointer;
+  transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  font-family:'Outfit',sans-serif;
 }
-.book-sheet-fab:active{transform:scale(0.9);}
-.book-sheet-fab.fab-hidden{ transform:translateY(120%); opacity:0; pointer-events:none; }
-
-/* ── Book Sheet Popup ── */
-.bs-overlay{ position:fixed;inset:0; background:rgba(0,0,0,0.72); backdrop-filter:blur(8px); z-index:2100; display:flex; align-items:center; justify-content:center; padding:16px; }
-.bs-popup{ background:var(--surface); border:1px solid var(--border); border-radius:24px; width:100%; max-width:370px; max-height:88vh; overflow-y:auto; padding:18px; position:relative; }
-.bs-header{ display:flex; align-items:center; gap:8px; margin-bottom:14px; }
-.bs-nav-btn{ background:var(--surface2); border:1px solid var(--border); border-radius:10px; width:32px;height:32px; color:#fff; cursor:pointer; display:flex;align-items:center;justify-content:center; font-size:15px; flex-shrink:0; transition:all 0.15s; }
-.bs-nav-btn:disabled{opacity:0.28;cursor:not-allowed;}
-.bs-nav-btn:not([disabled]):active{background:rgba(108,99,255,0.25);}
-.bs-round-info{ flex:1; text-align:center; }
-.bs-round-label{font-size:13px;font-weight:800;color:#fff;}
-.bs-round-time{font-size:11px;color:var(--primary);font-weight:600;margin-top:2px;}
-.bs-close-btn{ background:var(--surface2); border:1px solid var(--border); border-radius:10px; width:32px;height:32px; color:var(--text-muted); cursor:pointer; display:flex;align-items:center;justify-content:center; flex-shrink:0; font-size:14px; }
-.bs-section-label{font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:8px;letter-spacing:0.5px;}
-.bs-amounts{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px;}
-.bs-amt-btn{ background:var(--surface2); border:1.5px solid var(--border); border-radius:10px; color:var(--text-muted); font-size:12px;font-weight:700; padding:6px 12px; cursor:pointer; transition:all 0.15s; font-family:inherit; }
-.bs-amt-btn.active{background:rgba(249,115,22,0.15);border-color:#f97316;color:#f97316;}
-.bs-amt-btn:active{transform:scale(0.95);}
-.bs-legend{display:flex;gap:12px;margin-bottom:10px;}
-.bs-leg{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text-muted);}
-.bs-leg-dot{width:10px;height:10px;border-radius:50%;}
-.bs-sheets-grid{ display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-bottom:14px; }
-.bs-sheet{ aspect-ratio:1; border-radius:50%; background:var(--surface2); border:1.5px solid var(--border); display:flex;align-items:center;justify-content:center; font-size:12px;font-weight:700;color:var(--text-muted); cursor:pointer; transition:all 0.15s; }
-.bs-sheet:active{transform:scale(0.9);}
-.bs-sheet.selected{ background:rgba(249,115,22,0.18); border-color:#f97316; color:#f97316; }
-.bs-sheet.taken{ background:rgba(239,68,68,0.1); border-color:rgba(239,68,68,0.35); color:#f87171; cursor:not-allowed; opacity:0.7; }
-.bs-footer{ display:flex; align-items:center; gap:8px; padding-top:12px; border-top:1px solid var(--border); }
-.bs-stat{ background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:8px 10px; flex:1; text-align:center; }
-.bs-stat-label{font-size:10px;color:var(--text-muted);font-weight:600;}
-.bs-stat-val{font-size:15px;font-weight:800;color:#fff;margin-top:2px;}
-.bs-book-btn{ background:linear-gradient(135deg,#f97316,#ea580c); border:none; border-radius:12px; color:#fff; font-size:13px;font-weight:800; padding:12px 18px; cursor:pointer; flex:1.4; font-family:inherit; transition:all 0.2s; }
-.bs-book-btn:disabled{background:#2a2a40;color:var(--text-dim);cursor:not-allowed;}
-.bs-book-btn:not(:disabled):active{transform:scale(0.97);}
-
-.qty-btn{width:34px;height:34px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:#fff;font-size:18px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.15s;flex-shrink:0;}
-.qty-btn:active{transform:scale(0.9);}
-.qty-btn:disabled{opacity:0.3;cursor:not-allowed;}
-.qty-display{min-width:38px;text-align:center;font-size:18px;font-weight:800;}
-
-.pop-enter-active{transition:all 0.3s ease-out;}
-.pop-leave-active{transition:all 0.2s ease-in;}
-.pop-enter-from,.pop-leave-to{opacity:0;transform:scale(0.92) translateY(20px);}
+.book-sheet-fab:active{transform:scale(0.88);}
+.book-sheet-fab.fab-hidden{transform:translateY(140%);opacity:0;pointer-events:none;}
 </style>
 </head>
 <body>
@@ -130,202 +524,202 @@
 
   <div id="toast-el" class="toast-msg"></div>
 
-  <!-- POPUP MODAL -->
+  <!-- GENERIC POPUP MODAL -->
   <transition name="pop">
-    <div v-if="popup.show" class="modal-overlay" style="align-items:center;z-index:2000;" @click.self="closePopup">
+    <div v-if="popup.show" class="modal-overlay" style="align-items:center;z-index:3000;" @click.self="closePopup">
       <div style="background:var(--surface);border-radius:28px;padding:32px 24px;width:92%;max-width:360px;border:1px solid var(--border);text-align:center;box-shadow:0 24px 80px rgba(0,0,0,0.5);">
-        <div v-if="popup.type==='success'"
-             style="width:72px;height:72px;background:linear-gradient(135deg,rgba(34,197,94,0.2),rgba(34,197,94,0.08));border:2px solid rgba(34,197,94,0.4);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;position:relative;">
+        <div v-if="popup.type==='success'" style="width:72px;height:72px;background:linear-gradient(135deg,rgba(34,197,94,0.2),rgba(34,197,94,0.08));border:2px solid rgba(34,197,94,0.4);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;position:relative;">
           <i class="fa-solid fa-check" style="font-size:30px;color:#4ade80;"></i>
           <div style="position:absolute;inset:-6px;border-radius:50%;border:2px solid rgba(34,197,94,0.15);animation:pulse-ring 1.5s ease-out infinite;"></div>
         </div>
-        <div v-else-if="popup.type==='confirm'"
-             style="width:72px;height:72px;background:rgba(108,99,255,0.15);border:2px solid rgba(108,99,255,0.3);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+        <div v-else-if="popup.type==='confirm'" style="width:72px;height:72px;background:rgba(108,99,255,0.15);border:2px solid rgba(108,99,255,0.3);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
           <i class="fa-solid fa-cart-shopping" style="font-size:28px;color:var(--primary);"></i>
         </div>
-        <div v-else
-             style="width:72px;height:72px;background:rgba(239,68,68,0.12);border:2px solid rgba(239,68,68,0.3);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+        <div v-else style="width:72px;height:72px;background:rgba(239,68,68,0.12);border:2px solid rgba(239,68,68,0.3);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
           <i class="fa-solid fa-triangle-exclamation" style="font-size:28px;color:#f87171;"></i>
         </div>
         <h3 style="font-size:19px;font-weight:800;margin-bottom:10px;">{{ popup.title }}</h3>
-        <p style="font-size:13px;color:var(--text-muted);line-height:1.7;margin-bottom:24px;">{{ popup.msg }}</p>
+        <p style="font-size:13px;color:var(--text-muted);line-height:1.7;margin-bottom:24px;white-space:pre-line;">{{ popup.msg }}</p>
         <div v-if="popup.type==='confirm'" style="display:flex;gap:10px;">
           <button @click="closePopup" class="btn-outline" style="flex:1;padding:12px;">Cancel</button>
           <button @click="popup.confirm && popup.confirm()" class="btn-primary" style="flex:1;padding:12px;">Confirm</button>
         </div>
-        <button v-else @click="closePopup"
-                :style="{background: popup.type==='success' ? 'linear-gradient(135deg,#22c55e,#16a34a)' : 'linear-gradient(135deg,#ef4444,#dc2626)'}"
-                style="width:100%;color:#fff;font-weight:800;border:none;border-radius:14px;padding:14px 24px;font-family:inherit;cursor:pointer;font-size:14px;">
+        <button v-else @click="closePopup" :style="{background: popup.type==='success' ? 'linear-gradient(135deg,#22c55e,#16a34a)' : 'linear-gradient(135deg,#ef4444,#dc2626)'}" style="width:100%;color:#fff;font-weight:800;border:none;border-radius:14px;padding:14px 24px;font-family:inherit;cursor:pointer;font-size:14px;">
           {{ popup.btnText || 'OK' }}
         </button>
       </div>
     </div>
   </transition>
 
-  <!-- PURCHASE MODAL — Multi-select packages, no quantity -->
-  <transition name="pop">
-    <div v-if="purchaseModal.show" class="modal-overlay" @click.self="purchaseModal.show=false">
-      <div class="modal-sheet" @click.stop>
-        <span class="modal-handle"></span>
-
-        <!-- Product Header -->
-        <div style="display:flex;gap:12px;align-items:center;margin-bottom:20px;justify-content:space-between;">
-          <div style="display:flex;gap:12px;align-items:center;flex:1;min-width:0;">
-            <img :src="purchaseModal.product.image" @error="imgError" style="width:60px;height:60px;border-radius:14px;object-fit:cover;border:1px solid var(--border);flex-shrink:0;">
-            <div style="min-width:0;">
-              <div style="font-weight:800;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ purchaseModal.product.name }}</div>
-              <div style="font-size:12px;color:var(--text-muted);text-transform:capitalize;margin-top:2px;">{{ purchaseModal.product.category }}</div>
+  <!-- ═══ PURCHASE MODAL ═══ -->
+  <transition name="purchase-slide">
+    <div v-if="purchaseModal.show" class="purchase-overlay" @click.self="purchaseModal.show=false">
+      <div class="purchase-sheet" @click.stop>
+        <div class="purchase-handle"></div>
+        <div class="purchase-header">
+          <img :src="purchaseModal.product.image" @error="imgError" class="purchase-product-img">
+          <div style="min-width:0;flex:1;">
+            <div style="font-weight:800;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ purchaseModal.product.name }}</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.35);text-transform:capitalize;margin-top:2px;display:flex;align-items:center;gap:4px;">
+              <i class="fa-solid fa-tag" style="font-size:9px;"></i>{{ purchaseModal.product.category }}
             </div>
           </div>
-          <button @click="purchaseModal.show=false" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);flex-shrink:0;margin-left:8px;">
-            <i class="fa-solid fa-xmark" style="font-size:15px;"></i>
+          <button @click="purchaseModal.show=false" class="purchase-close">
+            <i class="fa-solid fa-xmark" style="font-size:14px;"></i>
           </button>
         </div>
 
-        <!-- Step 1: Multi-select Packages -->
-        <div style="margin-bottom:16px;">
-          <div style="font-size:12px;font-weight:700;color:var(--text-muted);display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-            <span class="step-circle">1</span>
-            Select Package(s)
-            <span style="margin-left:auto;font-size:11px;color:var(--text-dim);">একাধিক সিলেক্ট করা যাবে</span>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:8px;">
-            <div
-              v-for="(pack, i) in purchaseModal.packages" :key="i"
-              class="pkg-multi-card"
-              :class="{ selected: purchaseModal.selectedPkgs.includes(i) }"
-              @click="togglePkg(i)">
-              <div class="pkg-checkbox">
-                <i v-if="purchaseModal.selectedPkgs.includes(i)" class="fa-solid fa-check" style="font-size:11px;"></i>
-              </div>
-              <div class="pkg-multi-info">
-                <div class="pkg-multi-name">{{ pack.name }}</div>
-                <div class="pkg-multi-price">৳{{ pack.price }}</div>
+        <div style="padding:18px 20px;">
+          <!-- Step 1: Packages -->
+          <div style="margin-bottom:18px;">
+            <div class="step-label"><span class="step-num">1</span> প্যাকেজ বেছে নিন</div>
+            <div class="pkg-grid">
+              <div v-for="(pack, i) in purchaseModal.packages" :key="i"
+                class="pkg-card-new"
+                :class="{ active: purchaseModal.selectedPkg === i }"
+                @click="purchaseModal.selectedPkg = i">
+                <div class="pkg-check-badge"><i class="fa-solid fa-check" style="font-size:8px;"></i></div>
+                <div class="pkg-name">{{ pack.name }}</div>
+                <div class="pkg-price">৳{{ pack.price }}</div>
               </div>
             </div>
           </div>
 
-          <!-- Selected summary -->
-          <div v-if="purchaseModal.selectedPkgs.length > 0" class="selected-summary">
-            <span class="selected-summary-label">{{ purchaseModal.selectedPkgs.length }}টি সিলেক্ট করা হয়েছে</span>
-            <span class="selected-summary-val">৳{{ purchaseTotalPrice }}</span>
-          </div>
-        </div>
-
-        <!-- Step 2: Sheet Info -->
-        <div style="margin-bottom:16px;">
-          <div style="font-size:12px;font-weight:700;color:var(--text-muted);display:flex;align-items:center;gap:8px;margin-bottom:10px;"><span class="step-circle">2</span> Sheet Info</div>
-          <select v-model="purchaseModal.playerId" class="round-select">
-            <option value="" disabled>-- Select Sheet No --</option>
-            <option v-for="s in sheetOptions" :key="s.label" :value="s.label">{{ s.label }}</option>
-          </select>
-        </div>
-
-        <!-- Step 3: Round Info -->
-        <div style="margin-bottom:16px;">
-          <div style="font-size:12px;font-weight:700;color:var(--text-muted);display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-            <span class="step-circle" style="background:#f97316;">3</span> Round Info
-          </div>
-          <select v-model="purchaseModal.selectedRound" class="round-select">
-            <option value="" disabled>-- Select Round --</option>
-            <option v-for="r in rounds" :key="r.label" :value="r.label">{{ r.label }}</option>
-          </select>
-        </div>
-
-        <!-- Step 4: Payment Method -->
-        <div style="margin-bottom:20px;">
-          <div style="font-size:12px;font-weight:700;color:var(--text-muted);display:flex;align-items:center;gap:8px;margin-bottom:10px;"><span class="step-circle">4</span> Payment Method</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
-            <div class="payment-tab" :class="{active:purchaseModal.payMethod==='wallet'}" @click="purchaseModal.payMethod='wallet'">
-              <i class="fa-solid fa-wallet" style="margin-right:4px;"></i> Wallet
+          <!-- Step 2: Sheet No (Multi-select) -->
+          <div style="margin-bottom:14px;">
+            <div class="step-label">
+              <span class="step-num">2</span> Sheet No সিলেক্ট করুন
+              <span style="margin-left:auto;font-size:10px;color:rgba(255,255,255,0.25);">একাধিক যাবে</span>
             </div>
-            <div class="payment-tab" :class="{active:purchaseModal.payMethod==='direct'}" @click="purchaseModal.payMethod='direct'">
-              <i class="fa-solid fa-bolt" style="margin-right:4px;"></i> Auto Pay
-            </div>
-            <div class="payment-tab" :class="{active:purchaseModal.payMethod==='eps'}" @click="purchaseModal.payMethod='eps'">
-              <i class="fa-solid fa-credit-card" style="margin-right:4px;"></i> EPS
-            </div>
-          </div>
-
-          <div v-if="purchaseModal.payMethod==='wallet'" style="background:rgba(108,99,255,0.08);border:1px solid rgba(108,99,255,0.2);border-radius:12px;padding:12px;display:flex;justify-content:space-between;align-items:center;">
-            <div>
-              <div style="font-size:11px;color:var(--text-muted);font-weight:600;">My Balance</div>
-              <div style="font-size:20px;font-weight:800;color:var(--primary);">৳{{ userBalance }}</div>
-            </div>
-            <a href="add-money.html" style="background:var(--primary);color:#fff;font-size:11px;font-weight:700;padding:7px 12px;border-radius:10px;cursor:pointer;text-decoration:none;">+ Deposit</a>
-          </div>
-
-          <div v-if="purchaseModal.payMethod==='direct'">
-            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;">
-              <div @click="purchaseModal.gateway='bkash'" class="method-card" :class="{selected:purchaseModal.gateway==='bkash'}" style="text-align:center;padding:10px 6px;">
-                <div style="height:28px;display:flex;align-items:center;justify-content:center;margin-bottom:4px;"><span style="background:#e2156a;color:#fff;font-size:11px;font-weight:800;padding:4px 8px;border-radius:6px;">bKash</span></div>
-                <div style="font-size:10px;font-weight:700;">bKash</div>
-              </div>
-              <div @click="purchaseModal.gateway='nagad'" class="method-card" :class="{selected:purchaseModal.gateway==='nagad'}" style="text-align:center;padding:10px 6px;">
-                <div style="height:28px;display:flex;align-items:center;justify-content:center;margin-bottom:4px;"><span style="background:#f47920;color:#fff;font-size:11px;font-weight:800;padding:4px 8px;border-radius:6px;">Nagad</span></div>
-                <div style="font-size:10px;font-weight:700;">Nagad</div>
-              </div>
-              <div @click="purchaseModal.gateway='rocket'" class="method-card" :class="{selected:purchaseModal.gateway==='rocket'}" style="text-align:center;padding:10px 6px;">
-                <div style="height:28px;display:flex;align-items:center;justify-content:center;margin-bottom:4px;"><span style="background:#8b1fa8;color:#fff;font-size:11px;font-weight:800;padding:4px 8px;border-radius:6px;">Rocket</span></div>
-                <div style="font-size:10px;font-weight:700;">Rocket</div>
+            <div class="multi-chip-wrap">
+              <div v-for="s in sheetOptions" :key="s.label"
+                class="multi-chip"
+                :class="{ active: purchaseModal.selectedSheets.includes(s.label) }"
+                @click="toggleSheet(s.label)">
+                <span class="multi-chip-check"><i v-if="purchaseModal.selectedSheets.includes(s.label)" class="fa-solid fa-check" style="font-size:7px;"></i></span>
+                {{ s.label }}
               </div>
             </div>
-            <div class="copy-box" @click="copyNum(adminNumbers[purchaseModal.gateway])" style="margin-bottom:10px;">
-              <div style="font-size:10px;color:var(--primary);font-weight:700;margin-bottom:4px;">SEND MONEY (PERSONAL)</div>
-              <div style="font-size:20px;font-weight:800;letter-spacing:2px;">{{ adminNumbers[purchaseModal.gateway]||'Loading...' }}</div>
-              <div style="font-size:11px;color:var(--text-muted);margin-top:4px;"><i class="fa-regular fa-copy"></i> Tap to copy</div>
+            <div v-if="purchaseModal.selectedSheets.length > 0" class="selected-tags">
+              <span v-for="sh in purchaseModal.selectedSheets" :key="sh" class="sel-tag">
+                {{ sh }}<span class="sel-tag-x" @click.stop="toggleSheet(sh)">✕</span>
+              </span>
             </div>
-            <input v-model="purchaseModal.trxId" class="input-field" placeholder="Transaction ID (TrxID)" style="text-transform:uppercase;text-align:center;letter-spacing:2px;font-weight:700;">
           </div>
 
-          <div v-if="purchaseModal.payMethod==='eps'">
-            <div class="eps-card" style="margin-bottom:12px;" @click="handleEpsPurchaseRedirect">
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-                <div style="display:flex;align-items:center;gap:10px;">
-                  <div style="width:42px;height:42px;background:rgba(255,255,255,0.12);border-radius:12px;display:flex;align-items:center;justify-content:center;">
-                    <i class="fa-solid fa-shield-halved" style="font-size:20px;color:#4ade80;"></i>
-                  </div>
-                  <div>
-                    <div style="font-weight:800;font-size:15px;color:#fff;">EPS Payment</div>
-                    <div style="font-size:11px;color:rgba(255,255,255,0.6);">Secure Gateway</div>
-                  </div>
+          <!-- Step 3: Round (Multi-select) -->
+          <div style="margin-bottom:14px;">
+            <div class="step-label">
+              <span class="step-num" style="background:#f97316;">3</span> Round সিলেক্ট করুন
+              <span style="margin-left:auto;font-size:10px;color:rgba(255,255,255,0.25);">একাধিক যাবে</span>
+            </div>
+            <div class="multi-chip-wrap">
+              <div v-for="r in rounds" :key="r.label"
+                class="multi-chip"
+                :class="{ active: purchaseModal.selectedRounds.includes(r.label) }"
+                @click="toggleRound(r.label)">
+                <span class="multi-chip-check"><i v-if="purchaseModal.selectedRounds.includes(r.label)" class="fa-solid fa-check" style="font-size:7px;"></i></span>
+                {{ r.label }}
+              </div>
+            </div>
+            <div v-if="purchaseModal.selectedRounds.length > 0" class="selected-tags">
+              <span v-for="rd in purchaseModal.selectedRounds" :key="rd" class="sel-tag" style="background:rgba(249,115,22,0.15);border-color:rgba(249,115,22,0.3);color:#fb923c;">
+                {{ rd }}<span class="sel-tag-x" @click.stop="toggleRound(rd)">✕</span>
+              </span>
+            </div>
+          </div>
+
+          <!-- Step 4: Payment Method -->
+          <div style="margin-bottom:16px;">
+            <div class="step-label"><span class="step-num">4</span> পেমেন্ট মেথড</div>
+            <div class="pay-tabs">
+              <div class="pay-tab" :class="{active:purchaseModal.payMethod==='wallet'}" @click="purchaseModal.payMethod='wallet'">
+                <i class="fa-solid fa-wallet" style="font-size:12px;"></i> Wallet
+              </div>
+              <div class="pay-tab" :class="{active:purchaseModal.payMethod==='direct'}" @click="purchaseModal.payMethod='direct'">
+                <i class="fa-solid fa-bolt" style="font-size:12px;"></i> Auto Pay
+              </div>
+              <div class="pay-tab" :class="{active:purchaseModal.payMethod==='eps'}" @click="purchaseModal.payMethod='eps'">
+                <i class="fa-solid fa-shield-halved" style="font-size:12px;"></i> EPS
+              </div>
+            </div>
+
+            <div v-if="purchaseModal.payMethod==='wallet'" class="wallet-info-card">
+              <div>
+                <div style="font-size:10.5px;color:rgba(255,255,255,0.35);font-weight:600;margin-bottom:2px;">আমার ব্যালেন্স</div>
+                <div style="font-size:22px;font-weight:800;color:var(--primary);">৳{{ userBalance }}</div>
+              </div>
+              <a href="add-money.html" style="background:var(--primary);color:#fff;font-size:11px;font-weight:700;padding:8px 14px;border-radius:10px;text-decoration:none;display:flex;align-items:center;gap:5px;">
+                <i class="fa-solid fa-plus" style="font-size:10px;"></i>Deposit
+              </a>
+            </div>
+
+            <div v-if="purchaseModal.payMethod==='direct'">
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;">
+                <div @click="purchaseModal.gateway='bkash'" class="method-card" :class="{selected:purchaseModal.gateway==='bkash'}" style="text-align:center;padding:10px 6px;">
+                  <div style="height:26px;display:flex;align-items:center;justify-content:center;margin-bottom:4px;"><span style="background:#e2156a;color:#fff;font-size:11px;font-weight:800;padding:4px 8px;border-radius:6px;">bKash</span></div>
+                  <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.5);">bKash</div>
                 </div>
-                <div style="background:rgba(34,197,94,0.2);border:1px solid rgba(34,197,94,0.4);border-radius:8px;padding:4px 10px;font-size:10px;font-weight:700;color:#4ade80;">PSO LICENSED</div>
+                <div @click="purchaseModal.gateway='nagad'" class="method-card" :class="{selected:purchaseModal.gateway==='nagad'}" style="text-align:center;padding:10px 6px;">
+                  <div style="height:26px;display:flex;align-items:center;justify-content:center;margin-bottom:4px;"><span style="background:#f47920;color:#fff;font-size:11px;font-weight:800;padding:4px 8px;border-radius:6px;">Nagad</span></div>
+                  <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.5);">Nagad</div>
+                </div>
+                <div @click="purchaseModal.gateway='rocket'" class="method-card" :class="{selected:purchaseModal.gateway==='rocket'}" style="text-align:center;padding:10px 6px;">
+                  <div style="height:26px;display:flex;align-items:center;justify-content:center;margin-bottom:4px;"><span style="background:#8b1fa8;color:#fff;font-size:11px;font-weight:800;padding:4px 8px;border-radius:6px;">Rocket</span></div>
+                  <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.5);">Rocket</div>
+                </div>
               </div>
-              <div style="background:rgba(255,255,255,0.1);border-radius:12px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">
-                <div style="font-size:13px;color:rgba(255,255,255,0.8);font-weight:600;">Tap to Open Gateway</div>
-                <i class="fa-solid fa-arrow-right" style="color:#4ade80;font-size:14px;"></i>
+              <div class="copy-box" @click="copyNum(adminNumbers[purchaseModal.gateway])" style="margin-bottom:10px;">
+                <div style="font-size:10px;color:var(--primary);font-weight:700;margin-bottom:4px;">SEND MONEY (PERSONAL)</div>
+                <div style="font-size:22px;font-weight:800;letter-spacing:2px;">{{ adminNumbers[purchaseModal.gateway]||'Loading...' }}</div>
+                <div style="font-size:11px;color:rgba(255,255,255,0.35);margin-top:4px;"><i class="fa-regular fa-copy"></i> Tap to copy</div>
               </div>
+              <input v-model="purchaseModal.trxId" class="input-field" placeholder="Transaction ID (TrxID)" style="text-transform:uppercase;text-align:center;letter-spacing:2px;font-weight:700;">
             </div>
-            <input v-model="purchaseModal.epsRef" class="input-field" placeholder="EPS Reference Number" style="letter-spacing:1px;font-weight:700;margin-bottom:10px;">
-            <div class="eps-pending-box">
-              <i class="fa-solid fa-circle-info" style="color:#4ade80;margin-right:6px;"></i>
-              পেমেন্ট সম্পন্ন করার পর Reference নম্বর দিয়ে Submit করুন।
-            </div>
-          </div>
-        </div>
 
-        <!-- Footer: Total + Buy -->
-        <div style="border-top:1px solid var(--border);padding-top:16px;">
-          <div v-if="purchaseModal.selectedPkgs.length > 0" style="margin-bottom:10px;">
-            <div v-for="i in purchaseModal.selectedPkgs" :key="i"
-                 style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-              <span style="color:var(--text-muted);font-size:12px;">{{ purchaseModal.packages[i].name }}</span>
-              <span style="font-size:12px;font-weight:700;color:var(--text-muted);">৳{{ purchaseModal.packages[i].price }}</span>
+            <div v-if="purchaseModal.payMethod==='eps'">
+              <div class="eps-card" style="margin-bottom:10px;" @click="handleEpsPurchaseRedirect">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+                  <div style="display:flex;align-items:center;gap:10px;">
+                    <div style="width:40px;height:40px;background:rgba(255,255,255,0.1);border-radius:12px;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-shield-halved" style="font-size:18px;color:#4ade80;"></i></div>
+                    <div><div style="font-weight:800;font-size:14px;">EPS Payment</div><div style="font-size:11px;color:rgba(255,255,255,0.6);">Secure Gateway</div></div>
+                  </div>
+                  <div style="background:rgba(34,197,94,0.2);border:1px solid rgba(34,197,94,0.4);border-radius:8px;padding:3px 8px;font-size:10px;font-weight:700;color:#4ade80;">LICENSED</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.08);border-radius:10px;padding:9px 14px;display:flex;align-items:center;justify-content:space-between;">
+                  <div style="font-size:12px;color:rgba(255,255,255,0.7);">Tap to Open Gateway</div>
+                  <i class="fa-solid fa-arrow-right" style="color:#4ade80;font-size:13px;"></i>
+                </div>
+              </div>
+              <input v-model="purchaseModal.epsRef" class="input-field" placeholder="EPS Reference Number" style="letter-spacing:1px;font-weight:700;margin-bottom:10px;">
+              <div style="background:rgba(34,197,94,0.05);border:1px solid rgba(34,197,94,0.15);border-radius:12px;padding:12px;font-size:12px;color:rgba(255,255,255,0.45);line-height:1.7;">
+                <i class="fa-solid fa-circle-info" style="color:#4ade80;margin-right:6px;"></i>পেমেন্ট সম্পন্ন করার পর Reference নম্বর দিয়ে Submit করুন।
+              </div>
             </div>
           </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-            <span style="color:var(--text-muted);font-size:14px;">Total Payable</span>
-            <span style="font-size:22px;font-weight:800;color:var(--primary);">৳{{ purchaseTotalPrice }}</span>
+
+          <!-- Total & Buy -->
+          <div class="total-bar">
+            <div>
+              <div style="font-size:10.5px;color:rgba(255,255,255,0.35);font-weight:600;margin-bottom:2px;">মোট পরিমাণ</div>
+              <div style="font-size:24px;font-weight:800;color:var(--primary);">৳{{ purchaseTotalPrice }}</div>
+            </div>
+            <div v-if="purchaseModal.selectedPkg !== null" style="text-align:right;">
+              <div style="font-size:10px;color:rgba(255,255,255,0.25);margin-bottom:2px;">
+                {{ purchaseModal.selectedSheets.length }}টি Sheet · {{ purchaseModal.selectedRounds.length }}টি Round
+              </div>
+              <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.5);">{{ purchaseModal.packages[purchaseModal.selectedPkg]?.name }}</div>
+            </div>
           </div>
-          <button @click="handlePurchaseBuy" class="btn-primary" style="width:100%;"
-                  :disabled="purchaseModal.verifying || purchaseModal.selectedPkgs.length === 0 || !purchaseModal.playerId || !purchaseModal.selectedRound">
+
+          <button @click="handlePurchaseBuy" class="btn-primary" style="width:100%;font-size:14.5px;padding:15px;"
+            :disabled="purchaseModal.verifying || purchaseModal.selectedPkg === null || purchaseModal.selectedSheets.length === 0 || purchaseModal.selectedRounds.length === 0">
             <span v-if="purchaseModal.verifying" class="spinner"></span>
-            <span v-else>
-              <span v-if="purchaseModal.payMethod==='wallet'">Pay from Wallet</span>
-              <span v-else-if="purchaseModal.payMethod==='eps'">Submit Order</span>
-              <span v-else>Verify &amp; Buy</span>
-              <i class="fa-solid fa-arrow-right" style="margin-left:4px;"></i>
+            <span v-else style="display:flex;align-items:center;justify-content:center;gap:8px;">
+              <span v-if="purchaseModal.payMethod==='wallet'"><i class="fa-solid fa-wallet" style="margin-right:4px;"></i>Wallet থেকে পেমেন্ট</span>
+              <span v-else-if="purchaseModal.payMethod==='eps'"><i class="fa-solid fa-paper-plane" style="margin-right:4px;"></i>Order Submit</span>
+              <span v-else><i class="fa-solid fa-circle-check" style="margin-right:4px;"></i>Verify &amp; Buy</span>
+              <i class="fa-solid fa-arrow-right" style="font-size:12px;"></i>
             </span>
           </button>
         </div>
@@ -339,24 +733,16 @@
       <div class="modal-sheet" @click.stop>
         <span class="modal-handle"></span>
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
-          <div style="width:46px;height:46px;background:rgba(255,215,0,0.15);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <i class="fa-solid fa-bullhorn" style="font-size:20px;color:var(--gold);"></i>
-          </div>
-          <div>
-            <div style="font-weight:800;font-size:17px;">Announcement</div>
-            <div style="font-size:12px;color:var(--text-muted);">H24 Online থেকে বিজ্ঞপ্তি</div>
-          </div>
-          <button @click="announcementModal=false" style="margin-left:auto;background:var(--surface2);border:1px solid var(--border);border-radius:10px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);flex-shrink:0;">
-            <i class="fa-solid fa-xmark" style="font-size:15px;"></i>
-          </button>
+          <div style="width:46px;height:46px;background:rgba(255,215,0,0.15);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fa-solid fa-bullhorn" style="font-size:20px;color:var(--gold);"></i></div>
+          <div><div style="font-weight:800;font-size:17px;">Announcement</div><div style="font-size:12px;color:var(--text-muted);">H24 Online থেকে বিজ্ঞপ্তি</div></div>
+          <button @click="announcementModal=false" style="margin-left:auto;background:var(--surface2);border:1px solid var(--border);border-radius:10px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);flex-shrink:0;"><i class="fa-solid fa-xmark" style="font-size:15px;"></i></button>
         </div>
         <div v-if="announcementLines.length===0" style="text-align:center;padding:30px 0;">
           <i class="fa-solid fa-bell-slash" style="font-size:40px;color:var(--text-dim);margin-bottom:12px;display:block;"></i>
           <div style="font-size:15px;font-weight:600;color:var(--text-muted);">এখন কোনো বিজ্ঞপ্তি নেই</div>
         </div>
         <div v-else style="display:flex;flex-direction:column;gap:10px;">
-          <div v-for="(line, i) in announcementLines" :key="i"
-               style="background:rgba(255,215,0,0.06);border:1px solid rgba(255,215,0,0.18);border-radius:14px;padding:14px 16px;display:flex;align-items:flex-start;gap:10px;">
+          <div v-for="(line, i) in announcementLines" :key="i" style="background:rgba(255,215,0,0.06);border:1px solid rgba(255,215,0,0.18);border-radius:14px;padding:14px 16px;display:flex;align-items:flex-start;gap:10px;">
             <span style="width:22px;height:22px;background:rgba(255,215,0,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:800;color:var(--gold);margin-top:1px;">{{ i+1 }}</span>
             <div style="font-size:14px;color:#fff;line-height:1.6;font-weight:500;">{{ line }}</div>
           </div>
@@ -365,46 +751,109 @@
     </div>
   </transition>
 
-  <!-- BOOK SHEET POPUP MODAL -->
-  <transition name="pop">
+  <!-- ═══════════════════════════════════════
+       BOOK SHEET POPUP — CIRCULAR DESIGN
+  ═══════════════════════════════════════ -->
+  <transition name="slide">
     <div v-if="bookSheetModal.show" class="bs-overlay" @click.self="closeBookSheet">
       <div class="bs-popup" @click.stop>
-        <div class="bs-header">
-          <button class="bs-nav-btn" @click="bsChangeRound(-1)" :disabled="bookSheetModal.roundIndex === 0">
-            <i class="fa-solid fa-chevron-left" style="font-size:12px;"></i>
-          </button>
-          <div class="bs-round-info">
-            <div class="bs-round-label">{{ bsCurrentRound.label }} Round</div>
+        <div class="bs-popup-handle"></div>
+
+        <!-- Round Navigation Header -->
+        <div class="bs-round-nav">
+          <div class="bs-nav-arrow" :class="{disabled: bookSheetModal.roundIndex===0}" @click="bsChangeRound(-1)">
+            &#8249;
+          </div>
+          <div class="bs-round-center">
+            <div class="bs-round-title">{{ bsCurrentRound.label }}</div>
             <div class="bs-round-time">{{ bsCurrentRound.time }}</div>
           </div>
-          <button class="bs-nav-btn" @click="bsChangeRound(1)" :disabled="bookSheetModal.roundIndex === bsRounds.length - 1">
-            <i class="fa-solid fa-chevron-right" style="font-size:12px;"></i>
-          </button>
-          <button class="bs-close-btn" @click="closeBookSheet">
+          <div class="bs-nav-arrow" :class="{disabled: bookSheetModal.roundIndex===bsRounds.length-1}" @click="bsChangeRound(1)">
+            &#8250;
+          </div>
+          <div class="bs-close" @click="closeBookSheet">
             <i class="fa-solid fa-xmark" style="font-size:13px;"></i>
-          </button>
+          </div>
         </div>
-        <div class="bs-section-label">SELECT AMOUNT</div>
-        <div class="bs-amounts">
-          <button v-for="amt in bsAmounts" :key="amt" class="bs-amt-btn" :class="{ active: bookSheetModal.selectedAmt === amt }" @click="bookSheetModal.selectedAmt = amt">৳{{ amt }}</button>
+
+        <!-- Scrollable content area -->
+        <div class="bs-scrollable">
+
+          <!-- Amount Selection -->
+          <div class="bs-section-header">Select Amount</div>
+          <div class="bs-amt-scroll">
+            <div class="bs-amt-row">
+              <button v-for="amt in bsAmounts" :key="amt"
+                class="bs-amt"
+                :class="{ active: bookSheetModal.selectedAmt === amt }"
+                @click="bookSheetModal.selectedAmt = amt">
+                ৳{{ amt }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Legend -->
+          <div class="bs-legend">
+            <div class="bs-leg">
+              <div class="bs-leg-dot" style="background:#f97316;box-shadow:0 0 6px rgba(249,115,22,0.7);"></div>
+              Selected
+            </div>
+            <div class="bs-leg">
+              <div class="bs-leg-dot" style="background:rgba(239,68,68,0.5);"></div>
+              Taken
+            </div>
+            <div class="bs-leg">
+              <div class="bs-leg-dot" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.15);"></div>
+              Available
+            </div>
+          </div>
+
+          <!-- Sheet Grid — 2 rows, horizontal scroll, circular -->
+          <div class="bs-section-header">Select Sheet No</div>
+          <div class="bs-sheets-scroll">
+            <div class="bs-sheets-grid">
+              <div v-for="sheet in bsSheetList" :key="sheet.label"
+                class="bs-sheet"
+                :class="{
+                  selected: bookSheetModal.selectedSheets.includes(sheet.label),
+                  taken: bsTakenSheets.includes(sheet.label)
+                }"
+                @click="bsToggleSheet(sheet.label)">
+                <!-- diagonal taken line -->
+                <div v-if="bsTakenSheets.includes(sheet.label)" class="bs-taken-line"></div>
+                <span style="position:relative;z-index:1;word-break:break-all;padding:2px;">{{ sheet.label }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Selected tags summary -->
+          <div v-if="bookSheetModal.selectedSheets.length > 0" class="bs-selected-tags">
+            <span style="font-size:10px;color:rgba(249,115,22,0.7);font-weight:700;margin-right:4px;align-self:center;">Selected:</span>
+            <span v-for="s in bookSheetModal.selectedSheets" :key="s" class="bs-sel-tag">{{ s }}</span>
+          </div>
+
+          <!-- bottom spacer -->
+          <div style="height:8px;"></div>
         </div>
-        <div class="bs-legend">
-          <div class="bs-leg"><div class="bs-leg-dot" style="background:#f97316;"></div> Selected</div>
-          <div class="bs-leg"><div class="bs-leg-dot" style="background:rgba(239,68,68,0.5);"></div> Taken</div>
-          <div class="bs-leg"><div class="bs-leg-dot" style="background:var(--surface2);border:1.5px solid rgba(255,255,255,0.1);"></div> Available</div>
-        </div>
-        <div class="bs-section-label">SELECT SHEET NO</div>
-        <div class="bs-sheets-grid">
-          <div v-for="n in 10" :key="n" class="bs-sheet"
-               :class="{ selected: bookSheetModal.selectedSheets.includes(n), taken: bsTakenSheets.includes(n) }"
-               @click="bsToggleSheet(n)">{{ n }}</div>
-        </div>
+
+        <!-- Footer -->
         <div class="bs-footer">
-          <div class="bs-stat"><div class="bs-stat-label">Total Sheet</div><div class="bs-stat-val">{{ bookSheetModal.selectedSheets.length }}</div></div>
-          <div class="bs-stat"><div class="bs-stat-label">Total Amount</div><div class="bs-stat-val">৳{{ (bookSheetModal.selectedSheets.length * (bookSheetModal.selectedAmt || 0)) }}</div></div>
-          <button class="bs-book-btn" :disabled="bookSheetModal.selectedSheets.length === 0 || !bookSheetModal.selectedAmt || bookSheetModal.booking" @click="handleBookSheet">
-            <span v-if="bookSheetModal.booking" class="spinner"></span>
-            <span v-else>Book Now <i class="fa-solid fa-arrow-right" style="margin-left:4px;font-size:11px;"></i></span>
+          <div class="bs-stat-box">
+            <div class="bs-stat-label">Total Sheet</div>
+            <div class="bs-stat-val">{{ bookSheetModal.selectedSheets.length }}</div>
+          </div>
+          <div class="bs-stat-box">
+            <div class="bs-stat-label">Total Amount</div>
+            <div class="bs-stat-val" style="color:#fb923c;">৳{{ bookSheetModal.selectedSheets.length * (bookSheetModal.selectedAmt||0) }}</div>
+          </div>
+          <button class="bs-book-btn"
+            :disabled="bookSheetModal.selectedSheets.length===0 || !bookSheetModal.selectedAmt || bookSheetModal.booking"
+            @click="handleBookSheet">
+            <span v-if="bookSheetModal.booking" class="spinner" style="width:16px;height:16px;border-width:2px;"></span>
+            <template v-else>
+              <i class="fa-solid fa-bookmark" style="font-size:13px;"></i>
+              Book Now &rarr;
+            </template>
           </button>
         </div>
       </div>
@@ -448,132 +897,115 @@
     </header>
 
     <main class="page-scroll" style="padding:16px;">
-      <div v-if="loading" style="padding:4px 0;">
-        <div class="sk-block sk-banner"></div>
-        <div class="sk-block sk-checkin"></div>
-        <div class="sk-grid"><div class="sk-block sk-grid-item"></div><div class="sk-block sk-grid-item"></div><div class="sk-block sk-grid-item"></div><div class="sk-block sk-grid-item"></div></div>
-        <div class="sk-block sk-section-title" style="margin-bottom:12px;"></div>
-        <div class="sk-cards-2"><div class="sk-block sk-card-tall"></div><div class="sk-block sk-card-tall"></div></div>
-        <div class="sk-block sk-section-title" style="margin-bottom:12px;"></div>
-        <div class="sk-cards-3"><div class="sk-block sk-card-short"></div><div class="sk-block sk-card-short"></div><div class="sk-block sk-card-short"></div></div>
-      </div>
-
-      <div v-else>
-        <!-- Banner Swiper -->
-        <div v-if="banners.length>0" style="margin-bottom:20px;border-radius:20px;overflow:hidden;">
-          <div class="swiper mySwiper" style="border-radius:20px;">
-            <div class="swiper-wrapper">
-              <div class="swiper-slide" v-for="(b,i) in banners" :key="i" style="position:relative;" @click="handleBannerClick(b)" :style="{cursor:(b.productId||b.link)?'pointer':'default'}">
-                <img :src="b.image" style="width:100%;height:170px;object-fit:cover;display:block;">
-                <div v-if="b.productId||b.link" style="position:absolute;bottom:14px;right:14px;background:rgba(108,99,255,0.92);backdrop-filter:blur(6px);color:#fff;font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;letter-spacing:0.4px;display:flex;align-items:center;gap:5px;">
-                  <i :class="b.link && !b.productId ? 'fa-solid fa-arrow-up-right-from-square' : 'fa-solid fa-bolt'" style="font-size:10px;"></i>
-                  {{ b.link && !b.productId ? 'Visit' : 'Buy Now' }}
-                </div>
+      <!-- Banner Swiper -->
+      <div v-if="banners.length>0" style="margin-bottom:20px;border-radius:20px;overflow:hidden;">
+        <div class="swiper mySwiper" style="border-radius:20px;">
+          <div class="swiper-wrapper">
+            <div class="swiper-slide" v-for="(b,i) in banners" :key="i" style="position:relative;" @click="handleBannerClick(b)" :style="{cursor:(b.productId||b.link)?'pointer':'default'}">
+              <img :src="b.image" loading="lazy" style="width:100%;height:170px;object-fit:cover;display:block;">
+              <div v-if="b.productId||b.link" style="position:absolute;bottom:14px;right:14px;background:rgba(108,99,255,0.92);backdrop-filter:blur(6px);color:#fff;font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;letter-spacing:0.4px;display:flex;align-items:center;gap:5px;">
+                <i :class="b.link && !b.productId ? 'fa-solid fa-arrow-up-right-from-square' : 'fa-solid fa-bolt'" style="font-size:10px;"></i>
+                {{ b.link && !b.productId ? 'Visit' : 'Buy Now' }}
               </div>
             </div>
-            <div class="swiper-pagination" style="bottom:8px;"></div>
           </div>
+          <div class="swiper-pagination" style="bottom:8px;"></div>
         </div>
-        <div v-else class="reward-banner" style="margin-bottom:20px;">
-          <div style="font-size:11px;font-weight:700;color:var(--primary);letter-spacing:1px;margin-bottom:6px;">🔥 EXCLUSIVE DEALS</div>
-          <div style="font-size:20px;font-weight:800;">Top Up Faster,<br><span class="gradient-text">Play Better.</span></div>
-          <div style="font-size:12px;color:var(--text-muted);margin-top:8px;">Instant delivery. Best price guaranteed.</div>
-        </div>
+      </div>
+      <div v-else class="reward-banner" style="margin-bottom:20px;">
+        <div style="font-size:11px;font-weight:700;color:var(--primary);letter-spacing:1px;margin-bottom:6px;">🔥 EXCLUSIVE DEALS</div>
+        <div style="font-size:20px;font-weight:800;">Top Up Faster,<br><span class="gradient-text">Play Better.</span></div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:8px;">Instant delivery. Best price guaranteed.</div>
+      </div>
 
-        <!-- Daily Check-In -->
-        <div class="checkin-banner">
-          <div style="z-index:1;">
-            <div style="font-weight:800;font-size:15px;color:#fff;margin-bottom:3px;">Daily Check-In</div>
-            <div style="font-size:12px;color:rgba(255,255,255,0.85);">Collect daily bonus</div>
-          </div>
-          <button v-if="!checkInClaimed" @click="claimDailyBonus" class="checkin-claim-btn">Claim</button>
-          <div v-else class="checkin-claimed">✓ Claimed</div>
+      <!-- Daily Check-In -->
+      <div class="checkin-banner">
+        <div style="z-index:1;">
+          <div style="font-weight:800;font-size:15px;color:#fff;margin-bottom:3px;">Daily Check-In</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.85);">Collect daily bonus</div>
         </div>
+        <button v-if="!checkInClaimed" @click="claimDailyBonus" class="checkin-claim-btn">Claim</button>
+        <div v-else class="checkin-claimed">✓ Claimed</div>
+      </div>
 
-        <!-- Quick Access Grid -->
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;">
-          <div @click="goProtected('add-money.html')" style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:14px 8px;text-align:center;cursor:pointer;" class="card-hover">
-            <div style="width:40px;height:40px;background:rgba(108,99,255,0.15);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;"><i class="fa-solid fa-wallet" style="color:var(--primary);font-size:16px;"></i></div>
-            <div style="font-size:11px;font-weight:600;color:var(--text-muted);">Deposit</div>
-          </div>
-          <div @click="goProtected('orders.html')" style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:14px 8px;text-align:center;cursor:pointer;" class="card-hover">
-            <div style="width:40px;height:40px;background:rgba(255,107,157,0.15);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;"><i class="fa-solid fa-receipt" style="color:var(--accent);font-size:16px;"></i></div>
-            <div style="font-size:11px;font-weight:600;color:var(--text-muted);">My Orders</div>
-          </div>
-          <div @click="announcementModal=true" style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:14px 8px;text-align:center;cursor:pointer;position:relative;" class="card-hover">
-            <div style="width:40px;height:40px;background:rgba(255,215,0,0.15);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;"><i class="fa-solid fa-bullhorn" style="color:var(--gold);font-size:16px;"></i></div>
-            <div style="font-size:11px;font-weight:600;color:var(--text-muted);">Announce</div>
-            <span v-if="announcementLines.length>0" style="position:absolute;top:6px;right:6px;width:8px;height:8px;background:#ef4444;border-radius:50%;display:block;"></span>
-          </div>
-          <div @click="goProtected('chat.html')" style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:14px 8px;text-align:center;cursor:pointer;" class="card-hover">
-            <div style="width:40px;height:40px;background:rgba(255,215,0,0.12);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;"><i class="fa-solid fa-comments" style="color:var(--gold);font-size:16px;"></i></div>
-            <div style="font-size:11px;font-weight:600;color:var(--text-muted);">Support</div>
-          </div>
+      <!-- Quick Access Grid -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;">
+        <div @click="goProtected('add-money.html')" style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:14px 8px;text-align:center;cursor:pointer;" class="card-hover">
+          <div style="width:40px;height:40px;background:rgba(108,99,255,0.15);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;"><i class="fa-solid fa-wallet" style="color:var(--primary);font-size:16px;"></i></div>
+          <div style="font-size:11px;font-weight:600;color:var(--text-muted);">Deposit</div>
         </div>
+        <div @click="goProtected('orders.html')" style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:14px 8px;text-align:center;cursor:pointer;" class="card-hover">
+          <div style="width:40px;height:40px;background:rgba(255,107,157,0.15);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;"><i class="fa-solid fa-receipt" style="color:var(--accent);font-size:16px;"></i></div>
+          <div style="font-size:11px;font-weight:600;color:var(--text-muted);">My Orders</div>
+        </div>
+        <div @click="announcementModal=true" style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:14px 8px;text-align:center;cursor:pointer;position:relative;" class="card-hover">
+          <div style="width:40px;height:40px;background:rgba(255,215,0,0.15);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;"><i class="fa-solid fa-bullhorn" style="color:var(--gold);font-size:16px;"></i></div>
+          <div style="font-size:11px;font-weight:600;color:var(--text-muted);">Announce</div>
+          <span v-if="announcementLines.length>0" style="position:absolute;top:6px;right:6px;width:8px;height:8px;background:#ef4444;border-radius:50%;display:block;"></span>
+        </div>
+        <div @click="goProtected('chat.html')" style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:14px 8px;text-align:center;cursor:pointer;" class="card-hover">
+          <div style="width:40px;height:40px;background:rgba(255,215,0,0.12);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;"><i class="fa-solid fa-comments" style="color:var(--gold);font-size:16px;"></i></div>
+          <div style="font-size:11px;font-weight:600;color:var(--text-muted);">Support</div>
+        </div>
+      </div>
 
-        <!-- Mystery Box -->
-        <div v-if="mysteryBoxes.length>0" style="margin-bottom:20px;">
-          <div class="section-title" style="margin-bottom:12px;"><i class="fa-solid fa-box-open" style="color:var(--accent);"></i> Mystery Box</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-            <div v-for="item in mysteryBoxes" :key="item.id" class="product-card" @click="openPurchase(item)">
-              <img :src="item.image" @error="imgError" style="width:100%;height:120px;object-fit:cover;">
-              <div style="padding:10px 12px;"><div style="font-weight:700;font-size:13px;margin-bottom:4px;">{{ item.name }}</div><div style="font-size:12px;color:var(--primary);font-weight:600;">From ৳{{ getMinPrice(item) }}</div></div>
-            </div>
+      <!-- Mystery Box -->
+      <div v-if="mysteryBoxes.length>0" style="margin-bottom:20px;">
+        <div class="section-title" style="margin-bottom:12px;"><i class="fa-solid fa-box-open" style="color:var(--accent);"></i> Mystery Box</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div v-for="item in mysteryBoxes" :key="item.id" class="product-card" @click="openPurchase(item)">
+            <img :src="item.image" @error="imgError" loading="lazy" style="width:100%;height:120px;object-fit:cover;">
+            <div style="padding:10px 12px;"><div style="font-weight:700;font-size:13px;margin-bottom:4px;">{{ item.name }}</div><div style="font-size:12px;color:var(--primary);font-weight:600;">From ৳{{ getMinPrice(item) }}</div></div>
           </div>
         </div>
+      </div>
 
-        <!-- Special Offers -->
-        <div v-if="specialOffers.length>0" style="margin-bottom:20px;">
-          <div class="section-title" style="margin-bottom:12px;"><i class="fa-solid fa-fire" style="color:#f97316;"></i> Special Offers</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-            <div v-for="item in specialOffers" :key="item.id" class="product-card" @click="openPurchase(item)" style="position:relative;">
-              <img :src="item.image" @error="imgError" style="width:100%;height:120px;object-fit:cover;">
-              <div style="position:absolute;top:8px;right:8px;background:#f97316;color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;">HOT</div>
-              <div style="padding:10px 12px;"><div style="font-weight:700;font-size:13px;margin-bottom:4px;">{{ item.name }}</div><div style="font-size:12px;color:var(--accent);font-weight:600;">From ৳{{ getMinPrice(item) }}</div></div>
-            </div>
+      <!-- Special Offers -->
+      <div v-if="specialOffers.length>0" style="margin-bottom:20px;">
+        <div class="section-title" style="margin-bottom:12px;"><i class="fa-solid fa-fire" style="color:#f97316;"></i> Special Offers</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div v-for="item in specialOffers" :key="item.id" class="product-card" @click="openPurchase(item)" style="position:relative;">
+            <img :src="item.image" @error="imgError" loading="lazy" style="width:100%;height:120px;object-fit:cover;">
+            <div style="position:absolute;top:8px;right:8px;background:#f97316;color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;">HOT</div>
+            <div style="padding:10px 12px;"><div style="font-weight:700;font-size:13px;margin-bottom:4px;">{{ item.name }}</div><div style="font-size:12px;color:var(--accent);font-weight:600;">From ৳{{ getMinPrice(item) }}</div></div>
           </div>
         </div>
+      </div>
 
-        <!-- Popular Games -->
-        <div v-if="gameItems.length>0" style="margin-bottom:20px;">
-          <div class="section-title" style="margin-bottom:12px;"><i class="fa-solid fa-gamepad" style="color:#6366f1;"></i> Popular Games</div>
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
-            <div v-for="item in gameItems" :key="item.id" class="product-card" @click="openPurchase(item)" style="padding:10px;text-align:center;">
-              <img :src="item.image" @error="imgError" style="width:100%;height:70px;object-fit:contain;border-radius:10px;margin-bottom:8px;">
-              <div style="font-size:11px;font-weight:700;color:var(--text);line-height:1.3;">{{ item.name }}</div>
-              <div style="font-size:11px;color:var(--primary);font-weight:600;margin-top:3px;">৳{{ getMinPrice(item) }}</div>
-            </div>
+      <!-- Popular Games -->
+      <div v-if="gameItems.length>0" style="margin-bottom:20px;">
+        <div class="section-title" style="margin-bottom:12px;"><i class="fa-solid fa-gamepad" style="color:#6366f1;"></i> Popular Games</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+          <div v-for="item in gameItems" :key="item.id" class="product-card" @click="openPurchase(item)" style="padding:10px;text-align:center;">
+            <img :src="item.image" @error="imgError" loading="lazy" style="width:100%;height:70px;object-fit:contain;border-radius:10px;margin-bottom:8px;">
+            <div style="font-size:11px;font-weight:700;color:var(--text);line-height:1.3;">{{ item.name }}</div>
+            <div style="font-size:11px;color:var(--primary);font-weight:600;margin-top:3px;">৳{{ getMinPrice(item) }}</div>
           </div>
         </div>
+      </div>
 
-        <!-- Cards & Subscriptions -->
-        <div v-if="otherItems.length>0" style="margin-bottom:20px;">
-          <div class="section-title" style="margin-bottom:12px;"><i class="fa-solid fa-ticket" style="color:var(--green);"></i> Cards &amp; Subscriptions</div>
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
-            <div v-for="item in otherItems" :key="item.id" class="product-card" @click="openPurchase(item)" style="padding:10px;text-align:center;">
-              <img :src="item.image" @error="imgError" style="width:100%;height:70px;object-fit:contain;border-radius:10px;margin-bottom:8px;">
-              <div style="font-size:11px;font-weight:700;line-height:1.3;">{{ item.name }}</div>
-              <div style="font-size:11px;color:var(--green);font-weight:600;margin-top:3px;">৳{{ getMinPrice(item) }}</div>
-            </div>
+      <!-- Cards & Subscriptions -->
+      <div v-if="otherItems.length>0" style="margin-bottom:20px;">
+        <div class="section-title" style="margin-bottom:12px;"><i class="fa-solid fa-ticket" style="color:var(--green);"></i> Cards &amp; Subscriptions</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+          <div v-for="item in otherItems" :key="item.id" class="product-card" @click="openPurchase(item)" style="padding:10px;text-align:center;">
+            <img :src="item.image" @error="imgError" loading="lazy" style="width:100%;height:70px;object-fit:contain;border-radius:10px;margin-bottom:8px;">
+            <div style="font-size:11px;font-weight:700;line-height:1.3;">{{ item.name }}</div>
+            <div style="font-size:11px;color:var(--green);font-weight:600;margin-top:3px;">৳{{ getMinPrice(item) }}</div>
           </div>
         </div>
+      </div>
 
-        <div v-if="!loading && gameItems.length===0 && otherItems.length===0 && mysteryBoxes.length===0 && specialOffers.length===0" style="text-align:center;padding:40px 20px;">
-          <i class="fa-solid fa-store" style="font-size:48px;color:var(--text-dim);margin-bottom:16px;display:block;"></i>
-          <div style="font-size:16px;font-weight:700;color:var(--text-muted);">Products Loading...</div>
+      <!-- Footer -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:20px;margin-top:10px;text-align:center;">
+        <div style="font-size:18px;font-weight:800;margin-bottom:4px;">H24 <span class="gradient-text">ONLINE</span></div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">H24 Online Platform</div>
+        <div style="display:flex;justify-content:center;gap:10px;margin-bottom:16px;">
+          <a v-for="(url,platform) in socials" :key="platform" :href="openSocialLink(url)" target="_blank" class="social-icon-btn">
+            <i :class="iconMap[platform]||'fa-brands fa-link'" style="font-size:15px;"></i>
+          </a>
         </div>
-
-        <!-- Footer -->
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:20px;margin-top:10px;text-align:center;">
-          <div style="font-size:18px;font-weight:800;margin-bottom:4px;">H24 <span class="gradient-text">ONLINE</span></div>
-          <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">H24 Online Platform</div>
-          <div style="display:flex;justify-content:center;gap:10px;margin-bottom:16px;">
-            <a v-for="(url,platform) in socials" :key="platform" :href="openSocialLink(url)" target="_blank" class="social-icon-btn">
-              <i :class="iconMap[platform]||'fa-brands fa-link'" style="font-size:15px;"></i>
-            </a>
-          </div>
-          <div style="font-size:11px;color:var(--text-dim);border-top:1px solid var(--border);padding-top:12px;">© H24 Online 2026 · All Rights Reserved</div>
-        </div>
+        <div style="font-size:11px;color:var(--text-dim);border-top:1px solid var(--border);padding-top:12px;">© H24 Online 2026 · All Rights Reserved</div>
       </div>
     </main>
   </div>
@@ -595,8 +1027,8 @@
   <button class="book-sheet-fab"
     :class="{ 'fab-hidden': navHidden || bookSheetModal.show || purchaseModal.show || announcementModal || popup.show }"
     @click="openBookSheet">
-    <i class="fa-solid fa-layer-group" style="font-size:22px;"></i>
-    <span style="font-size:9px;font-weight:800;letter-spacing:0.3px;text-transform:uppercase;">Sheet</span>
+    <i class="fa-solid fa-layer-group" style="font-size:20px;"></i>
+    <span style="font-size:8.5px;font-weight:800;letter-spacing:0.4px;text-transform:uppercase;">Sheet</span>
   </button>
 
 </div>
@@ -609,474 +1041,356 @@ import { getFirestore, doc, getDoc, setDoc, collection, getDocs, query, where, a
 import { createApp, ref, computed, onMounted, nextTick } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
 
 const EPS_PAYMENT_URL = "https://pg.eps.com.bd/PaymentLink?id=D37C6FF8";
-let PAYMENT_SCRIPT_URL = null, PAYMENT_CLIENT_KEY = null, PAYMENT_CONFIG_READY = false;
 const FIRESTORE_REST_BASE = `https://firestore.googleapis.com/v1/projects/h24-online/databases/(default)/documents`;
 
+// ══ CACHE SYSTEM ══
+const _cache = {};
+const CACHE_TTL = 5 * 60 * 1000;
+const cacheGet = (key) => { const e=_cache[key]; if(!e)return null; if(Date.now()-e.ts>CACHE_TTL){delete _cache[key];return null;} return e.data; };
+const cacheSet = (key,data) => { _cache[key]={data,ts:Date.now()}; };
+const sessionGet = (key) => { try{const r=sessionStorage.getItem(key);return r?JSON.parse(r):null;}catch{return null;} };
+const sessionSet = (key,data) => { try{sessionStorage.setItem(key,JSON.stringify(data));}catch{} };
+
+let PAYMENT_SCRIPT_URL=null, PAYMENT_CLIENT_KEY=null, PAYMENT_CONFIG_READY=false;
 async function loadPaymentConfig() {
+  const c=cacheGet('paymentConfig');
+  if(c){PAYMENT_SCRIPT_URL=c.script_url;PAYMENT_CLIENT_KEY=c.api_key;PAYMENT_CONFIG_READY=!!PAYMENT_SCRIPT_URL;return;}
   try {
-    const res = await fetch(`${FIRESTORE_REST_BASE}/AppConfig/payment_config`);
-    if (res.ok) {
-      const data = await res.json();
-      const fields = data.fields || {};
-      PAYMENT_SCRIPT_URL = fields.script_url?.stringValue || null;
-      PAYMENT_CLIENT_KEY = fields.api_key?.stringValue || null;
-      if (PAYMENT_SCRIPT_URL) PAYMENT_CONFIG_READY = true;
-    }
-  } catch (e) {}
+    const res=await fetch(`${FIRESTORE_REST_BASE}/AppConfig/payment_config`);
+    if(res.ok){const data=await res.json();const f=data.fields||{};PAYMENT_SCRIPT_URL=f.script_url?.stringValue||null;PAYMENT_CLIENT_KEY=f.api_key?.stringValue||null;if(PAYMENT_SCRIPT_URL){PAYMENT_CONFIG_READY=true;cacheSet('paymentConfig',{script_url:PAYMENT_SCRIPT_URL,api_key:PAYMENT_CLIENT_KEY});}}
+  }catch(e){}
 }
 loadPaymentConfig();
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCZWRcCP0hXTkfQoRhqxczgdD6cw5kp39c",
-  authDomain: "h24-online.firebaseapp.com",
-  projectId: "h24-online",
-  storageBucket: "h24-online.firebasestorage.app",
-  messagingSenderId: "808524719613",
-  appId: "1:808524719613:web:7f1abe9e70a346c3376594"
+  apiKey:"AIzaSyCZWRcCP0hXTkfQoRhqxczgdD6cw5kp39c",
+  authDomain:"h24-online.firebaseapp.com",
+  projectId:"h24-online",
+  storageBucket:"h24-online.firebasestorage.app",
+  messagingSenderId:"808524719613",
+  appId:"1:808524719613:web:7f1abe9e70a346c3376594"
 };
-const fireApp = initializeApp(firebaseConfig);
-const auth = getAuth(fireApp);
-const db = getFirestore(fireApp);
+const fireApp=initializeApp(firebaseConfig);
+const auth=getAuth(fireApp);
+const db=getFirestore(fireApp);
 
 createApp({
   setup() {
-    const loading = ref(true);
-    const isLoggedIn = ref(false);
-    const userBalance = ref(0);
-    const userAvatar = ref('https://i.pravatar.cc/150?img=12');
-    const userData = ref({});
-    const noticeMessage = ref('আমাদের H24 Online স্টোরে আপনাকে স্বাগতম! সেরা দামে গেম টপআপ করুন।');
-    const logoUrl = ref('');
-    const banners = ref([]);
-    const mysteryBoxes = ref([]);
-    const specialOffers = ref([]);
-    const gameItems = ref([]);
-    const otherItems = ref([]);
-    const socials = ref({});
-    const adminNumbers = ref({ bkash: '', nagad: '', rocket: '' });
-    const announcementLines = ref([]);
-    const announcementModal = ref(false);
-    const checkInClaimed = ref(false);
-    const navHidden = ref(false);
-    const rounds = ref([]);
-    const sheetOptions = ref([]);
+    const isLoggedIn=ref(false), userBalance=ref(0), userAvatar=ref('https://i.pravatar.cc/150?img=12'), userData=ref({});
+    const noticeMessage=ref('আমাদের H24 Online স্টোরে আপনাকে স্বাগতম! সেরা দামে গেম টপআপ করুন।');
+    const logoUrl=ref(''), banners=ref([]), mysteryBoxes=ref([]), specialOffers=ref([]), gameItems=ref([]), otherItems=ref([]);
+    const socials=ref({}), adminNumbers=ref({bkash:'',nagad:'',rocket:''}), announcementLines=ref([]);
+    const announcementModal=ref(false), checkInClaimed=ref(false), navHidden=ref(false);
+    const rounds=ref([]), sheetOptions=ref([]);
 
-    const iconMap = {
-      facebook: 'fa-brands fa-facebook-f', instagram: 'fa-brands fa-instagram',
-      tiktok: 'fa-brands fa-tiktok', youtube: 'fa-brands fa-youtube',
-      telegram: 'fa-brands fa-telegram', whatsapp: 'fa-brands fa-whatsapp'
-    };
+    const iconMap={facebook:'fa-brands fa-facebook-f',instagram:'fa-brands fa-instagram',tiktok:'fa-brands fa-tiktok',youtube:'fa-brands fa-youtube',telegram:'fa-brands fa-telegram',whatsapp:'fa-brands fa-whatsapp'};
 
-    const popup = ref({ show: false, type: '', title: '', msg: '', btnText: 'OK', confirm: null });
+    const popup=ref({show:false,type:'',title:'',msg:'',btnText:'OK',confirm:null});
 
-    // ── Purchase Modal (multi-select) ──
-    const purchaseModal = ref({
-      show: false, product: {}, packages: [],
-      selectedPkgs: [],   // array of selected indices (replaces selectedPkg + quantity)
-      playerId: '', selectedRound: '',
-      payMethod: 'wallet', gateway: 'bkash',
-      trxId: '', epsRef: '', verifying: false
+    // Purchase modal
+    const purchaseModal=ref({
+      show:false,product:{},packages:[],selectedPkg:null,
+      selectedSheets:[],selectedRounds:[],
+      payMethod:'wallet',gateway:'bkash',trxId:'',epsRef:'',verifying:false
     });
 
-    // Total price = sum of all selected packages
-    const purchaseTotalPrice = computed(() => {
-      const pm = purchaseModal.value;
-      if (!pm.packages || pm.selectedPkgs.length === 0) return 0;
-      return pm.selectedPkgs.reduce((sum, i) => sum + (pm.packages[i]?.price || 0), 0);
+    const purchaseTotalPrice=computed(()=>{
+      const pm=purchaseModal.value;
+      if(pm.selectedPkg===null)return 0;
+      const unitPrice=pm.packages[pm.selectedPkg]?.price||0;
+      const sheets=pm.selectedSheets.length||1;
+      const rounds2=pm.selectedRounds.length||1;
+      return unitPrice*sheets*rounds2;
     });
 
-    // Toggle package selection
-    const togglePkg = (i) => {
-      const idx = purchaseModal.value.selectedPkgs.indexOf(i);
-      if (idx >= 0) { purchaseModal.value.selectedPkgs.splice(idx, 1); }
-      else { purchaseModal.value.selectedPkgs.push(i); }
+    const toggleSheet=(label)=>{
+      const arr=purchaseModal.value.selectedSheets;
+      const idx=arr.indexOf(label);
+      if(idx>=0)arr.splice(idx,1);else arr.push(label);
+    };
+    const toggleRound=(label)=>{
+      const arr=purchaseModal.value.selectedRounds;
+      const idx=arr.indexOf(label);
+      if(idx>=0)arr.splice(idx,1);else arr.push(label);
     };
 
-    // ══════════════════════════════════════════
-    // BOOK SHEET STATE
-    // ══════════════════════════════════════════
-    const bsAmounts = [10, 30, 50, 100, 200, 300, 400, 500];
-
-    const bsRounds = computed(() => {
-      if (rounds.value && rounds.value.length > 0) {
-        return rounds.value.map(r => {
-          const parts = r.label.split(' - ');
-          return { label: parts[0] || r.label, time: parts[1] || '' };
-        });
+    // ── Book Sheet Modal ──
+    const bsAmounts=[10,30,50,100,200,300,400,500];
+    const bsRounds=computed(()=>{
+      if(rounds.value&&rounds.value.length>0){
+        return rounds.value.map(r=>{const p=r.label.split(' - ');return{label:p[0]||r.label,time:p[1]||''};});
       }
-      return [
-        {label:'1st',time:'03:00 PM'},{label:'2nd',time:'03:20 PM'},{label:'3rd',time:'03:40 PM'},
-        {label:'4th',time:'04:00 PM'},{label:'5th',time:'04:20 PM'},{label:'6th',time:'04:40 PM'},
-        {label:'7th',time:'05:00 PM'},{label:'8th',time:'05:20 PM'},{label:'9th',time:'05:40 PM'},
-        {label:'10th',time:'06:00 PM'},{label:'11th',time:'06:20 PM'},{label:'12th',time:'06:40 PM'},
-        {label:'13th',time:'07:00 PM'},{label:'14th',time:'07:20 PM'},{label:'15th',time:'07:40 PM'},
-        {label:'16th',time:'08:00 PM'},{label:'17th',time:'08:20 PM'},{label:'18th',time:'08:40 PM'},
-        {label:'19th',time:'09:00 PM'},{label:'20th',time:'09:20 PM'},{label:'21st',time:'09:40 PM'},
-        {label:'22nd',time:'10:00 PM'},{label:'23rd',time:'10:20 PM'},{label:'24th',time:'10:40 PM'},
-        {label:'25th',time:'11:00 PM'},{label:'26th',time:'11:20 PM'},{label:'27th',time:'11:40 PM'},
-        {label:'28th',time:'12:00 AM'},
-      ];
+      return [];
+    });
+    const bsSheetList=computed(()=>{
+      if(sheetOptions.value&&sheetOptions.value.length>0)return sheetOptions.value;
+      return [];
     });
 
-    const bookSheetModal = ref({ show: false, roundIndex: 0, selectedAmt: null, selectedSheets: [], takenSheetsMap: {}, booking: false });
-    const bsCurrentRound = computed(() => bsRounds.value[bookSheetModal.value.roundIndex] || { label: '1st', time: '03:00 PM' });
-    const bsTakenSheets = computed(() => bookSheetModal.value.takenSheetsMap[bookSheetModal.value.roundIndex] || []);
+    const bookSheetModal=ref({show:false,roundIndex:0,selectedAmt:null,selectedSheets:[],takenSheetsMap:{},booking:false});
+    const bsCurrentRound=computed(()=>bsRounds.value[bookSheetModal.value.roundIndex]||{label:'',time:''});
+    const bsTakenSheets=computed(()=>bookSheetModal.value.takenSheetsMap[bookSheetModal.value.roundIndex]||[]);
 
-    const openBookSheet = () => {
-      if (!isLoggedIn.value) { goPage('login.html'); return; }
-      bookSheetModal.value = { show: true, roundIndex: 0, selectedAmt: null, selectedSheets: [], takenSheetsMap: {}, booking: false };
+    const openBookSheet=()=>{
+      if(!isLoggedIn.value){goPage('login.html');return;}
+      if(bsRounds.value.length===0){showPopup('error','লোড হচ্ছে','Round তথ্য লোড হয়নি। একটু পরে চেষ্টা করুন।');return;}
+      bookSheetModal.value={show:true,roundIndex:0,selectedAmt:null,selectedSheets:[],takenSheetsMap:{},booking:false};
       loadTakenSheets(0);
     };
-    const closeBookSheet = () => { bookSheetModal.value.show = false; };
-    const bsChangeRound = (dir) => {
-      const bsm = bookSheetModal.value;
-      const newIdx = bsm.roundIndex + dir;
-      if (newIdx < 0 || newIdx >= bsRounds.value.length) return;
-      bsm.roundIndex = newIdx; bsm.selectedSheets = [];
-      loadTakenSheets(newIdx);
+    const closeBookSheet=()=>{bookSheetModal.value.show=false;};
+    const bsChangeRound=(dir)=>{
+      const bsm=bookSheetModal.value;
+      const ni=bsm.roundIndex+dir;
+      if(ni<0||ni>=bsRounds.value.length)return;
+      bsm.roundIndex=ni;bsm.selectedSheets=[];
+      loadTakenSheets(ni);
     };
-    const loadTakenSheets = async (roundIdx) => {
-      try {
-        const roundLabel = bsRounds.value[roundIdx]?.label;
-        if (!roundLabel) return;
-        const q = query(collection(db, 'sheetBookings'), where('roundLabel', '==', roundLabel), where('status', '!=', 'cancelled'));
-        const snap = await getDocs(q);
-        const taken = [];
-        snap.forEach(d => { const sheets = d.data().sheets || []; sheets.forEach(s => { if (!taken.includes(s)) taken.push(s); }); });
-        bookSheetModal.value.takenSheetsMap = { ...bookSheetModal.value.takenSheetsMap, [roundIdx]: taken };
-      } catch (e) {}
+    const loadTakenSheets=async(roundIdx)=>{
+      try{
+        const roundLabel=bsRounds.value[roundIdx]?.label;
+        if(!roundLabel)return;
+        const ck=`takenSheets_${roundLabel}`;
+        const cached=cacheGet(ck);
+        if(cached){bookSheetModal.value.takenSheetsMap={...bookSheetModal.value.takenSheetsMap,[roundIdx]:cached};return;}
+        const q=query(collection(db,'sheetBookings'),where('roundLabel','==',roundLabel),where('status','!=','cancelled'));
+        const snap=await getDocs(q);
+        const taken=[];
+        snap.forEach(d=>{(d.data().sheets||[]).forEach(s=>{if(!taken.includes(s))taken.push(s);});});
+        cacheSet(ck,taken);
+        bookSheetModal.value.takenSheetsMap={...bookSheetModal.value.takenSheetsMap,[roundIdx]:taken};
+      }catch(e){}
     };
-    const bsToggleSheet = (n) => {
-      if (bsTakenSheets.value.includes(n)) return;
-      const bsm = bookSheetModal.value;
-      const idx = bsm.selectedSheets.indexOf(n);
-      if (idx >= 0) { bsm.selectedSheets.splice(idx, 1); } else { bsm.selectedSheets.push(n); }
+    const bsToggleSheet=(label)=>{
+      if(bsTakenSheets.value.includes(label))return;
+      const bsm=bookSheetModal.value;
+      const idx=bsm.selectedSheets.indexOf(label);
+      if(idx>=0)bsm.selectedSheets.splice(idx,1);else bsm.selectedSheets.push(label);
     };
-    const handleBookSheet = async () => {
-      const bsm = bookSheetModal.value;
-      if (!bsm.selectedAmt || bsm.selectedSheets.length === 0) return;
-      const uid = localStorage.getItem('userId');
-      const totalPrice = bsm.selectedAmt * bsm.selectedSheets.length;
-      const roundLabel = bsCurrentRound.value.label;
-      const roundTime = bsCurrentRound.value.time;
-      if (userBalance.value < totalPrice) {
-        showPopup('error', 'Low Balance', `৳${totalPrice} প্রয়োজন কিন্তু আপনার ব্যালেন্স ৳${userBalance.value}।`, 'Deposit'); return;
-      }
-      showPopup('confirm', 'Confirm Booking',
-        `${roundLabel} Round (${roundTime})\nSheet: ${bsm.selectedSheets.sort((a,b)=>a-b).join(', ')}\nTotal: ৳${totalPrice}`,
-        'Confirm',
-        async () => {
-          popup.value.show = false; bsm.booking = true;
-          try {
-            await runTransaction(db, async (t) => {
-              const uRef = doc(db, 'users', uid);
-              const uDoc = await t.get(uRef);
-              if ((uDoc.data().balance || 0) < totalPrice) throw new Error('Low Balance');
-              t.update(uRef, { balance: uDoc.data().balance - totalPrice });
-              t.set(doc(collection(db, 'sheetBookings')), { userId: uid, roundLabel, roundTime, sheets: [...bsm.selectedSheets], amountPerSheet: bsm.selectedAmt, totalAmount: totalPrice, status: 'pending', createdAt: serverTimestamp() });
-            });
-            bsm.show = false;
-            showPopup('success', 'বুকিং সফল! 🎉', `${roundLabel} Round-এ ${bsm.selectedSheets.length}টি Sheet বুক হয়েছে। মোট: ৳${totalPrice}`, 'OK');
-          } catch (e) {
-            if (e.message === 'Low Balance') { showPopup('error', 'Low Balance', 'ব্যালেন্স পর্যাপ্ত নয়।', 'Deposit'); }
-            else { showPopup('error', 'Error', 'বুকিং হয়নি। আবার চেষ্টা করুন।'); }
-          } finally { bsm.booking = false; }
-        }
-      );
-    };
-    // ══════════════════════════════════════════
-
-    let toastTimer = null;
-    const showToast = (msg, duration = 2200) => {
-      const el = document.getElementById('toast-el');
-      if (!el) return;
-      el.textContent = msg; el.classList.add('show');
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => el.classList.remove('show'), duration);
+    const handleBookSheet=async()=>{
+      const bsm=bookSheetModal.value;
+      if(!bsm.selectedAmt||bsm.selectedSheets.length===0)return;
+      const uid=localStorage.getItem('userId');
+      const totalPrice=bsm.selectedAmt*bsm.selectedSheets.length;
+      const roundLabel=bsCurrentRound.value.label;
+      const roundTime=bsCurrentRound.value.time;
+      if(userBalance.value<totalPrice){showPopup('error','Low Balance',`৳${totalPrice} প্রয়োজন কিন্তু আপনার ব্যালেন্স ৳${userBalance.value}।`,'Deposit');return;}
+      showPopup('confirm','Confirm Booking',`${roundLabel} Round (${roundTime})\nSheet: ${bsm.selectedSheets.join(', ')}\nমোট: ৳${totalPrice}`,'Confirm',async()=>{
+        popup.value.show=false;bsm.booking=true;
+        try{
+          await runTransaction(db,async(t)=>{
+            const uRef=doc(db,'users',uid);
+            const uDoc=await t.get(uRef);
+            if((uDoc.data().balance||0)<totalPrice)throw new Error('Low Balance');
+            t.update(uRef,{balance:uDoc.data().balance-totalPrice});
+            t.set(doc(collection(db,'sheetBookings')),{userId:uid,roundLabel,roundTime,sheets:[...bsm.selectedSheets],amountPerSheet:bsm.selectedAmt,totalAmount:totalPrice,status:'pending',createdAt:serverTimestamp()});
+          });
+          bsm.show=false;
+          showPopup('success','বুকিং সফল! 🎉',`${roundLabel} Round-এ ${bsm.selectedSheets.length}টি Sheet বুক হয়েছে।\nমোট: ৳${totalPrice}`,'OK');
+        }catch(e){
+          if(e.message==='Low Balance')showPopup('error','Low Balance','ব্যালেন্স পর্যাপ্ত নয়।','Deposit');
+          else showPopup('error','Error','বুকিং হয়নি। আবার চেষ্টা করুন।');
+        }finally{bsm.booking=false;}
+      });
     };
 
-    const goPage = (url) => { window.location.href = url; };
-    const goProtected = (url) => { if (!isLoggedIn.value) { window.location.href = 'login.html'; return; } window.location.href = url; };
-    const openSocialLink = (url) => {
-      if (!url) return '#';
-      if (url.startsWith('http://') || url.startsWith('https://')) return url;
-      if (url.startsWith('whatsapp://')) { const m = url.match(/phone=(\d+)/); return m ? `https://wa.me/${m[1]}` : 'https://wa.me'; }
-      if (url.startsWith('tg://')) return url.replace('tg://resolve?domain=', 'https://t.me/');
-      return 'https://' + url;
+    let toastTimer=null;
+    const showToast=(msg,duration=2200)=>{const el=document.getElementById('toast-el');if(!el)return;el.textContent=msg;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),duration);};
+    const goPage=(url)=>{window.location.href=url;};
+    const goProtected=(url)=>{if(!isLoggedIn.value){window.location.href='login.html';return;}window.location.href=url;};
+    const openSocialLink=(url)=>{if(!url)return'#';if(url.startsWith('http://')||url.startsWith('https://'))return url;if(url.startsWith('whatsapp://')){const m=url.match(/phone=(\d+)/);return m?`https://wa.me/${m[1]}`:'https://wa.me';}if(url.startsWith('tg://'))return url.replace('tg://resolve?domain=','https://t.me/');return'https://'+url;};
+    const showPopup=(type,title,msg,btnText='OK',confirm=null)=>{popup.value={show:true,type,title,msg,btnText,confirm};};
+    const closePopup=()=>{
+      if(popup.value.btnText==='Deposit'){popup.value.show=false;goPage('add-money.html');}
+      else if(popup.value.btnText==='Orders'){popup.value.show=false;goPage('orders.html');}
+      else popup.value.show=false;
     };
-    const showPopup = (type, title, msg, btnText = 'OK', confirm = null) => { popup.value = { show: true, type, title, msg, btnText, confirm }; };
-    const closePopup = () => {
-      if (popup.value.btnText === 'Deposit') { popup.value.show = false; goPage('add-money.html'); }
-      else if (popup.value.btnText === 'Orders') { popup.value.show = false; goPage('orders.html'); }
-      else { popup.value.show = false; }
-    };
-    const imgError = (e) => { e.target.src = 'https://placehold.co/400x400/1c1c28/6c63ff?text=H24'; };
-    const getMinPrice = (item) => { if (item.packages && item.packages.length > 0) return Math.min(...item.packages.map(p => p.price)); return item.price || 0; };
-    const copyNum = (num) => { if (num) { navigator.clipboard.writeText(num).catch(()=>{}); showToast('✅ Copied: ' + num); } };
+    const imgError=(e)=>{e.target.src='https://placehold.co/400x400/1c1c28/6c63ff?text=H24';};
+    const getMinPrice=(item)=>{if(item.packages?.length>0)return Math.min(...item.packages.map(p=>p.price));return item.price||0;};
+    const copyNum=(num)=>{if(num){navigator.clipboard.writeText(num).catch(()=>{});showToast('✅ Copied: '+num);}};
 
-    const handleBannerClick = (banner) => {
-      if (!banner) return;
-      if (banner.productId) {
-        const allProducts = [...mysteryBoxes.value, ...specialOffers.value, ...gameItems.value, ...otherItems.value];
-        const product = allProducts.find(p => p.id === banner.productId);
-        if (product) { openPurchase(product); return; }
-      }
-      if (banner.link) { window.open(openSocialLink(banner.link), '_blank'); }
+    const handleBannerClick=(banner)=>{
+      if(!banner)return;
+      if(banner.productId){const all=[...mysteryBoxes.value,...specialOffers.value,...gameItems.value,...otherItems.value];const p=all.find(x=>x.id===banner.productId);if(p){openPurchase(p);return;}}
+      if(banner.link)window.open(openSocialLink(banner.link),'_blank');
     };
 
-    const openPurchase = (item) => {
-      if (!isLoggedIn.value) { goPage('login.html'); return; }
-      purchaseModal.value = {
-        show: true, product: item,
-        packages: item.packages && item.packages.length > 0 ? item.packages : [{ name: 'Default', price: item.price || 0 }],
-        selectedPkgs: [],   // start with nothing selected
-        playerId: '', selectedRound: '',
-        payMethod: 'wallet', gateway: 'bkash', trxId: '', epsRef: '', verifying: false
+    const openPurchase=(item)=>{
+      if(!isLoggedIn.value){goPage('login.html');return;}
+      purchaseModal.value={
+        show:true,product:item,
+        packages:item.packages?.length>0?item.packages:[{name:'Default',price:item.price||0}],
+        selectedPkg:null,selectedSheets:[],selectedRounds:[],
+        payMethod:'wallet',gateway:'bkash',trxId:'',epsRef:'',verifying:false
       };
     };
 
-    const handleEpsPurchaseRedirect = () => {
-      if (purchaseModal.value.selectedPkgs.length === 0) { showPopup('error','Select Package','Please choose at least one package.'); return; }
-      window.open(EPS_PAYMENT_URL, '_blank');
+    const handleEpsPurchaseRedirect=()=>{
+      if(purchaseModal.value.selectedPkg===null){showPopup('error','Select Package','আগে একটি প্যাকেজ সিলেক্ট করুন।');return;}
+      window.open(EPS_PAYMENT_URL,'_blank');
     };
 
-    const addReferralCommission = async (buyerUid, orderPrice) => {
-      try {
-        const buyerSnap = await getDoc(doc(db, 'users', buyerUid));
-        if (!buyerSnap.exists()) return;
-        const referredBy = buyerSnap.data().referredBy;
-        if (!referredBy) return;
-        const refQuery = query(collection(db, 'users'), where('referralCode', '==', referredBy));
-        const refSnap = await getDocs(refQuery);
-        if (refSnap.empty) return;
-        const referrerId = refSnap.docs[0].id;
-        const commission = Math.floor(orderPrice * 0.10);
-        if (commission <= 0) return;
-        await updateDoc(doc(db, 'users', referrerId), { balance: increment(commission) });
-        const refDocRef = doc(db, 'referrals', referrerId);
-        const refDoc = await getDoc(refDocRef);
-        if (refDoc.exists()) { await updateDoc(refDocRef, { totalEarned: increment(commission) }); }
-        else { await setDoc(refDocRef, { totalRefs: 0, totalEarned: commission }); }
-        await addDoc(collection(db, 'balanceLogs'), { userId: referrerId, type: 'referral', amount: commission, note: 'Refer Bonus', createdAt: serverTimestamp() });
-      } catch (e) {}
+    const addReferralCommission=async(buyerUid,orderPrice)=>{
+      try{const bs=await getDoc(doc(db,'users',buyerUid));if(!bs.exists())return;const rb=bs.data().referredBy;if(!rb)return;const rq=query(collection(db,'users'),where('referralCode','==',rb));const rs=await getDocs(rq);if(rs.empty)return;const rid=rs.docs[0].id;const c=Math.floor(orderPrice*0.10);if(c<=0)return;await updateDoc(doc(db,'users',rid),{balance:increment(c)});const rd=doc(db,'referrals',rid);const rdoc=await getDoc(rd);if(rdoc.exists())await updateDoc(rd,{totalEarned:increment(c)});else await setDoc(rd,{totalRefs:0,totalEarned:c});await addDoc(collection(db,'balanceLogs'),{userId:rid,type:'referral',amount:c,note:'Refer Bonus',createdAt:serverTimestamp()});}catch(e){}
+    };
+    const updateTurnoverProgress=async(uid,spentAmount)=>{
+      try{const snap=await getDocs(query(collection(db,'turnovers'),where('userId','==',uid),where('status','==','active')));let remaining=spentAmount;for(const d of snap.docs){if(remaining<=0)break;const data=d.data();const needed=data.required-(data.done||0);if(needed<=0){await updateDoc(doc(db,'turnovers',d.id),{status:'completed',done:data.required});continue;}const toAdd=Math.min(remaining,needed);const newDone=(data.done||0)+toAdd;if(newDone>=data.required)await updateDoc(doc(db,'turnovers',d.id),{done:data.required,status:'completed'});else await updateDoc(doc(db,'turnovers',d.id),{done:newDone});remaining-=toAdd;}}catch(e){}
     };
 
-    const updateTurnoverProgress = async (uid, spentAmount) => {
-      try {
-        const snap = await getDocs(query(collection(db, 'turnovers'), where('userId', '==', uid), where('status', '==', 'active')));
-        let remaining = spentAmount;
-        for (const d of snap.docs) {
-          if (remaining <= 0) break;
-          const data = d.data();
-          const needed = data.required - (data.done || 0);
-          if (needed <= 0) { await updateDoc(doc(db, 'turnovers', d.id), { status: 'completed', done: data.required }); continue; }
-          const toAdd = Math.min(remaining, needed);
-          const newDone = (data.done || 0) + toAdd;
-          if (newDone >= data.required) { await updateDoc(doc(db, 'turnovers', d.id), { done: data.required, status: 'completed' }); }
-          else { await updateDoc(doc(db, 'turnovers', d.id), { done: newDone }); }
-          remaining -= toAdd;
-        }
-      } catch (e) {}
-    };
-
-    // ── handlePurchaseBuy: creates one order per selected package ──
-    const handlePurchaseBuy = async () => {
-      const pm = purchaseModal.value;
-      if (pm.selectedPkgs.length === 0) return showPopup('error', 'Select Package', 'অন্তত একটি প্যাকেজ সিলেক্ট করুন।');
-      if (!pm.playerId) return showPopup('error', 'Missing Info', 'Sheet No দিন।');
-      if (!pm.selectedRound) return showPopup('error', 'Select Round', 'Round select করুন।');
-      const uid = localStorage.getItem('userId');
-      const totalPrice = purchaseTotalPrice.value;
-      const selectedPackages = pm.selectedPkgs.map(i => pm.packages[i]);
-
-      // Build order data for all selected packages
-      const makeOrderData = (pack) => ({
-        userId: uid,
-        packageName: pack.name,
-        price: pack.price,
-        quantity: 1,
-        totalPrice: pack.price,
-        playerId: pm.playerId,
-        sheetInfo: pm.playerId,
-        selectedRound: pm.selectedRound,
-        roundInfo: pm.selectedRound,
-        productName: pm.product.name,
-        category: pm.product.category,
-        createdAt: serverTimestamp()
+    const handlePurchaseBuy=async()=>{
+      const pm=purchaseModal.value;
+      if(pm.selectedPkg===null)return showPopup('error','প্যাকেজ নেই','অন্তত একটি প্যাকেজ সিলেক্ট করুন।');
+      if(pm.selectedSheets.length===0)return showPopup('error','Sheet নেই','অন্তত একটি Sheet No সিলেক্ট করুন।');
+      if(pm.selectedRounds.length===0)return showPopup('error','Round নেই','অন্তত একটি Round সিলেক্ট করুন।');
+      const uid=localStorage.getItem('userId');
+      const pack=pm.packages[pm.selectedPkg];
+      const totalPrice=purchaseTotalPrice.value;
+      const sheetStr=pm.selectedSheets.join(', ');
+      const roundStr=pm.selectedRounds.join(', ');
+      const makeOrderData=(sheetLabel,roundLabel)=>({
+        userId:uid,packageName:pack.name,price:pack.price,quantity:1,totalPrice:pack.price,
+        playerId:sheetLabel,sheetInfo:sheetLabel,
+        selectedRound:roundLabel,roundInfo:roundLabel,
+        productName:pm.product.name,category:pm.product.category,
+        createdAt:serverTimestamp()
       });
-
-      if (pm.payMethod === 'wallet') {
-        if (userBalance.value < totalPrice) return showPopup('error', 'Low Balance', `৳${totalPrice} প্রয়োজন কিন্তু ব্যালেন্স ৳${userBalance.value}।`, 'Deposit');
-        const pkgSummary = selectedPackages.map(p => `${p.name} ৳${p.price}`).join(', ');
-        showPopup('confirm', 'Confirm Purchase',
-          `নিচের প্যাকেজগুলো কিনবেন?\n${pkgSummary}\n\nমোট: ৳${totalPrice}`,
-          'Confirm',
-          async () => {
-            popup.value.show = false;
-            purchaseModal.value.show = false;
-            try {
-              await runTransaction(db, async (t) => {
-                const uRef = doc(db, 'users', uid);
-                const uDoc = await t.get(uRef);
-                if (uDoc.data().balance < totalPrice) throw 'Low Balance';
-                t.update(uRef, { balance: uDoc.data().balance - totalPrice });
-                // Create one order per selected package
-                for (const pack of selectedPackages) {
-                  t.set(doc(collection(db, 'orders')), { ...makeOrderData(pack), status: 'pending', paymentMethod: 'wallet' });
+      if(pm.payMethod==='wallet'){
+        if(userBalance.value<totalPrice)return showPopup('error','Low Balance',`৳${totalPrice} প্রয়োজন কিন্তু ব্যালেন্স ৳${userBalance.value}।`,'Deposit');
+        const orderCount=pm.selectedSheets.length*pm.selectedRounds.length;
+        showPopup('confirm','Confirm Purchase',`${pack.name}\nSheet: ${sheetStr}\nRound: ${roundStr}\n\nমোট অর্ডার: ${orderCount}টি\nমোট: ৳${totalPrice}`,'Confirm',async()=>{
+          popup.value.show=false;purchaseModal.value.show=false;
+          try{
+            await runTransaction(db,async(t)=>{
+              const uRef=doc(db,'users',uid);
+              const uDoc=await t.get(uRef);
+              if(uDoc.data().balance<totalPrice)throw'Low Balance';
+              t.update(uRef,{balance:uDoc.data().balance-totalPrice});
+              for(const sh of pm.selectedSheets){
+                for(const rd of pm.selectedRounds){
+                  t.set(doc(collection(db,'orders')),{...makeOrderData(sh,rd),status:'pending',paymentMethod:'wallet'});
                 }
-              });
-              await addReferralCommission(uid, totalPrice);
-              await updateTurnoverProgress(uid, totalPrice);
-              showPopup('success', 'Order Placed! 🎉',
-                `${selectedPackages.length}টি প্যাকেজ অর্ডার করা হয়েছে। মোট: ৳${totalPrice}`, 'Orders');
-            } catch (e) { showPopup('error', 'Failed', 'Transaction failed. Try again.'); }
-          }
-        );
-      } else if (pm.payMethod === 'direct') {
-        if (!pm.trxId || pm.trxId.length < 5) return showPopup('error', 'Invalid TrxID', 'সঠিক Transaction ID দিন।');
-        pm.verifying = true;
-        try {
-          const trxId = pm.trxId.trim().toUpperCase();
-          let verifyOk = false, verifyMsg = '';
-          try {
-            const txSnap = await getDoc(doc(db, 'transactions', trxId));
-            if (txSnap.exists()) {
-              const txData = txSnap.data();
-              if (txData.status === 'used') { verifyMsg = 'এই TrxID আগেই ব্যবহার হয়েছে।'; }
-              else if (Number(txData.amount) !== totalPrice) { verifyMsg = `Amount মিলছে না। Expected ৳${totalPrice}.`; }
-              else { await updateDoc(doc(db, 'transactions', trxId), { status: 'used', usedBy: uid, usedAt: serverTimestamp() }); verifyOk = true; }
-            }
-          } catch (fe) {}
-          if (!verifyOk && !verifyMsg && PAYMENT_CONFIG_READY && PAYMENT_SCRIPT_URL) {
-            try {
-              const vRes = await fetch(`${PAYMENT_SCRIPT_URL}?trxID=${trxId}&apiKey=${PAYMENT_CLIENT_KEY}&amount=${totalPrice}`);
-              if (vRes.ok) { const vData = await vRes.json(); verifyOk = vData.status === 'success'; verifyMsg = vData.message || ''; }
-            } catch (fe) {}
-          }
-          if (verifyOk) {
-            for (const pack of selectedPackages) {
-              await addDoc(collection(db, 'orders'), { ...makeOrderData(pack), status: 'processing', paymentMethod: pm.gateway + '_auto', trxId, isAutoVerified: true });
-            }
-            await addReferralCommission(uid, totalPrice);
-            pm.show = false;
-            showPopup('success', 'Payment Verified! ✅', `${selectedPackages.length}টি অর্ডার সম্পন্ন হয়েছে।`, 'Orders');
-          } else { showPopup('error', 'Verification Failed ❌', verifyMsg || 'TrxID মিলছে না।'); }
-        } catch (e) { showPopup('error', 'Error', 'Connection failed. Try again.'); }
-        finally { pm.verifying = false; }
-      } else if (pm.payMethod === 'eps') {
-        if (!pm.epsRef || pm.epsRef.length < 4) return showPopup('error', 'EPS Reference', 'EPS Reference নম্বর দিন।');
-        pm.verifying = true;
-        try {
-          for (const pack of selectedPackages) {
-            await addDoc(collection(db, 'orders'), { ...makeOrderData(pack), status: 'pending', paymentMethod: 'eps', epsRef: pm.epsRef.trim(), isEps: true });
-          }
-          pm.show = false;
-          showPopup('success', 'Order Submitted!', 'EPS পেমেন্ট যাচাই হলে অর্ডার প্রসেস হবে।', 'Orders');
-        } catch (e) { showPopup('error', 'Error', 'Order submit failed. Try again.'); }
-        finally { pm.verifying = false; }
+              }
+            });
+            await addReferralCommission(uid,totalPrice);await updateTurnoverProgress(uid,totalPrice);
+            showPopup('success','Order Placed! 🎉',`${orderCount}টি অর্ডার সম্পন্ন হয়েছে।\nমোট: ৳${totalPrice}`,'Orders');
+          }catch(e){showPopup('error','Failed','Transaction failed. Try again.');}
+        });
+      }else if(pm.payMethod==='direct'){
+        if(!pm.trxId||pm.trxId.length<5)return showPopup('error','Invalid TrxID','সঠিক Transaction ID দিন।');
+        pm.verifying=true;
+        try{
+          const trxId=pm.trxId.trim().toUpperCase();let verifyOk=false,verifyMsg='';
+          try{const txSnap=await getDoc(doc(db,'transactions',trxId));if(txSnap.exists()){const txData=txSnap.data();if(txData.status==='used')verifyMsg='এই TrxID আগেই ব্যবহার হয়েছে।';else if(Number(txData.amount)!==totalPrice)verifyMsg=`Amount মিলছে না। Expected ৳${totalPrice}.`;else{await updateDoc(doc(db,'transactions',trxId),{status:'used',usedBy:uid,usedAt:serverTimestamp()});verifyOk=true;}}}catch(fe){}
+          if(!verifyOk&&!verifyMsg&&PAYMENT_CONFIG_READY&&PAYMENT_SCRIPT_URL){try{const vRes=await fetch(`${PAYMENT_SCRIPT_URL}?trxID=${trxId}&apiKey=${PAYMENT_CLIENT_KEY}&amount=${totalPrice}`);if(vRes.ok){const vData=await vRes.json();verifyOk=vData.status==='success';verifyMsg=vData.message||'';}}catch(fe){}}
+          if(verifyOk){
+            const orderCount=pm.selectedSheets.length*pm.selectedRounds.length;
+            for(const sh of pm.selectedSheets){for(const rd of pm.selectedRounds){await addDoc(collection(db,'orders'),{...makeOrderData(sh,rd),status:'processing',paymentMethod:pm.gateway+'_auto',trxId,isAutoVerified:true});}}
+            await addReferralCommission(uid,totalPrice);pm.show=false;
+            showPopup('success','Payment Verified! ✅',`${orderCount}টি অর্ডার সম্পন্ন।`,'Orders');
+          }else showPopup('error','Verification Failed ❌',verifyMsg||'TrxID মিলছে না।');
+        }catch(e){showPopup('error','Error','Connection failed. Try again.');}
+        finally{pm.verifying=false;}
+      }else if(pm.payMethod==='eps'){
+        if(!pm.epsRef||pm.epsRef.length<4)return showPopup('error','EPS Reference','EPS Reference নম্বর দিন।');
+        pm.verifying=true;
+        try{
+          for(const sh of pm.selectedSheets){for(const rd of pm.selectedRounds){await addDoc(collection(db,'orders'),{...makeOrderData(sh,rd),status:'pending',paymentMethod:'eps',epsRef:pm.epsRef.trim(),isEps:true});}}
+          pm.show=false;showPopup('success','Order Submitted!','EPS পেমেন্ট যাচাই হলে অর্ডার প্রসেস হবে।','Orders');
+        }catch(e){showPopup('error','Error','Order submit failed. Try again.');}
+        finally{pm.verifying=false;}
       }
     };
 
-    const claimDailyBonus = async () => {
-      if (!isLoggedIn.value) { goPage('login.html'); return; }
-      if (checkInClaimed.value) return;
-      const user = auth.currentUser;
-      if (!user) { goPage('login.html'); return; }
-      const uid = user.uid;
-      const today = new Date().toISOString().slice(0, 10);
-      const checkinRef = doc(db, 'checkins', `${uid}_${today}`);
-      try {
-        const snap = await getDoc(checkinRef);
-        if (snap.exists()) { checkInClaimed.value = true; showPopup('error', 'Already Claimed', 'আজকের বোনাস আগেই নেওয়া হয়েছে।'); return; }
-        await setDoc(checkinRef, { userId: uid, date: today, amount: 10, claimedAt: serverTimestamp() });
-        await updateDoc(doc(db, 'users', uid), { balance: increment(10) });
-        await addDoc(collection(db, 'balanceLogs'), { userId: uid, type: 'daily_bonus', amount: 10, note: 'Daily Check-In', createdAt: serverTimestamp() });
-        await addDoc(collection(db, 'turnovers'), { userId: uid, type: 'daily_bonus', label: 'Daily Bonus Turnover (৳10)', required: 10, done: 0, status: 'active', createdAt: serverTimestamp() });
-        checkInClaimed.value = true;
-        showPopup('success', 'বোনাস পেয়েছেন! 🎉', '৳১০ আপনার ওয়ালেটে যোগ হয়েছে।');
-      } catch (e) { showPopup('error', 'Error', 'কিছু সমস্যা হয়েছে।'); }
+    const claimDailyBonus=async()=>{
+      if(!isLoggedIn.value){goPage('login.html');return;}
+      if(checkInClaimed.value)return;
+      const user=auth.currentUser;if(!user){goPage('login.html');return;}
+      const uid=user.uid,today=new Date().toISOString().slice(0,10),ref2=doc(db,'checkins',`${uid}_${today}`);
+      try{
+        const snap=await getDoc(ref2);if(snap.exists()){checkInClaimed.value=true;showPopup('error','Already Claimed','আজকের বোনাস আগেই নেওয়া হয়েছে।');return;}
+        await setDoc(ref2,{userId:uid,date:today,amount:10,claimedAt:serverTimestamp()});
+        await updateDoc(doc(db,'users',uid),{balance:increment(10)});
+        await addDoc(collection(db,'balanceLogs'),{userId:uid,type:'daily_bonus',amount:10,note:'Daily Check-In',createdAt:serverTimestamp()});
+        await addDoc(collection(db,'turnovers'),{userId:uid,type:'daily_bonus',label:'Daily Bonus Turnover (৳10)',required:10,done:0,status:'active',createdAt:serverTimestamp()});
+        checkInClaimed.value=true;showPopup('success','বোনাস পেয়েছেন! 🎉','৳১০ আপনার ওয়ালেটে যোগ হয়েছে।');
+      }catch(e){showPopup('error','Error','কিছু সমস্যা হয়েছে।');}
     };
 
-    onMounted(async () => {
-      document.addEventListener('touchstart', (e) => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
-      let lastTouchEnd = 0;
-      document.addEventListener('touchend', (e) => { const now = Date.now(); if (now - lastTouchEnd < 300) e.preventDefault(); lastTouchEnd = now; }, { passive: false });
-      document.addEventListener('gesturestart', (e) => { e.preventDefault(); }, { passive: false });
+    // ══ Data Loading ══
+    const loadAllData=async()=>{
+      const cp=sessionGet('products_cache');
+      if(cp){cp.forEach(item=>{const cat=item.category;if(cat==='mystery')mysteryBoxes.value.push(item);else if(cat==='special')specialOffers.value.push(item);else if(cat==='freefire'||cat==='ingame')gameItems.value.push(item);else if(cat==='shell'||cat==='giftcard'||cat==='subscription')otherItems.value.push(item);else gameItems.value.push(item);});}
+      const cb=sessionGet('banners_cache');if(cb)banners.value=cb;
+      const cn=sessionGet('settings_notice');if(cn)noticeMessage.value=cn.text||noticeMessage.value;
+      const ca=sessionGet('settings_announcement');if(ca)announcementLines.value=ca.lines||[];
+      const cl=sessionGet('settings_logo');if(cl)logoUrl.value=cl.url||'';
+      const cpa=sessionGet('settings_payment');if(cpa)adminNumbers.value=cpa;
+      const cs=sessionGet('admin_settings');if(cs)socials.value=cs;
+      const cr=sessionGet('settings_rounds');if(cr&&cr.list)rounds.value=cr.list;
+      const csh=sessionGet('settings_sheetInfo');if(csh&&csh.list)sheetOptions.value=csh.list;
 
-      let lastScrollY = 0;
-      document.addEventListener('scroll', (e) => {
-        if (e.target && e.target.classList && e.target.classList.contains('page-scroll')) {
-          const currentY = e.target.scrollTop;
-          if (currentY > lastScrollY + 8 && currentY > 50) { navHidden.value = true; }
-          else if (currentY < lastScrollY - 8 || currentY < 10) { navHidden.value = false; }
-          lastScrollY = currentY;
-        }
-      }, true);
+      const fetchFresh=async()=>{
+        try{
+          const [nSnap,annSnap,logoSnap,pSnap,sSnap,roundsSnap,sheetsSnap,bannerSnap,prodSnap]=await Promise.all([
+            getDoc(doc(db,'settings','notice')),
+            getDoc(doc(db,'settings','announcement')),
+            getDoc(doc(db,'settings','logo')),
+            getDoc(doc(db,'settings','payment')),
+            getDoc(doc(db,'admin','settings')),
+            getDoc(doc(db,'settings','rounds')),
+            getDoc(doc(db,'settings','sheetInfo')),
+            getDocs(collection(db,'banners')),
+            getDocs(collection(db,'products'))
+          ]);
+          if(nSnap.exists()){noticeMessage.value=nSnap.data().text;sessionSet('settings_notice',nSnap.data());}
+          if(annSnap.exists()){announcementLines.value=annSnap.data().lines||[];sessionSet('settings_announcement',annSnap.data());}
+          if(logoSnap.exists()){logoUrl.value=logoSnap.data().url||'';sessionSet('settings_logo',logoSnap.data());}
+          if(pSnap.exists()){adminNumbers.value=pSnap.data();sessionSet('settings_payment',pSnap.data());}
+          if(sSnap.exists()){socials.value=sSnap.data();sessionSet('admin_settings',sSnap.data());}
+          if(roundsSnap.exists()&&roundsSnap.data().list){rounds.value=roundsSnap.data().list;sessionSet('settings_rounds',roundsSnap.data());}
+          if(sheetsSnap.exists()&&sheetsSnap.data().list){sheetOptions.value=sheetsSnap.data().list;sessionSet('settings_sheetInfo',sheetsSnap.data());}
+          if(!cb){const bArr=bannerSnap.docs.map(d=>({image:d.data().image||'',link:d.data().link||'',productId:d.data().productId||''}));banners.value=bArr;sessionSet('banners_cache',bArr);}
+          if(!cp){const prodArr=[];const boxes=[],special=[],games=[],other=[];prodSnap.forEach(d=>{const item={id:d.id,...d.data()};prodArr.push(item);const cat=item.category;if(cat==='mystery')boxes.push(item);else if(cat==='special')special.push(item);else if(cat==='freefire'||cat==='ingame')games.push(item);else if(cat==='shell'||cat==='giftcard'||cat==='subscription')other.push(item);else games.push(item);});mysteryBoxes.value=boxes;specialOffers.value=special;gameItems.value=games;otherItems.value=other;sessionSet('products_cache',prodArr);}
+        }catch(e){}
+      };
 
-      onAuthStateChanged(auth, (user) => {
-        if (user) {
-          isLoggedIn.value = true;
-          localStorage.setItem('userId', user.uid);
-          updateDoc(doc(db, 'users', user.uid), { isOnline: true, lastSeen: serverTimestamp() }).catch(()=>{});
-          onSnapshot(doc(db, 'users', user.uid), (d) => {
-            if (d.exists()) { userBalance.value = d.data().balance || 0; userAvatar.value = d.data().photoURL || 'https://i.pravatar.cc/150?img=12'; userData.value = d.data(); }
-          });
-          const today = new Date().toISOString().slice(0, 10);
-          getDoc(doc(db, 'checkins', `${user.uid}_${today}`)).then(s => { checkInClaimed.value = s.exists(); }).catch(()=>{});
-        } else { isLoggedIn.value = false; }
+      if(!cp||!cb)await fetchFresh();else fetchFresh();
+      await nextTick();
+      if(banners.value.length>0){setTimeout(()=>{new Swiper('.mySwiper',{loop:true,autoplay:{delay:3500,disableOnInteraction:false},pagination:{el:'.swiper-pagination',clickable:true}});},100);}
+    };
+
+    onMounted(async()=>{
+      document.addEventListener('touchstart',(e)=>{if(e.touches.length>1)e.preventDefault();},{passive:false});
+      let lastTouchEnd=0;
+      document.addEventListener('touchend',(e)=>{const now=Date.now();if(now-lastTouchEnd<300)e.preventDefault();lastTouchEnd=now;},{passive:false});
+      document.addEventListener('gesturestart',(e)=>{e.preventDefault();},{passive:false});
+      let lastScrollY=0;
+      document.addEventListener('scroll',(e)=>{if(e.target?.classList?.contains('page-scroll')){const cy=e.target.scrollTop;if(cy>lastScrollY+8&&cy>50)navHidden.value=true;else if(cy<lastScrollY-8||cy<10)navHidden.value=false;lastScrollY=cy;}},true);
+
+      onAuthStateChanged(auth,(user)=>{
+        if(user){
+          isLoggedIn.value=true;
+          localStorage.setItem('userId',user.uid);
+          updateDoc(doc(db,'users',user.uid),{isOnline:true,lastSeen:serverTimestamp()}).catch(()=>{});
+          onSnapshot(doc(db,'users',user.uid),(d)=>{if(d.exists()){userBalance.value=d.data().balance||0;userAvatar.value=d.data().photoURL||'https://i.pravatar.cc/150?img=12';userData.value=d.data();}});
+          const today=new Date().toISOString().slice(0,10);
+          getDoc(doc(db,'checkins',`${user.uid}_${today}`)).then(s=>{checkInClaimed.value=s.exists();}).catch(()=>{});
+        }else{isLoggedIn.value=false;}
       });
 
-      try { const s = await getDoc(doc(db, 'settings', 'notice')); if (s.exists()) noticeMessage.value = s.data().text; } catch(e) {}
-      try { const s = await getDoc(doc(db, 'settings', 'announcement')); if (s.exists()) announcementLines.value = s.data().lines || []; } catch(e) {}
-      try { const s = await getDoc(doc(db, 'settings', 'logo')); if (s.exists()) logoUrl.value = s.data().url || ''; } catch(e) {}
-      try { const s = await getDoc(doc(db, 'settings', 'payment')); if (s.exists()) adminNumbers.value = s.data(); } catch(e) {}
-      try { const s = await getDoc(doc(db, 'admin', 'settings')); if (s.exists()) socials.value = s.data(); } catch(e) {}
-      try {
-        const s = await getDoc(doc(db, 'settings', 'rounds'));
-        if (s.exists() && s.data().list) { rounds.value = s.data().list; }
-        const ss = await getDoc(doc(db, 'settings', 'sheetInfo'));
-        if (ss.exists() && ss.data().list) { sheetOptions.value = ss.data().list; }
-      } catch(e) {}
-      try {
-        const prodSnap = await getDocs(collection(db, 'products'));
-        prodSnap.forEach(d => {
-          const item = { id: d.id, ...d.data() };
-          const cat = item.category;
-          if (cat === 'mystery') mysteryBoxes.value.push(item);
-          else if (cat === 'special') specialOffers.value.push(item);
-          else if (cat === 'freefire' || cat === 'ingame') gameItems.value.push(item);
-          else if (cat === 'shell' || cat === 'giftcard' || cat === 'subscription') otherItems.value.push(item);
-          else gameItems.value.push(item);
-        });
-        const bannerSnap = await getDocs(collection(db, 'banners'));
-        banners.value = bannerSnap.docs.map(d => ({ image: d.data().image || '', link: d.data().link || '', productId: d.data().productId || '' }));
-      } catch(e) {}
-
-      loading.value = false;
-      await nextTick();
-      if (banners.value.length > 0) {
-        setTimeout(() => {
-          new Swiper('.mySwiper', {
-            loop: true, autoplay: { delay: 3500, disableOnInteraction: false },
-            pagination: { el: '.swiper-pagination', clickable: true }
-          });
-        }, 300);
-      }
+      await loadAllData();
     });
 
     return {
-      loading, isLoggedIn, userBalance, userAvatar, userData,
-      noticeMessage, logoUrl, banners, mysteryBoxes, specialOffers, gameItems, otherItems,
-      socials, iconMap, adminNumbers, announcementLines, announcementModal,
-      checkInClaimed, navHidden, rounds, sheetOptions,
-      popup, purchaseModal, purchaseTotalPrice, togglePkg,
-      goPage, goProtected, openSocialLink,
-      showPopup, closePopup, imgError, getMinPrice,
-      handleBannerClick, openPurchase, handlePurchaseBuy, handleEpsPurchaseRedirect,
-      claimDailyBonus, copyNum,
-      bsAmounts, bsRounds, bsCurrentRound, bsTakenSheets,
-      bookSheetModal, openBookSheet, closeBookSheet,
-      bsChangeRound, bsToggleSheet, handleBookSheet,
+      isLoggedIn,userBalance,userAvatar,userData,
+      noticeMessage,logoUrl,banners,mysteryBoxes,specialOffers,gameItems,otherItems,
+      socials,iconMap,adminNumbers,announcementLines,announcementModal,
+      checkInClaimed,navHidden,rounds,sheetOptions,
+      popup,purchaseModal,purchaseTotalPrice,toggleSheet,toggleRound,
+      goPage,goProtected,openSocialLink,showPopup,closePopup,imgError,getMinPrice,
+      handleBannerClick,openPurchase,handlePurchaseBuy,handleEpsPurchaseRedirect,
+      claimDailyBonus,copyNum,
+      bsAmounts,bsRounds,bsSheetList,bsCurrentRound,bsTakenSheets,
+      bookSheetModal,openBookSheet,closeBookSheet,bsChangeRound,bsToggleSheet,handleBookSheet,
     };
   }
 }).mount('#app');
