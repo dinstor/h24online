@@ -7,172 +7,321 @@
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Noto+Sans+Bengali:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css">
+<style>
+:root {
+  --bg: #0f0f1a;
+  --surface: #1a1a2e;
+  --surface2: #1e1e35;
+  --border: rgba(255,255,255,0.08);
+  --text: #ffffff;
+  --text-muted: rgba(255,255,255,0.55);
+  --text-dim: rgba(255,255,255,0.3);
+  --primary: #6c63ff;
+  --primary-dark: #5a52e0;
+  --accent: #c084fc;
+  --orange: #f97316;
+  --green: #22c55e;
+  --gold: #ffd700;
+  --red: #ef4444;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { background: var(--bg); color: var(--text); font-family: 'Outfit', 'Noto Sans Bengali', sans-serif; font-size: 16px; overflow: hidden; }
+[v-cloak] { display: none; }
+.app-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 100;
+}
+.page-scroll {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  height: calc(100vh - 60px - 56px);
+  padding-bottom: 20px;
+}
+.gradient-text {
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.avatar-ring {
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--accent), #ff6b9d);
+  padding: 3px;
+}
+.avatar-inner { border-radius: 50%; overflow: hidden; background: var(--bg); }
+.online-dot { width: 14px; height: 14px; background: var(--green); border-radius: 50%; }
+.card-hover:active { opacity: 0.85; transform: scale(0.99); }
+.input-field {
+  width: 100%; background: var(--surface2); border: 1.5px solid var(--border);
+  border-radius: 14px; padding: 14px 16px; color: var(--text);
+  font-family: inherit; font-size: 17px; outline: none; transition: border-color 0.2s;
+}
+.input-field:focus { border-color: var(--primary); }
+.input-field::placeholder { color: var(--text-dim); }
+.method-card {
+  background: var(--surface2); border: 1.5px solid var(--border);
+  border-radius: 14px; cursor: pointer; transition: all 0.2s;
+}
+.method-card.selected { border-color: var(--primary); background: rgba(108,99,255,0.12); }
+.stat-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; padding: 16px;
+}
+.btn-danger {
+  background: rgba(239,68,68,0.12); border: 1.5px solid rgba(239,68,68,0.3);
+  color: #f87171; font-weight: 700; border-radius: 14px; padding: 15px 24px;
+  font-family: inherit; cursor: pointer; font-size: 16px; transition: all 0.2s;
+}
+.btn-danger:active { background: rgba(239,68,68,0.2); }
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.75);
+  display: flex; align-items: flex-end; justify-content: center;
+  z-index: 1000; backdrop-filter: blur(4px);
+}
+.modal-sheet {
+  background: var(--surface); border-radius: 28px 28px 0 0;
+  padding: 20px 20px 36px; width: 100%; max-width: 480px;
+  max-height: 92vh; overflow-y: auto;
+}
+.modal-handle {
+  display: block; width: 44px; height: 5px;
+  background: var(--border); border-radius: 3px;
+  margin: 0 auto 22px; flex-shrink: 0;
+}
+.spinner {
+  width: 20px; height: 20px; border: 2.5px solid rgba(255,255,255,0.3);
+  border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite;
+  display: inline-block;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.toast-msg {
+  position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: rgba(30,30,55,0.95); color: #fff; padding: 12px 22px;
+  border-radius: 50px; font-size: 15px; font-weight: 600;
+  opacity: 0; transition: all 0.25s; pointer-events: none; z-index: 9999;
+  white-space: nowrap; border: 1px solid rgba(108,99,255,0.3);
+}
+.toast-msg.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.nav-bar {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--surface); border-top: 1px solid var(--border);
+  z-index: 200; height: 60px;
+}
+.nav-item {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 3px; color: var(--text-dim); text-decoration: none;
+  font-size: 11px; font-weight: 600; padding: 6px 0; transition: color 0.2s;
+}
+.nav-item i { font-size: 20px; }
+.nav-item.active { color: var(--primary); }
+.nav-live {
+  background: linear-gradient(135deg,#ef4444,#dc2626);
+  border-radius: 16px; color: #fff !important;
+}
+.live-dot { width: 7px; height: 7px; background: #fff; border-radius: 50%; animation: pulse-red 1.2s infinite; }
+@keyframes pulse-red { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.5)} }
+@keyframes pulse-green { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.6;transform:scale(1.4)} }
+.turnover-card {
+  background: linear-gradient(135deg, rgba(255,215,0,0.08), rgba(255,165,0,0.05));
+  border: 1.5px solid rgba(255,215,0,0.25);
+  border-radius: 20px; padding: 18px; margin-bottom: 16px;
+}
+.turnover-progress {
+  height: 8px; background: rgba(255,255,255,0.08);
+  border-radius: 4px; overflow: hidden; margin: 8px 0;
+}
+.turnover-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold), #fb923c);
+  border-radius: 4px; transition: width 0.5s;
+}
+.turnover-tab {
+  padding: 9px; font-size: 14px; font-weight: 700;
+  color: var(--text-muted); border-radius: 20px; cursor: pointer; transition: all 0.2s;
+}
+.turnover-tab.active { background: var(--primary); color: #fff; }
+.pop-enter-active { animation: popIn 0.3s ease; }
+.pop-leave-active { animation: popIn 0.2s ease reverse; }
+@keyframes popIn {
+  from { opacity:0; transform: translateY(40px); }
+  to { opacity:1; transform: translateY(0); }
+}
+.skeleton {
+  background: linear-gradient(90deg, var(--surface2) 25%, rgba(255,255,255,0.05) 50%, var(--surface2) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
+}
+@keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+</style>
 </head>
 <body>
 <div id="app" v-cloak>
   <div id="toast-el" class="toast-msg"></div>
 
-  <!-- Withdraw Modal -->
+  <!-- ══════════════════════════════════════
+       WITHDRAW MODAL
+  ══════════════════════════════════════ -->
   <transition name="pop">
     <div v-if="withdrawModal.show" class="modal-overlay" @click.self="withdrawModal.show=false">
       <div class="modal-sheet">
         <span class="modal-handle"></span>
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
-          <div style="width:50px;height:50px;background:rgba(249,115,22,0.15);border-radius:14px;display:flex;align-items:center;justify-content:center;">
-            <i class="fa-solid fa-money-bill-transfer" style="font-size:22px;color:#f97316;"></i>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:22px;">
+          <div style="width:54px;height:54px;background:rgba(249,115,22,0.15);border-radius:16px;display:flex;align-items:center;justify-content:center;">
+            <i class="fa-solid fa-money-bill-transfer" style="font-size:24px;color:#f97316;"></i>
           </div>
           <div style="flex:1;">
-            <div style="font-weight:800;font-size:17px;">Withdraw Balance</div>
-            <div style="font-size:12px;color:var(--text-muted);">Available: <span style="color:#f97316;font-weight:700;">৳{{ userBalance }}</span></div>
+            <div style="font-weight:800;font-size:20px;">Withdraw Balance</div>
+            <div style="font-size:15px;color:var(--text-muted);">Available: <span style="color:#f97316;font-weight:700;">৳{{ userBalance }}</span></div>
           </div>
-          <button @click="withdrawModal.show=false" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);flex-shrink:0;">
-            <i class="fa-solid fa-xmark"></i>
+          <button @click="withdrawModal.show=false" style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);">
+            <i class="fa-solid fa-xmark" style="font-size:16px;"></i>
           </button>
         </div>
-        <div style="margin-bottom:14px;">
-          <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:8px;">Amount</div>
+        <div style="margin-bottom:16px;">
+          <div style="font-size:15px;font-weight:700;color:var(--text-muted);margin-bottom:10px;">পরিমাণ (Amount)</div>
           <div style="position:relative;">
-            <span style="position:absolute;left:16px;top:50%;transform:translateY(-50%);font-size:16px;font-weight:700;color:var(--text-muted);">৳</span>
-            <input v-model="withdrawModal.amount" type="number" class="input-field" style="padding-left:34px;font-size:20px;font-weight:700;" placeholder="0">
+            <span style="position:absolute;left:16px;top:50%;transform:translateY(-50%);font-size:20px;font-weight:700;color:var(--text-muted);">৳</span>
+            <input v-model="withdrawModal.amount" type="number" class="input-field" style="padding-left:38px;font-size:24px;font-weight:700;" placeholder="0">
           </div>
-          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px;">
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px;">
             <button v-for="a in [500,1000,1500,2000]" :key="a" @click="withdrawModal.amount=a"
-              style="background:var(--surface2);border:1px solid;border-radius:10px;padding:8px 4px;font-size:13px;font-weight:700;cursor:pointer;"
+              style="background:var(--surface2);border:1.5px solid;border-radius:12px;padding:10px 4px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;"
               :style="{borderColor:withdrawModal.amount==a?'var(--orange)':'var(--border)',color:withdrawModal.amount==a?'#f97316':'var(--text-muted)'}">{{ a }}</button>
           </div>
         </div>
-        <div style="margin-bottom:14px;">
-          <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:8px;">Method</div>
+        <div style="margin-bottom:16px;">
+          <div style="font-size:15px;font-weight:700;color:var(--text-muted);margin-bottom:10px;">পদ্ধতি (Method)</div>
           <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
-            <div v-for="g in ['bkash','nagad','rocket']" :key="g" @click="withdrawModal.gateway=g" class="method-card" :class="{selected:withdrawModal.gateway===g}" style="text-align:center;padding:10px 6px;">
-              <div style="height:28px;display:flex;align-items:center;justify-content:center;margin-bottom:4px;">
-                <span :style="{background:g==='bkash'?'#e2156a':g==='nagad'?'#f47920':'#8b1fa8'}" style="color:#fff;font-size:11px;font-weight:800;padding:4px 8px;border-radius:6px;text-transform:capitalize;">{{ g }}</span>
+            <div v-for="g in ['bkash','nagad','rocket']" :key="g" @click="withdrawModal.gateway=g" class="method-card" :class="{selected:withdrawModal.gateway===g}" style="text-align:center;padding:14px 6px;">
+              <div style="height:32px;display:flex;align-items:center;justify-content:center;margin-bottom:6px;">
+                <span :style="{background:g==='bkash'?'#e2156a':g==='nagad'?'#f47920':'#8b1fa8'}" style="color:#fff;font-size:13px;font-weight:800;padding:5px 10px;border-radius:8px;text-transform:capitalize;">{{ g }}</span>
               </div>
-              <div style="font-size:10px;font-weight:700;text-transform:capitalize;">{{ g }}</div>
+              <div style="font-size:13px;font-weight:700;text-transform:capitalize;color:var(--text-muted);">{{ g }}</div>
             </div>
           </div>
         </div>
-        <div style="margin-bottom:14px;">
-          <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:8px;">Your Number</div>
+        <div style="margin-bottom:16px;">
+          <div style="font-size:15px;font-weight:700;color:var(--text-muted);margin-bottom:10px;">আপনার নম্বর</div>
           <input v-model="withdrawModal.accountNumber" class="input-field" placeholder="01XXXXXXXXX" type="tel">
         </div>
-        <div style="background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.2);border-radius:12px;padding:12px;font-size:12px;color:rgba(249,115,22,0.9);margin-bottom:20px;line-height:1.7;">
-          <i class="fa-solid fa-circle-info" style="margin-right:6px;"></i> সর্বনিম্ন ৳500 উইথড্র করা যাবে।
+        <div style="background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.2);border-radius:14px;padding:14px;font-size:15px;color:rgba(249,115,22,0.9);margin-bottom:22px;line-height:1.7;">
+          <i class="fa-solid fa-circle-info" style="margin-right:8px;"></i> সর্বনিম্ন ৳500 উইথড্র করা যাবে।
         </div>
-        <div v-if="withdrawModal.error" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:12px;padding:12px;font-size:13px;color:#f87171;margin-bottom:16px;">{{ withdrawModal.error }}</div>
-        <button @click="submitWithdraw" style="width:100%;background:linear-gradient(135deg,#f97316,#ea580c);color:#fff;font-weight:700;border:none;border-radius:14px;padding:14px 24px;font-family:inherit;cursor:pointer;font-size:14px;" :disabled="withdrawModal.loading">
+        <div v-if="withdrawModal.error" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:14px;padding:14px;font-size:15px;color:#f87171;margin-bottom:18px;">{{ withdrawModal.error }}</div>
+        <button @click="submitWithdraw" style="width:100%;background:linear-gradient(135deg,#f97316,#ea580c);color:#fff;font-weight:700;border:none;border-radius:16px;padding:17px 24px;font-family:inherit;cursor:pointer;font-size:17px;" :disabled="withdrawModal.loading">
           <span v-if="withdrawModal.loading" class="spinner"></span>
-          <span v-else><i class="fa-solid fa-paper-plane" style="margin-right:8px;"></i>Submit Request</span>
+          <span v-else><i class="fa-solid fa-paper-plane" style="margin-right:10px;"></i>Submit Request</span>
         </button>
       </div>
     </div>
   </transition>
 
-  <!-- Transfer Modal -->
+  <!-- ══════════════════════════════════════
+       TRANSFER MODAL
+  ══════════════════════════════════════ -->
   <transition name="pop">
     <div v-if="transferModal.show" class="modal-overlay" @click.self="transferModal.show=false">
       <div class="modal-sheet">
         <span class="modal-handle"></span>
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
-          <div style="width:50px;height:50px;background:rgba(108,99,255,0.15);border-radius:14px;display:flex;align-items:center;justify-content:center;">
-            <i class="fa-solid fa-right-left" style="font-size:20px;color:var(--primary);"></i>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:22px;">
+          <div style="width:54px;height:54px;background:rgba(108,99,255,0.15);border-radius:16px;display:flex;align-items:center;justify-content:center;">
+            <i class="fa-solid fa-right-left" style="font-size:22px;color:var(--primary);"></i>
           </div>
           <div style="flex:1;">
-            <div style="font-weight:800;font-size:17px;">Balance Transfer</div>
-            <div style="font-size:12px;color:var(--text-muted);">Available: <span style="color:var(--primary);font-weight:700;">৳{{ userBalance }}</span></div>
+            <div style="font-weight:800;font-size:20px;">Balance Transfer</div>
+            <div style="font-size:15px;color:var(--text-muted);">Available: <span style="color:var(--primary);font-weight:700;">৳{{ userBalance }}</span></div>
           </div>
-          <button @click="transferModal.show=false" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);flex-shrink:0;">
-            <i class="fa-solid fa-xmark"></i>
+          <button @click="transferModal.show=false" style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);">
+            <i class="fa-solid fa-xmark" style="font-size:16px;"></i>
           </button>
         </div>
-
-        <div style="margin-bottom:14px;">
-          <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:8px;">Receiver UID</div>
-          <input v-model="transferModal.receiverUid" class="input-field" placeholder="Receiver এর UID দিন" style="letter-spacing:1px;">
-          <div style="font-size:11px;color:var(--text-dim);margin-top:6px;"><i class="fa-solid fa-circle-info" style="margin-right:4px;"></i>Receiver এর Account > UID থেকে কপি করুন</div>
-        </div>
-
-        <div style="margin-bottom:14px;">
-          <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:8px;">Amount</div>
+        <div style="margin-bottom:16px;">
+          <div style="font-size:15px;font-weight:700;color:var(--text-muted);margin-bottom:10px;">Receiver এর ফোন নম্বর</div>
           <div style="position:relative;">
-            <span style="position:absolute;left:16px;top:50%;transform:translateY(-50%);font-size:16px;font-weight:700;color:var(--text-muted);">৳</span>
-            <input v-model="transferModal.amount" type="number" class="input-field" style="padding-left:34px;font-size:20px;font-weight:700;" placeholder="0">
+            <i class="fa-solid fa-phone" style="position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--text-dim);font-size:16px;"></i>
+            <input v-model="transferModal.receiverPhone" class="input-field" placeholder="01XXXXXXXXX" type="tel" style="padding-left:46px;font-size:17px;">
           </div>
         </div>
-
-        <div v-if="transferModal.amount >= 10" style="background:rgba(108,99,255,0.08);border:1px solid rgba(108,99,255,0.2);border-radius:12px;padding:12px;font-size:12px;margin-bottom:14px;line-height:1.8;">
+        <div style="margin-bottom:16px;">
+          <div style="font-size:15px;font-weight:700;color:var(--text-muted);margin-bottom:10px;">পরিমাণ (Amount)</div>
+          <div style="position:relative;">
+            <span style="position:absolute;left:16px;top:50%;transform:translateY(-50%);font-size:20px;font-weight:700;color:var(--text-muted);">৳</span>
+            <input v-model="transferModal.amount" type="number" class="input-field" style="padding-left:38px;font-size:24px;font-weight:700;" placeholder="0">
+          </div>
+        </div>
+        <div v-if="transferModal.amount >= 10" style="background:rgba(108,99,255,0.08);border:1px solid rgba(108,99,255,0.2);border-radius:14px;padding:14px;font-size:15px;margin-bottom:16px;line-height:2;">
           <div style="display:flex;justify-content:space-between;"><span style="color:var(--text-muted);">Transfer Amount:</span><span style="font-weight:700;">৳{{ transferModal.amount }}</span></div>
           <div style="display:flex;justify-content:space-between;"><span style="color:var(--text-muted);">Turnover Added:</span><span style="color:#fb923c;font-weight:700;">৳{{ Math.ceil(transferModal.amount * 0.5) }}</span></div>
         </div>
-
-        <div style="background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.2);border-radius:12px;padding:12px;font-size:12px;color:rgba(249,115,22,0.9);margin-bottom:20px;line-height:1.7;">
-          <i class="fa-solid fa-circle-info" style="margin-right:6px;"></i> সর্বনিম্ন ৳10 Transfer করা যাবে। প্রতিটি Transfer এ ৫০% Turnover যোগ হবে।
+        <div style="background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.2);border-radius:14px;padding:14px;font-size:15px;color:rgba(249,115,22,0.9);margin-bottom:22px;line-height:1.8;">
+          <i class="fa-solid fa-circle-info" style="margin-right:8px;"></i> সর্বনিম্ন ৳10 Transfer করা যাবে। প্রতিটি Transfer এ ৫০% Turnover যোগ হবে।
         </div>
-
-        <div v-if="transferModal.error" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:12px;padding:12px;font-size:13px;color:#f87171;margin-bottom:16px;">{{ transferModal.error }}</div>
-        <div v-if="transferModal.success" style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:12px;padding:12px;font-size:13px;color:#4ade80;margin-bottom:16px;text-align:center;">
-          <i class="fa-solid fa-check-circle" style="margin-right:6px;"></i>{{ transferModal.success }}
+        <div v-if="transferModal.error" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:14px;padding:14px;font-size:15px;color:#f87171;margin-bottom:18px;">{{ transferModal.error }}</div>
+        <div v-if="transferModal.success" style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:14px;padding:14px;font-size:15px;color:#4ade80;margin-bottom:18px;text-align:center;">
+          <i class="fa-solid fa-check-circle" style="margin-right:8px;"></i>{{ transferModal.success }}
         </div>
-
-        <button @click="submitTransfer" style="width:100%;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;font-weight:700;border:none;border-radius:14px;padding:14px 24px;font-family:inherit;cursor:pointer;font-size:14px;" :disabled="transferModal.loading">
+        <button @click="submitTransfer" style="width:100%;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;font-weight:700;border:none;border-radius:16px;padding:17px 24px;font-family:inherit;cursor:pointer;font-size:17px;" :disabled="transferModal.loading">
           <span v-if="transferModal.loading" class="spinner"></span>
-          <span v-else><i class="fa-solid fa-right-left" style="margin-right:8px;"></i>Transfer Balance</span>
+          <span v-else><i class="fa-solid fa-right-left" style="margin-right:10px;"></i>Transfer Balance</span>
         </button>
       </div>
     </div>
   </transition>
 
-  <!-- Turnover Modal -->
+  <!-- ══════════════════════════════════════
+       TURNOVER MODAL
+  ══════════════════════════════════════ -->
   <transition name="pop">
     <div v-if="turnoverModal" class="modal-overlay" style="z-index:1500;" @click.self="turnoverModal=false">
       <div class="modal-sheet" @click.stop style="max-height:90vh;">
         <span class="modal-handle"></span>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
-          <div style="display:flex;align-items:center;gap:10px;">
-            <div style="width:46px;height:46px;background:rgba(255,215,0,0.15);border-radius:14px;display:flex;align-items:center;justify-content:center;">
-              <i class="fa-solid fa-rotate" style="font-size:20px;color:var(--gold);"></i>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:50px;height:50px;background:rgba(255,215,0,0.15);border-radius:16px;display:flex;align-items:center;justify-content:center;">
+              <i class="fa-solid fa-rotate" style="font-size:22px;color:var(--gold);"></i>
             </div>
             <div>
-              <div style="font-weight:800;font-size:17px;">Turnover</div>
-              <div style="font-size:11px;color:var(--text-muted);">উইথড্রের জন্য টার্নওভার পূরণ করুন</div>
+              <div style="font-weight:800;font-size:19px;">Turnover</div>
+              <div style="font-size:14px;color:var(--text-muted);">উইথড্রের জন্য টার্নওভার পূরণ করুন</div>
             </div>
           </div>
-          <button @click="turnoverModal=false" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);">
-            <i class="fa-solid fa-xmark"></i>
+          <button @click="turnoverModal=false" style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);">
+            <i class="fa-solid fa-xmark" style="font-size:16px;"></i>
           </button>
         </div>
-        <div style="display:flex;gap:8px;margin-bottom:20px;background:var(--surface2);border-radius:24px;padding:4px;">
+        <div style="display:flex;gap:8px;margin-bottom:22px;background:var(--surface2);border-radius:24px;padding:4px;">
           <div @click="turnoverTab='active'" style="flex:1;text-align:center;" class="turnover-tab" :class="{active:turnoverTab==='active'}">Active ({{ activeTurnovers.length }})</div>
           <div @click="turnoverTab='completed'" style="flex:1;text-align:center;" class="turnover-tab" :class="{active:turnoverTab==='completed'}">Completed</div>
         </div>
         <div v-if="turnoverTab==='active'">
-          <div v-if="activeTurnovers.length===0" style="text-align:center;padding:40px 20px;">
-            <i class="fa-solid fa-rotate" style="font-size:40px;color:var(--text-dim);margin-bottom:12px;display:block;"></i>
-            <div style="font-weight:700;font-size:15px;color:var(--text-muted);">কোনো Active Turnover নেই ✅</div>
+          <div v-if="activeTurnovers.length===0" style="text-align:center;padding:44px 20px;">
+            <i class="fa-solid fa-rotate" style="font-size:44px;color:var(--text-dim);margin-bottom:14px;display:block;"></i>
+            <div style="font-weight:700;font-size:17px;color:var(--text-muted);">কোনো Active Turnover নেই ✅</div>
           </div>
-          <div v-else style="display:flex;flex-direction:column;gap:12px;">
-            <div v-for="tv in activeTurnovers" :key="tv.id" style="background:var(--surface2);border:1px solid rgba(255,215,0,0.2);border-left:3px solid var(--gold);border-radius:16px;padding:16px;">
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-                <div style="font-weight:700;font-size:14px;">{{ tv.label }}</div>
-                <span style="font-size:10px;font-weight:700;background:rgba(255,165,0,0.15);color:#fb923c;border:1px solid rgba(255,165,0,0.3);padding:2px 8px;border-radius:20px;">ACTIVE</span>
+          <div v-else style="display:flex;flex-direction:column;gap:14px;">
+            <div v-for="tv in activeTurnovers" :key="tv.id" style="background:var(--surface2);border:1px solid rgba(255,215,0,0.2);border-left:4px solid var(--gold);border-radius:18px;padding:18px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+                <div style="font-weight:700;font-size:16px;">{{ tv.label }}</div>
+                <span style="font-size:12px;font-weight:700;background:rgba(255,165,0,0.15);color:#fb923c;border:1px solid rgba(255,165,0,0.3);padding:3px 10px;border-radius:20px;">ACTIVE</span>
               </div>
               <div class="turnover-progress"><div class="turnover-progress-fill" :style="{width: Math.min(100,(tv.done/tv.required)*100)+'%'}"></div></div>
-              <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);">
-                <span>{{ tv.done.toFixed(0) }} done</span><span>{{ tv.required.toFixed(0) }} needed</span>
+              <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--text-muted);margin-top:6px;">
+                <span>{{ (tv.done||0).toFixed(0) }} done</span><span>{{ (tv.required||0).toFixed(0) }} needed</span>
               </div>
             </div>
           </div>
         </div>
         <div v-if="turnoverTab==='completed'">
-          <div v-if="completedTurnovers.length===0" style="text-align:center;padding:40px 20px;">
-            <div style="font-weight:700;font-size:15px;color:var(--text-muted);">কোনো Completed Turnover নেই</div>
+          <div v-if="completedTurnovers.length===0" style="text-align:center;padding:44px 20px;">
+            <div style="font-weight:700;font-size:17px;color:var(--text-muted);">কোনো Completed Turnover নেই</div>
           </div>
-          <div v-else style="display:flex;flex-direction:column;gap:12px;">
-            <div v-for="tv in completedTurnovers" :key="tv.id" style="background:var(--surface2);border:1px solid rgba(34,197,94,0.2);border-left:3px solid var(--green);border-radius:16px;padding:16px;">
-              <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
-                <div style="font-weight:700;font-size:14px;">{{ tv.label }}</div>
-                <span style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:20px;padding:3px 10px;font-size:10px;font-weight:700;color:#4ade80;">✅ Done</span>
+          <div v-else style="display:flex;flex-direction:column;gap:14px;">
+            <div v-for="tv in completedTurnovers" :key="tv.id" style="background:var(--surface2);border:1px solid rgba(34,197,94,0.2);border-left:4px solid var(--green);border-radius:18px;padding:18px;">
+              <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
+                <div style="font-weight:700;font-size:16px;">{{ tv.label }}</div>
+                <span style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:20px;padding:3px 12px;font-size:12px;font-weight:700;color:#4ade80;">✅ Done</span>
               </div>
               <div class="turnover-progress"><div class="turnover-progress-fill" style="width:100%;background:linear-gradient(90deg,var(--green),#16a34a);"></div></div>
             </div>
@@ -182,133 +331,194 @@
     </div>
   </transition>
 
-  <!-- Main -->
+  <!-- ══════════════════════════════════════
+       MAIN LAYOUT
+  ══════════════════════════════════════ -->
   <div style="display:flex;flex-direction:column;height:100vh;">
+
+    <!-- Header -->
     <header class="app-header">
       <div style="padding:14px 16px;display:flex;align-items:center;justify-content:space-between;">
-        <a href="index.html" style="background:var(--surface2);border:none;border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);text-decoration:none;">
-          <i class="fa-solid fa-arrow-left"></i>
+        <a href="index.html" style="background:var(--surface2);border:none;border-radius:12px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);text-decoration:none;">
+          <i class="fa-solid fa-arrow-left" style="font-size:17px;"></i>
         </a>
-        <div style="font-weight:800;font-size:17px;">My Account</div>
-        <div style="width:36px;"></div>
+        <div style="font-weight:800;font-size:19px;">My Account</div>
+        <div style="width:40px;"></div>
       </div>
     </header>
 
+    <!-- Page Content -->
     <main class="page-scroll" id="accountScroll" style="padding:16px;">
-      <div style="text-align:center;padding:24px 0 20px;">
-        <div style="display:inline-block;position:relative;margin-bottom:14px;">
-          <div class="avatar-ring" style="width:90px;height:90px;display:inline-block;">
+
+      <!-- Profile Top -->
+      <div style="text-align:center;padding:26px 0 22px;">
+        <div style="display:inline-block;position:relative;margin-bottom:16px;">
+          <div class="avatar-ring" style="width:96px;height:96px;display:inline-block;">
             <div class="avatar-inner" style="width:100%;height:100%;">
-              <img :src="userAvatar" style="width:100%;height:100%;object-fit:cover;">
+              <img :src="userAvatar" @error="e=>e.target.src='https://i.pravatar.cc/150?img=12'" style="width:100%;height:100%;object-fit:cover;">
             </div>
           </div>
           <span class="online-dot" style="position:absolute;bottom:6px;right:6px;border:2px solid var(--bg);"></span>
         </div>
-        <div style="font-size:20px;font-weight:800;margin-bottom:4px;" class="gradient-text">{{ userData.name||'Guest' }}</div>
-        <div style="font-size:13px;color:var(--text-muted);">{{ userData.email||'' }}</div>
-        <div v-if="userData.phone" style="font-size:12px;color:var(--text-dim);margin-top:2px;"><i class="fa-solid fa-phone" style="margin-right:4px;"></i>{{ userData.phone }}</div>
 
-        <!-- UID Badge -->
-        <div @click="copyUID" style="display:inline-flex;align-items:center;gap:6px;background:rgba(108,99,255,0.12);border:1px solid rgba(108,99,255,0.3);border-radius:20px;padding:5px 12px;margin-top:10px;cursor:pointer;" class="card-hover">
-          <i class="fa-solid fa-fingerprint" style="font-size:12px;color:var(--primary);"></i>
-          <span style="font-size:12px;font-weight:700;color:var(--primary);letter-spacing:1px;">UID: {{ userUID }}</span>
-          <i class="fa-regular fa-copy" style="font-size:11px;color:var(--text-muted);"></i>
+        <div v-if="dataLoaded" style="font-size:24px;font-weight:800;margin-bottom:6px;" class="gradient-text">{{ userName }}</div>
+        <div v-else class="skeleton" style="height:28px;width:160px;margin:0 auto 6px;"></div>
+
+        <div v-if="dataLoaded" style="font-size:16px;color:var(--text-muted);">{{ userEmail }}</div>
+        <div v-else class="skeleton" style="height:18px;width:200px;margin:0 auto;"></div>
+
+        <!-- Phone — সবসময় দেখাও -->
+        <div v-if="dataLoaded && userPhone" style="font-size:15px;color:var(--text-dim);margin-top:6px;">
+          <i class="fa-solid fa-phone" style="margin-right:6px;color:var(--green);"></i>{{ userPhone }}
         </div>
 
-        <div style="display:inline-flex;align-items:center;gap:5px;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.3);border-radius:20px;padding:3px 10px;margin-top:8px;margin-left:6px;">
-          <span style="width:6px;height:6px;background:var(--green);border-radius:50%;display:inline-block;animation:pulse-green 2s infinite;"></span>
-          <span style="font-size:11px;color:#4ade80;font-weight:600;">Online</span>
+        <!-- UID Badge -->
+        <div @click="copyUID" style="display:inline-flex;align-items:center;gap:8px;background:rgba(108,99,255,0.12);border:1px solid rgba(108,99,255,0.3);border-radius:20px;padding:8px 16px;margin-top:12px;cursor:pointer;" class="card-hover">
+          <i class="fa-solid fa-fingerprint" style="font-size:14px;color:var(--primary);"></i>
+          <span style="font-size:14px;font-weight:700;color:var(--primary);letter-spacing:1px;">UID: {{ userUID }}</span>
+          <i class="fa-regular fa-copy" style="font-size:13px;color:var(--text-muted);"></i>
+        </div>
+
+        <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.3);border-radius:20px;padding:5px 12px;margin-top:10px;margin-left:8px;">
+          <span style="width:7px;height:7px;background:var(--green);border-radius:50%;display:inline-block;animation:pulse-green 2s infinite;"></span>
+          <span style="font-size:13px;color:#4ade80;font-weight:600;">Online</span>
         </div>
       </div>
 
       <!-- Wallet Card -->
-      <div style="background:linear-gradient(135deg,var(--primary),var(--primary-dark));border-radius:20px;padding:20px;margin-bottom:16px;position:relative;overflow:hidden;">
-        <div style="position:absolute;top:-20px;right:-20px;width:100px;height:100px;background:rgba(255,255,255,0.08);border-radius:50%;"></div>
-        <div style="font-size:12px;font-weight:700;opacity:0.7;letter-spacing:1px;margin-bottom:4px;">AVAILABLE BALANCE</div>
-        <div style="font-size:36px;font-weight:900;margin-bottom:12px;">৳{{ userBalance }}</div>
-        <div style="display:flex;gap:8px;">
-          <a href="add-money.html" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);border-radius:10px;padding:8px 0;color:#fff;font-size:12px;font-weight:700;cursor:pointer;flex:1;display:flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;">
-            <i class="fa-solid fa-plus" style="font-size:11px;"></i> Deposit
+      <div style="background:linear-gradient(135deg,var(--primary),var(--primary-dark));border-radius:22px;padding:22px;margin-bottom:16px;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:-20px;right:-20px;width:110px;height:110px;background:rgba(255,255,255,0.08);border-radius:50%;"></div>
+        <div style="font-size:14px;font-weight:700;opacity:0.75;letter-spacing:1.5px;margin-bottom:6px;">AVAILABLE BALANCE</div>
+        <div style="font-size:42px;font-weight:900;margin-bottom:14px;">৳{{ userBalance }}</div>
+        <div style="display:flex;gap:10px;">
+          <a href="add-money.html" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);border-radius:12px;padding:11px 0;color:#fff;font-size:14px;font-weight:700;cursor:pointer;flex:1;display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;">
+            <i class="fa-solid fa-plus" style="font-size:13px;"></i> Deposit
           </a>
-          <button @click="withdrawModal.show=true" style="background:rgba(249,115,22,0.25);border:1px solid rgba(249,115,22,0.5);border-radius:10px;padding:8px 0;color:#fed7aa;font-size:12px;font-weight:700;cursor:pointer;flex:1;display:flex;align-items:center;justify-content:center;gap:6px;">
-            <i class="fa-solid fa-arrow-up-from-bracket" style="font-size:11px;"></i> Withdraw
+          <button @click="withdrawModal.show=true" style="background:rgba(249,115,22,0.25);border:1px solid rgba(249,115,22,0.5);border-radius:12px;padding:11px 0;color:#fed7aa;font-size:14px;font-weight:700;cursor:pointer;flex:1;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;">
+            <i class="fa-solid fa-arrow-up-from-bracket" style="font-size:13px;"></i> Withdraw
           </button>
-          <button @click="transferModal.show=true" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:10px;padding:8px 0;color:#e0e0ff;font-size:12px;font-weight:700;cursor:pointer;flex:1;display:flex;align-items:center;justify-content:center;gap:6px;">
-            <i class="fa-solid fa-right-left" style="font-size:11px;"></i> Transfer
+          <button @click="transferModal.show=true" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:12px;padding:11px 0;color:#e0e0ff;font-size:14px;font-weight:700;cursor:pointer;flex:1;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;">
+            <i class="fa-solid fa-right-left" style="font-size:13px;"></i> Transfer
           </button>
         </div>
       </div>
 
       <!-- Turnover Widget -->
       <div v-if="activeTurnovers.length > 0" @click="turnoverModal=true" class="turnover-card" style="cursor:pointer;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-          <div style="display:flex;align-items:center;gap:8px;">
-            <i class="fa-solid fa-rotate" style="color:var(--gold);font-size:16px;"></i>
-            <span style="font-weight:800;font-size:14px;color:var(--gold);">Turnover Required</span>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <i class="fa-solid fa-rotate" style="color:var(--gold);font-size:18px;"></i>
+            <span style="font-weight:800;font-size:17px;color:var(--gold);">Turnover Required</span>
           </div>
-          <span style="font-size:10px;font-weight:700;background:rgba(255,165,0,0.15);color:#fb923c;border:1px solid rgba(255,165,0,0.3);padding:2px 8px;border-radius:20px;">{{ activeTurnovers.length }} ACTIVE</span>
+          <span style="font-size:12px;font-weight:700;background:rgba(255,165,0,0.15);color:#fb923c;border:1px solid rgba(255,165,0,0.3);padding:4px 10px;border-radius:20px;">{{ activeTurnovers.length }} ACTIVE</span>
         </div>
         <div v-if="activeTurnovers[0]">
-          <div style="font-size:12px;color:rgba(255,215,0,0.7);margin-bottom:6px;">{{ activeTurnovers[0].label }}</div>
-          <div class="turnover-progress"><div class="turnover-progress-fill" :style="{width: Math.min(100,(activeTurnovers[0].done/activeTurnovers[0].required)*100)+'%'}"></div></div>
-          <div style="display:flex;justify-content:space-between;font-size:11px;color:rgba(255,215,0,0.6);margin-top:4px;">
-            <span>Done: ৳{{ activeTurnovers[0].done.toFixed(0) }}</span>
-            <span>Required: ৳{{ activeTurnovers[0].required.toFixed(0) }}</span>
+          <div style="font-size:15px;color:rgba(255,215,0,0.8);margin-bottom:8px;">{{ activeTurnovers[0].label }}</div>
+          <div class="turnover-progress"><div class="turnover-progress-fill" :style="{width: Math.min(100,((activeTurnovers[0].done||0)/(activeTurnovers[0].required||1))*100)+'%'}"></div></div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;color:rgba(255,215,0,0.65);margin-top:6px;">
+            <span>Done: ৳{{ (activeTurnovers[0].done||0).toFixed(0) }}</span>
+            <span>Required: ৳{{ (activeTurnovers[0].required||0).toFixed(0) }}</span>
           </div>
         </div>
-        <div style="margin-top:8px;font-size:11px;color:rgba(255,215,0,0.5);text-align:center;">বিস্তারিত দেখতে ট্যাপ করুন <i class="fa-solid fa-chevron-right" style="font-size:9px;"></i></div>
+        <div style="margin-top:10px;font-size:13px;color:rgba(255,215,0,0.55);text-align:center;">বিস্তারিত দেখতে ট্যাপ করুন <i class="fa-solid fa-chevron-right" style="font-size:11px;"></i></div>
       </div>
 
-      <!-- Profile Info -->
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;overflow:hidden;margin-bottom:16px;">
-        <div style="padding:14px 16px;">
-          <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Profile Info</div>
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-            <i class="fa-solid fa-user" style="color:var(--primary);width:16px;"></i>
-            <span style="font-size:14px;">{{ userData.name||'—' }}</span>
+      <!-- Profile Info Card -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:22px;overflow:hidden;margin-bottom:16px;">
+        <div style="padding:18px;">
+          <div style="font-size:13px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:16px;">Profile Info</div>
+
+          <!-- Name -->
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+            <div style="width:36px;height:36px;background:rgba(108,99,255,0.12);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <i class="fa-solid fa-user" style="color:var(--primary);font-size:15px;"></i>
+            </div>
+            <div style="flex:1;">
+              <div style="font-size:12px;color:var(--text-dim);margin-bottom:2px;">নাম</div>
+              <div v-if="dataLoaded" style="font-size:17px;font-weight:600;">{{ userName || '—' }}</div>
+              <div v-else class="skeleton" style="height:20px;width:130px;"></div>
+            </div>
           </div>
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-            <i class="fa-solid fa-envelope" style="color:var(--accent);width:16px;"></i>
-            <span style="font-size:14px;">{{ userData.email||'—' }}</span>
+
+          <!-- Email -->
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+            <div style="width:36px;height:36px;background:rgba(192,132,252,0.12);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <i class="fa-solid fa-envelope" style="color:var(--accent);font-size:15px;"></i>
+            </div>
+            <div style="flex:1;">
+              <div style="font-size:12px;color:var(--text-dim);margin-bottom:2px;">ইমেইল</div>
+              <div v-if="dataLoaded" style="font-size:16px;font-weight:500;word-break:break-all;">{{ userEmail || '—' }}</div>
+              <div v-else class="skeleton" style="height:20px;width:180px;"></div>
+            </div>
           </div>
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-            <i class="fa-solid fa-phone" style="color:var(--green);width:16px;"></i>
-            <span style="font-size:14px;" :style="{color:userData.phone?'var(--text)':'var(--text-dim)'}">{{ userData.phone||'Not added' }}</span>
+
+          <!-- Phone — সবসময় দেখাও, খালি হলে dash -->
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+            <div style="width:36px;height:36px;background:rgba(34,197,94,0.12);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <i class="fa-solid fa-phone" style="color:var(--green);font-size:15px;"></i>
+            </div>
+            <div style="flex:1;">
+              <div style="font-size:12px;color:var(--text-dim);margin-bottom:2px;">ফোন</div>
+              <div v-if="dataLoaded" style="font-size:17px;font-weight:600;">
+                {{ userPhone || '—' }}
+              </div>
+              <div v-else class="skeleton" style="height:20px;width:120px;"></div>
+            </div>
           </div>
-          <div style="display:flex;align-items:center;gap:10px;">
-            <i class="fa-solid fa-fingerprint" style="color:var(--primary);width:16px;"></i>
-            <span style="font-size:13px;font-weight:700;color:var(--primary);letter-spacing:1px;">{{ userUID }}</span>
-            <button @click="copyUID" style="margin-left:auto;background:transparent;border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-size:10px;color:var(--text-muted);cursor:pointer;">Copy UID</button>
+
+          <!-- UID -->
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:36px;height:36px;background:rgba(108,99,255,0.12);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <i class="fa-solid fa-fingerprint" style="color:var(--primary);font-size:15px;"></i>
+            </div>
+            <div style="flex:1;">
+              <div style="font-size:12px;color:var(--text-dim);margin-bottom:2px;">User ID</div>
+              <div style="font-size:15px;font-weight:700;color:var(--primary);letter-spacing:1px;">{{ userUID }}</div>
+            </div>
+            <button @click="copyUID" style="background:transparent;border:1.5px solid var(--border);border-radius:10px;padding:7px 14px;font-size:13px;color:var(--text-muted);cursor:pointer;font-family:inherit;font-weight:600;">Copy</button>
           </div>
         </div>
       </div>
 
       <!-- Stats -->
-      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px;">
-        <div class="stat-card"><div style="font-size:11px;color:var(--text-muted);font-weight:600;margin-bottom:4px;">Support PIN</div><div style="font-size:20px;font-weight:800;color:var(--primary);">{{ supportPin }}</div></div>
-        <div class="stat-card"><div style="font-size:11px;color:var(--text-muted);font-weight:600;margin-bottom:4px;">Weekly Spent</div><div style="font-size:20px;font-weight:800;color:var(--accent);">৳{{ stats.weeklySpent }}</div></div>
-        <div class="stat-card"><div style="font-size:11px;color:var(--text-muted);font-weight:600;margin-bottom:4px;">Total Spent</div><div style="font-size:20px;font-weight:800;">{{ stats.totalSpent }}</div></div>
-        <div class="stat-card"><div style="font-size:11px;color:var(--text-muted);font-weight:600;margin-bottom:4px;">Total Orders</div><div style="font-size:20px;font-weight:800;">{{ stats.totalOrders }}</div></div>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:16px;">
+        <div class="stat-card">
+          <div style="font-size:13px;color:var(--text-muted);font-weight:600;margin-bottom:6px;">Support PIN</div>
+          <div style="font-size:24px;font-weight:800;color:var(--primary);">{{ supportPin }}</div>
+        </div>
+        <div class="stat-card">
+          <div style="font-size:13px;color:var(--text-muted);font-weight:600;margin-bottom:6px;">Weekly Spent</div>
+          <div style="font-size:24px;font-weight:800;color:var(--accent);">৳{{ stats.weeklySpent }}</div>
+        </div>
+        <div class="stat-card">
+          <div style="font-size:13px;color:var(--text-muted);font-weight:600;margin-bottom:6px;">Total Spent</div>
+          <div style="font-size:24px;font-weight:800;">৳{{ stats.totalSpent }}</div>
+        </div>
+        <div class="stat-card">
+          <div style="font-size:13px;color:var(--text-muted);font-weight:600;margin-bottom:6px;">Total Orders</div>
+          <div style="font-size:24px;font-weight:800;">{{ stats.totalOrders }}</div>
+        </div>
       </div>
 
       <!-- Account Menu -->
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;overflow:hidden;margin-bottom:16px;">
-        <a v-for="(item,i) in accountMenu" :key="i" :href="item.href||'#'" @click="item.action&&item.action()"
-           style="display:flex;align-items:center;gap:14px;padding:16px;cursor:pointer;text-decoration:none;color:#fff;"
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:22px;overflow:hidden;margin-bottom:16px;">
+        <a v-for="(item,i) in accountMenu" :key="i" :href="item.href"
+           style="display:flex;align-items:center;gap:16px;padding:18px;cursor:pointer;text-decoration:none;color:#fff;"
            :style="{borderBottom:i<accountMenu.length-1?'1px solid var(--border)':'none'}" class="card-hover">
-          <div :style="{background:item.bg}" style="width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <i :class="item.icon" :style="{color:item.color}" style="font-size:16px;"></i>
+          <div :style="{background:item.bg}" style="width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i :class="item.icon" :style="{color:item.color}" style="font-size:19px;"></i>
           </div>
           <div style="flex:1;">
-            <div style="font-weight:700;font-size:14px;margin-bottom:1px;">{{ item.label }}</div>
-            <div style="font-size:12px;color:var(--text-muted);">{{ item.sub }}</div>
+            <div style="font-weight:700;font-size:17px;margin-bottom:2px;">{{ item.label }}</div>
+            <div style="font-size:14px;color:var(--text-muted);">{{ item.sub }}</div>
           </div>
-          <i class="fa-solid fa-chevron-right" style="font-size:11px;color:var(--text-dim);"></i>
+          <i class="fa-solid fa-chevron-right" style="font-size:13px;color:var(--text-dim);"></i>
         </a>
       </div>
 
-      <button @click="handleLogout" class="btn-danger" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:20px;">
-        <i class="fa-solid fa-right-from-bracket"></i> Logout Account
+      <!-- Logout -->
+      <button @click="handleLogout" class="btn-danger" style="width:100%;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:20px;font-size:17px;">
+        <i class="fa-solid fa-right-from-bracket" style="font-size:17px;"></i> Logout Account
       </button>
     </main>
   </div>
@@ -318,8 +528,8 @@
     <div style="display:grid;grid-template-columns:repeat(5,1fr);height:60px;">
       <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i><span>Home</span></a>
       <a href="add-money.html" class="nav-item"><i class="fa-solid fa-wallet"></i><span>Deposit</span></a>
-      <a href="live.html" class="nav-item nav-live" style="flex-direction:row;font-size:12px;gap:3px;padding:0!important;margin:8px 6px;">
-        <span class="live-dot"></span><span style="font-size:12px;font-weight:800;">LIVE</span>
+      <a href="live.html" class="nav-item nav-live" style="flex-direction:row;font-size:12px;gap:4px;padding:0!important;margin:8px 6px;">
+        <span class="live-dot"></span><span style="font-size:13px;font-weight:800;">LIVE</span>
       </a>
       <a href="orders.html" class="nav-item"><i class="fa-solid fa-receipt"></i><span>Orders</span></a>
       <a href="account.html" class="nav-item active"><i class="fa-solid fa-user"></i><span>Account</span></a>
@@ -329,8 +539,14 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, doc, collection, getDocs, query, where, addDoc, updateDoc, increment, runTransaction, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import {
+  getAuth, onAuthStateChanged, signOut,
+  browserLocalPersistence, setPersistence
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  getFirestore, doc, collection, getDocs, query, where,
+  addDoc, updateDoc, increment, runTransaction, serverTimestamp, onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { createApp, ref, computed, onMounted } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
 
 const firebaseConfig = {
@@ -341,24 +557,38 @@ const firebaseConfig = {
   messagingSenderId: "808524719613",
   appId: "1:808524719613:web:7f1abe9e70a346c3376594"
 };
+
 const fireApp = initializeApp(firebaseConfig);
-const auth = getAuth(fireApp);
-const db = getFirestore(fireApp);
+const auth   = getAuth(fireApp);
+const db     = getFirestore(fireApp);
+
+await setPersistence(auth, browserLocalPersistence).catch(() => {});
 
 createApp({
   setup() {
-    const userBalance = ref(0);
-    const userAvatar = ref('https://i.pravatar.cc/150?img=12');
-    const userData = ref({});
-    const userUID = ref('———');
-    const supportPin = ref('---');
-    const stats = ref({ totalSpent: 0, totalOrders: 0, weeklySpent: 0 });
-    const activeTurnovers = ref([]);
+    const dataLoaded       = ref(false);
+    const userBalance      = ref(0);
+    const userAvatar       = ref('https://i.pravatar.cc/150?img=12');
+    const userName         = ref('');
+    const userEmail        = ref('');
+    const userPhone        = ref('');   // ✅ Firestore থেকে সরাসরি আসবে
+    const userUID          = ref('———');
+    const supportPin       = ref('---');
+    const stats            = ref({ totalSpent: 0, totalOrders: 0, weeklySpent: 0 });
+    const activeTurnovers  = ref([]);
     const completedTurnovers = ref([]);
-    const turnoverModal = ref(false);
-    const turnoverTab = ref('active');
-    const withdrawModal = ref({ show: false, amount: '', gateway: 'bkash', accountNumber: '', loading: false, error: '' });
-    const transferModal = ref({ show: false, receiverUid: '', amount: '', loading: false, error: '', success: '' });
+    const turnoverModal    = ref(false);
+    const turnoverTab      = ref('active');
+
+    const withdrawModal = ref({
+      show: false, amount: '', gateway: 'bkash',
+      accountNumber: '', loading: false, error: ''
+    });
+
+    const transferModal = ref({
+      show: false, receiverPhone: '', amount: '',
+      loading: false, error: '', success: ''
+    });
 
     let toastTimer = null;
     const showToast = (msg) => {
@@ -367,32 +597,35 @@ createApp({
       el.textContent = msg;
       el.classList.add('show');
       clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+      toastTimer = setTimeout(() => el.classList.remove('show'), 2400);
     };
 
     const copyUID = () => {
       if (userUID.value && userUID.value !== '———') {
-        navigator.clipboard.writeText(userUID.value).catch(()=>{});
+        navigator.clipboard.writeText(userUID.value).catch(() => {});
         showToast('✅ UID Copied!');
       }
     };
 
     const accountMenu = computed(() => [
-      { label: 'My Orders', sub: 'Track your purchases', icon: 'fa-solid fa-receipt', color: '#6c63ff', bg: 'rgba(108,99,255,0.12)', href: 'orders.html' },
-      { label: 'Gift Codes', sub: 'View your codes', icon: 'fa-solid fa-gift', color: '#ffd700', bg: 'rgba(255,215,0,0.12)', href: 'codes.html' },
-      { label: 'Deposit', sub: 'Add money to wallet', icon: 'fa-solid fa-wallet', color: '#22c55e', bg: 'rgba(34,197,94,0.12)', href: 'add-money.html' },
-      { label: 'Balance History', sub: 'Deposit & Withdraw log', icon: 'fa-solid fa-clock-rotate-left', color: '#22d3ee', bg: 'rgba(34,211,238,0.12)', href: 'balance-history.html' },
-      { label: 'Refer & Earn', sub: 'Earn 10% commission', icon: 'fa-solid fa-users', color: '#a78bfa', bg: 'rgba(167,139,250,0.12)', href: 'referral.html' },
-      { label: 'Live Support', sub: 'Chat with admin', icon: 'fa-solid fa-headset', color: '#ff6b9d', bg: 'rgba(255,107,157,0.12)', href: 'chat.html' },
-      { label: 'Live Stream', sub: 'Watch live events', icon: 'fa-solid fa-video', color: '#ef4444', bg: 'rgba(239,68,68,0.12)', href: 'live.html' },
+      { label: 'My Orders',       sub: 'Track your purchases',    icon: 'fa-solid fa-receipt',             color: '#6c63ff', bg: 'rgba(108,99,255,0.12)',  href: 'orders.html' },
+      { label: 'Gift Codes',      sub: 'View your codes',         icon: 'fa-solid fa-gift',                color: '#ffd700', bg: 'rgba(255,215,0,0.12)',   href: 'codes.html' },
+      { label: 'Deposit',         sub: 'Add money to wallet',     icon: 'fa-solid fa-wallet',              color: '#22c55e', bg: 'rgba(34,197,94,0.12)',   href: 'add-money.html' },
+      { label: 'Balance History', sub: 'Deposit & Withdraw log',  icon: 'fa-solid fa-clock-rotate-left',  color: '#22d3ee', bg: 'rgba(34,211,238,0.12)',  href: 'balance-history.html' },
+      { label: 'Refer & Earn',    sub: 'Earn 10% commission',     icon: 'fa-solid fa-users',               color: '#a78bfa', bg: 'rgba(167,139,250,0.12)', href: 'referral.html' },
+      { label: 'Live Support',    sub: 'Chat with admin',         icon: 'fa-solid fa-headset',             color: '#ff6b9d', bg: 'rgba(255,107,157,0.12)', href: 'chat.html' },
+      { label: 'Live Stream',     sub: 'Watch live events',       icon: 'fa-solid fa-video',               color: '#ef4444', bg: 'rgba(239,68,68,0.12)',   href: 'live.html' },
     ]);
 
     const fetchTurnovers = async () => {
       const uid = localStorage.getItem('userId');
       if (!uid) return;
-      activeTurnovers.value = []; completedTurnovers.value = [];
+      activeTurnovers.value = [];
+      completedTurnovers.value = [];
       try {
-        const snap = await getDocs(query(collection(db, 'turnovers'), where('userId', '==', uid)));
+        const snap = await getDocs(
+          query(collection(db, 'turnovers'), where('userId', '==', uid))
+        );
         snap.forEach(d => {
           const item = { id: d.id, ...d.data() };
           if (d.data().status === 'completed') completedTurnovers.value.push(item);
@@ -405,13 +638,17 @@ createApp({
       const uid = localStorage.getItem('userId');
       if (!uid) return;
       try {
-        const snap = await getDocs(query(collection(db, 'orders'), where('userId', '==', uid)));
+        const snap = await getDocs(
+          query(collection(db, 'orders'), where('userId', '==', uid))
+        );
         let spent = 0, count = 0, weekly = 0;
-        const oneWeekAgo = new Date(); oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+        const oneWeekAgo = new Date();
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
         snap.forEach(d => {
           const data = d.data();
           if (data.status === 'completed') {
-            spent += Number(data.price || 0); count++;
+            spent += Number(data.price || 0);
+            count++;
             const od = data.createdAt ? data.createdAt.toDate() : new Date();
             if (od >= oneWeekAgo) weekly += Number(data.price || 0);
           }
@@ -424,13 +661,15 @@ createApp({
       const wm = withdrawModal.value;
       wm.error = '';
       if (!wm.amount || Number(wm.amount) < 500) { wm.error = 'সর্বনিম্ন ৳500 উইথড্র করুন।'; return; }
-      if (Number(wm.amount) > userBalance.value) { wm.error = 'আপনার ব্যালেন্স পর্যাপ্ত নয়।'; return; }
+      if (Number(wm.amount) > userBalance.value)  { wm.error = 'আপনার ব্যালেন্স পর্যাপ্ত নয়।'; return; }
       if (!wm.accountNumber || wm.accountNumber.length < 10) { wm.error = 'সঠিক নম্বর দিন।'; return; }
       if (activeTurnovers.value.length > 0) { wm.error = '⚠️ Turnover Complete হয়নি।'; return; }
       wm.loading = true;
       try {
         const uid = localStorage.getItem('userId');
-        const pendingSnap = await getDocs(query(collection(db, 'withdrawals'), where('userId', '==', uid), where('status', '==', 'pending')));
+        const pendingSnap = await getDocs(
+          query(collection(db,'withdrawals'), where('userId','==',uid), where('status','==','pending'))
+        );
         if (!pendingSnap.empty) { wm.error = 'একটি রিকোয়েস্ট ইতিমধ্যে পেন্ডিং আছে।'; wm.loading = false; return; }
         const amount = Number(wm.amount);
         await runTransaction(db, async (t) => {
@@ -438,14 +677,16 @@ createApp({
           const uDoc = await t.get(uRef);
           if (uDoc.data().balance < amount) throw new Error('Low Balance');
           t.update(uRef, { balance: uDoc.data().balance - amount });
-          t.set(doc(collection(db, 'withdrawals')), { userId: uid, amount, gateway: wm.gateway, accountNumber: wm.accountNumber, status: 'pending', createdAt: serverTimestamp() });
+          t.set(doc(collection(db,'withdrawals')), {
+            userId: uid, amount, gateway: wm.gateway,
+            accountNumber: wm.accountNumber, status: 'pending', createdAt: serverTimestamp()
+          });
         });
         withdrawModal.value.show = false;
         showToast(`✅ ৳${amount} উইথড্র রিকোয়েস্ট পাঠানো হয়েছে।`);
         setTimeout(() => { window.location.href = 'balance-history.html'; }, 1500);
       } catch(e) {
-        if (e.message === 'Low Balance') wm.error = 'ব্যালেন্স পর্যাপ্ত নয়।';
-        else { wm.error = 'সমস্যা হয়েছে।'; }
+        wm.error = e.message === 'Low Balance' ? 'ব্যালেন্স পর্যাপ্ত নয়।' : 'সমস্যা হয়েছে।';
       } finally { wm.loading = false; }
     };
 
@@ -453,96 +694,131 @@ createApp({
       const tm = transferModal.value;
       tm.error = ''; tm.success = '';
       const amount = Number(tm.amount);
-      if (!tm.receiverUid || tm.receiverUid.trim().length < 4) { tm.error = 'সঠিক Receiver UID দিন।'; return; }
-      if (!amount || amount < 10) { tm.error = 'সর্বনিম্ন ৳10 Transfer করুন।'; return; }
-      if (amount > userBalance.value) { tm.error = 'আপনার ব্যালেন্স পর্যাপ্ত নয়।'; return; }
+      const phone  = tm.receiverPhone.trim();
+      if (!phone || phone.length < 11) { tm.error = 'সঠিক ফোন নম্বর দিন (১১ ডিজিট)।'; return; }
+      if (!amount || amount < 10)      { tm.error = 'সর্বনিম্ন ৳10 Transfer করুন।'; return; }
+      if (amount > userBalance.value)  { tm.error = 'আপনার ব্যালেন্স পর্যাপ্ত নয়।'; return; }
+
       const senderUid = localStorage.getItem('userId');
-      if (tm.receiverUid.trim() === senderUid) { tm.error = 'নিজেকে Transfer করা যাবে না।'; return; }
+      if (userPhone.value && userPhone.value === phone) {
+        tm.error = 'নিজের নম্বরে Transfer করা যাবে না।'; return;
+      }
       tm.loading = true;
       try {
-        // Find receiver by UID
-        const receiverSnap = await getDocs(query(collection(db, 'users'), where('uid', '==', tm.receiverUid.trim())));
-        if (receiverSnap.empty) { tm.error = 'এই UID দিয়ে কোনো ব্যবহারকারী পাওয়া যায়নি।'; tm.loading = false; return; }
-        const receiverDoc = receiverSnap.docs[0];
-        const receiverFirestoreId = receiverDoc.id;
+        const receiverSnap = await getDocs(
+          query(collection(db,'users'), where('phone','==', phone))
+        );
+        if (receiverSnap.empty) { tm.error = 'এই ফোন নম্বর দিয়ে কোনো একাউন্ট পাওয়া যায়নি।'; tm.loading = false; return; }
+        const receiverId = receiverSnap.docs[0].id;
+        if (receiverId === senderUid) { tm.error = 'নিজেকে Transfer করা যাবে না।'; tm.loading = false; return; }
 
         await runTransaction(db, async (t) => {
-          const sRef = doc(db, 'users', senderUid);
-          const rRef = doc(db, 'users', receiverFirestoreId);
+          const sRef = doc(db,'users',senderUid);
+          const rRef = doc(db,'users',receiverId);
           const sDoc = await t.get(sRef);
           if (sDoc.data().balance < amount) throw new Error('Low Balance');
           t.update(sRef, { balance: sDoc.data().balance - amount });
           t.update(rRef, { balance: increment(amount) });
         });
 
-        // Add transfer record
-        await addDoc(collection(db, 'transfers'), {
-          senderUid: senderUid, receiverUid: tm.receiverUid.trim(),
-          amount, status: 'completed', createdAt: serverTimestamp()
-        });
-
-        // Turnover for sender (50% of transfer amount)
         const turnoverAmt = Math.ceil(amount * 0.5);
-        await addDoc(collection(db, 'turnovers'), {
-          userId: senderUid, type: 'transfer',
-          label: `Transfer Turnover (৳${turnoverAmt})`,
-          required: turnoverAmt, done: 0, status: 'active', createdAt: serverTimestamp()
-        });
+        await Promise.all([
+          addDoc(collection(db,'transfers'), {
+            senderUid, receiverPhone: phone, receiverUid: receiverId,
+            amount, status: 'completed', createdAt: serverTimestamp()
+          }),
+          addDoc(collection(db,'turnovers'), {
+            userId: senderUid, type: 'transfer',
+            label: `Transfer Turnover (৳${turnoverAmt})`,
+            required: turnoverAmt, done: 0, status: 'active', createdAt: serverTimestamp()
+          }),
+          addDoc(collection(db,'balanceLogs'), {
+            userId: senderUid, type: 'transfer_out', amount: -amount,
+            note: `Transfer to ${phone}`, createdAt: serverTimestamp()
+          }),
+          addDoc(collection(db,'balanceLogs'), {
+            userId: receiverId, type: 'transfer_in', amount,
+            note: `Transfer from ${userPhone.value || senderUid.substring(0,8)}`, createdAt: serverTimestamp()
+          }),
+        ]);
 
-        // Log for both
-        await addDoc(collection(db, 'balanceLogs'), {
-          userId: senderUid, type: 'transfer_out', amount: -amount,
-          note: `Transfer to ${tm.receiverUid.trim()}`, createdAt: serverTimestamp()
-        });
-        await addDoc(collection(db, 'balanceLogs'), {
-          userId: receiverFirestoreId, type: 'transfer_in', amount,
-          note: `Transfer from ${senderUid.substring(0,8)}`, createdAt: serverTimestamp()
-        });
-
-        tm.success = `✅ ৳${amount} সফলভাবে Transfer হয়েছে!`;
-        tm.receiverUid = ''; tm.amount = '';
+        tm.success = `✅ ৳${amount} সফলভাবে ${phone} নম্বরে Transfer হয়েছে!`;
+        tm.receiverPhone = ''; tm.amount = '';
         await fetchTurnovers();
       } catch(e) {
-        if (e.message === 'Low Balance') tm.error = 'ব্যালেন্স পর্যাপ্ত নয়।';
-        else tm.error = 'Transfer ব্যর্থ হয়েছে। আবার চেষ্টা করুন।';
+        tm.error = e.message === 'Low Balance' ? 'ব্যালেন্স পর্যাপ্ত নয়।' : 'Transfer ব্যর্থ হয়েছে।';
       } finally { tm.loading = false; }
     };
 
     const handleLogout = async () => {
       if (!confirm('আপনি কি নিশ্চিত লগআউট করতে চান?')) return;
       const uid = localStorage.getItem('userId');
-      if (uid) await updateDoc(doc(db, 'users', uid), { isOnline: false, lastSeen: serverTimestamp() }).catch(()=>{});
-      await signOut(auth).catch(()=>{});
+      if (uid) {
+        await updateDoc(doc(db,'users',uid), {
+          isOnline: false, lastSeen: serverTimestamp()
+        }).catch(() => {});
+      }
+      await signOut(auth).catch(() => {});
       localStorage.removeItem('userId');
       window.location.href = 'login.html';
     };
 
     onMounted(() => {
       onAuthStateChanged(auth, (user) => {
-        if (!user) { window.location.href = 'login.html'; return; }
+        if (!user) {
+          window.location.href = 'login.html';
+          return;
+        }
+
         localStorage.setItem('userId', user.uid);
         userUID.value = user.uid.substring(0, 12).toUpperCase();
-        updateDoc(doc(db, 'users', user.uid), { isOnline: true, lastSeen: serverTimestamp() }).catch(()=>{});
-        onSnapshot(doc(db, 'users', user.uid), (d) => {
-          if (d.exists()) {
-            userBalance.value = d.data().balance || 0;
-            userAvatar.value = d.data().photoURL || 'https://i.pravatar.cc/150?img=12';
-            userData.value = d.data();
-            const uid = user.uid.replace(/\D/g, '');
-            supportPin.value = uid.length > 5 ? uid.substring(0, 6) : Math.floor(100000 + Math.random() * 900000);
+
+        const numericUid = user.uid.replace(/\D/g, '');
+        supportPin.value = numericUid.length > 5
+          ? numericUid.substring(0, 6)
+          : String(Math.floor(100000 + Math.random() * 900000));
+
+        updateDoc(doc(db, 'users', user.uid), {
+          isOnline: true,
+          lastSeen: serverTimestamp()
+        }).catch(() => {});
+
+        // ✅ Real-time listener — Firestore থেকে সরাসরি সব field পড়ো
+        onSnapshot(doc(db, 'users', user.uid), (snap) => {
+          if (snap.exists()) {
+            const d = snap.data();
+            userName.value    = d.name     || user.displayName || '';
+            userEmail.value   = d.email    || user.email       || '';
+            // ✅ phone — Firestore data.phone থেকে নাও; না থাকলে Auth থেকে নাও, তাও না থাকলে খালি
+            userPhone.value   = d.phone    || user.phoneNumber || '';
+            userBalance.value = d.balance  || 0;
+            userAvatar.value  = d.photoURL || 'https://i.pravatar.cc/150?img=12';
+          } else {
+            userName.value  = user.displayName || '';
+            userEmail.value = user.email       || '';
+            userPhone.value = user.phoneNumber || '';
           }
+          dataLoaded.value = true;
+        }, () => {
+          // onSnapshot error fallback
+          userName.value   = user.displayName || '';
+          userEmail.value  = user.email       || '';
+          userPhone.value  = user.phoneNumber || '';
+          dataLoaded.value = true;
         });
+
         fetchTurnovers();
         fetchStats();
       });
     });
 
     return {
-      userBalance, userAvatar, userData, userUID, supportPin, stats,
+      dataLoaded,
+      userBalance, userAvatar, userName, userEmail, userPhone, userUID, supportPin, stats,
       activeTurnovers, completedTurnovers, turnoverModal, turnoverTab,
       withdrawModal, submitWithdraw,
       transferModal, submitTransfer,
-      accountMenu, handleLogout, copyUID
+      accountMenu, handleLogout, copyUID, showToast
     };
   }
 }).mount('#app');

@@ -7,49 +7,194 @@
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Noto+Sans+Bengali:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css">
+<style>
+:root {
+  --bg: #0f0f1a;
+  --surface: #1a1a2e;
+  --surface2: #1e1e35;
+  --border: rgba(255,255,255,0.08);
+  --text: #ffffff;
+  --text-muted: rgba(255,255,255,0.55);
+  --text-dim: rgba(255,255,255,0.3);
+  --primary: #6c63ff;
+  --primary-dark: #5a52e0;
+  --accent: #c084fc;
+  --green: #22c55e;
+  --red: #ef4444;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: 'Outfit', 'Noto Sans Bengali', sans-serif;
+  font-size: 16px; overflow: hidden;
+}
+[v-cloak] { display: none; }
+.app-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 100;
+}
+.input-field {
+  width: 100%; background: var(--surface2); border: 1.5px solid var(--border);
+  border-radius: 14px; padding: 15px 16px; color: var(--text);
+  font-family: inherit; font-size: 16px; outline: none; transition: border-color 0.2s;
+}
+.input-field:focus { border-color: var(--primary); }
+.input-field::placeholder { color: var(--text-dim); }
+.btn-primary {
+  width: 100%; background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: #fff; font-weight: 700; border: none; border-radius: 14px;
+  padding: 15px; font-family: inherit; cursor: pointer; font-size: 17px;
+  transition: opacity 0.2s;
+}
+.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+.google-btn {
+  width: 100%; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 14px; display: flex; align-items: center; justify-content: center;
+  gap: 12px; cursor: pointer; color: #fff; font-size: 16px; font-weight: 700;
+  padding: 15px; font-family: inherit; transition: opacity 0.2s;
+}
+.google-btn:active { opacity: 0.8; }
+.spinner {
+  width: 20px; height: 20px; border: 2.5px solid rgba(255,255,255,0.3);
+  border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite;
+  display: inline-block; vertical-align: middle;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Google Phone Modal */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.8);
+  display: flex; align-items: flex-end; justify-content: center;
+  z-index: 1000; backdrop-filter: blur(4px);
+}
+.modal-sheet {
+  background: var(--surface); border-radius: 28px 28px 0 0;
+  padding: 24px 20px 40px; width: 100%; max-width: 480px;
+}
+.modal-handle {
+  display: block; width: 44px; height: 5px;
+  background: var(--border); border-radius: 3px;
+  margin: 0 auto 22px;
+}
+</style>
 </head>
 <body>
 <div id="app" v-cloak>
+
+  <!-- ══ Google Phone Modal (শুধু Google signup এর জন্য) ══ -->
+  <div v-if="googlePhoneModal" class="modal-overlay">
+    <div class="modal-sheet">
+      <span class="modal-handle"></span>
+      <div style="text-align:center;margin-bottom:22px;">
+        <div style="width:56px;height:56px;background:rgba(108,99,255,0.15);border-radius:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
+          <i class="fa-solid fa-phone" style="font-size:22px;color:var(--primary);"></i>
+        </div>
+        <div style="font-weight:800;font-size:20px;margin-bottom:6px;">ফোন নম্বর দিন</div>
+        <div style="font-size:15px;color:var(--text-muted);">Transfer ও সুরক্ষার জন্য ফোন নম্বর যোগ করুন</div>
+      </div>
+      <input v-model="googlePhone" type="tel" class="input-field" placeholder="01XXXXXXXXX" style="margin-bottom:10px;" @keyup.enter="saveGooglePhone">
+      <div v-if="googlePhoneError" style="color:#f87171;font-size:14px;margin-bottom:12px;">{{ googlePhoneError }}</div>
+      <button @click="saveGooglePhone" class="btn-primary" :disabled="googlePhoneLoading" style="margin-bottom:12px;">
+        <span v-if="googlePhoneLoading" class="spinner"></span>
+        <span v-else><i class="fa-solid fa-check" style="margin-right:8px;"></i>সংরক্ষণ করুন</span>
+      </button>
+      <button @click="skipGooglePhone" style="width:100%;background:transparent;border:none;color:var(--text-muted);font-size:15px;font-family:inherit;cursor:pointer;margin-top:4px;padding:10px;">
+        এখন না, পরে যোগ করব
+      </button>
+    </div>
+  </div>
+
   <div style="display:flex;flex-direction:column;height:100vh;">
+    <!-- Header -->
     <header class="app-header">
       <div style="padding:14px 16px;display:flex;align-items:center;gap:12px;">
-        <a href="login.html" style="background:var(--surface2);border:none;border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);text-decoration:none;">
+        <a href="login.html" style="background:var(--surface2);border:none;border-radius:10px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);text-decoration:none;">
           <i class="fa-solid fa-arrow-left"></i>
         </a>
-        <div style="font-weight:800;font-size:17px;">Create Account</div>
+        <div style="font-size:20px;font-weight:800;">অ্যাকাউন্ট তৈরি করুন</div>
       </div>
     </header>
+
     <main style="padding:16px;padding-bottom:40px;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;">
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:24px;">
-        <button @click="handleGoogleLogin" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:14px;display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer;color:#fff;font-size:14px;font-weight:600;margin-bottom:20px;" class="card-hover">
-          <img src="https://www.svgrepo.com/show/475656/google-color.svg" style="width:20px;"> Sign up with Google
+
+        <!-- Google Signup -->
+        <button @click="handleGoogleLogin" class="google-btn" style="margin-bottom:24px;" :disabled="googleLoading">
+          <span v-if="googleLoading" class="spinner"></span>
+          <template v-else>
+            <img src="https://www.svgrepo.com/show/475656/google-color.svg" style="width:22px;">
+            Google দিয়ে রেজিস্ট্রেশন করুন
+          </template>
         </button>
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+
+        <!-- Divider -->
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:22px;">
           <div style="flex:1;height:1px;background:var(--border);"></div>
-          <span style="font-size:12px;color:var(--text-dim);">or sign up with email</span>
+          <span style="font-size:14px;color:var(--text-dim);">অথবা ইমেইল দিয়ে</span>
           <div style="flex:1;height:1px;background:var(--border);"></div>
         </div>
-        <div style="display:flex;flex-direction:column;gap:12px;">
-          <input v-model="regName" type="text" class="input-field" placeholder="Full Name">
-          <input v-model="regPhone" type="tel" class="input-field" placeholder="Phone Number">
-          <input v-model="regEmail" type="email" class="input-field" placeholder="Email Address">
-          <input v-model="regPass" type="password" class="input-field" placeholder="Password">
-          <input v-model="regConfirm" type="password" class="input-field"
-            :style="{borderColor:regPass&&regConfirm&&regPass!==regConfirm?'var(--red)':'var(--border)'}"
-            placeholder="Confirm Password">
-          <div v-if="regPass&&regConfirm&&regPass!==regConfirm" style="font-size:12px;color:#f87171;margin-top:-4px;">Passwords do not match!</div>
+
+        <!-- Form Fields -->
+        <div style="display:flex;flex-direction:column;gap:14px;">
+
+          <!-- Name -->
+          <input v-model="regName" type="text" class="input-field" placeholder="পূর্ণ নাম" autocomplete="name">
+
+          <!-- Phone — REQUIRED -->
+          <div>
+            <div style="position:relative;">
+              <i class="fa-solid fa-phone" style="position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--text-dim);font-size:15px;"></i>
+              <input v-model="regPhone" type="tel" class="input-field"
+                placeholder="ফোন নম্বর (01XXXXXXXXX) — আবশ্যক"
+                style="padding-left:46px;"
+                :style="{borderColor: phoneError ? '#ef4444' : 'var(--border)'}"
+                @blur="checkPhoneDuplicate" autocomplete="tel">
+            </div>
+            <div v-if="phoneError" style="color:#f87171;font-size:14px;margin-top:6px;padding-left:4px;">{{ phoneError }}</div>
+          </div>
+
+          <!-- Email -->
+          <div>
+            <input v-model="regEmail" type="email" class="input-field" placeholder="ইমেইল অ্যাড্রেস"
+              :style="{borderColor: emailError ? '#ef4444' : 'var(--border)'}"
+              @blur="checkEmailDuplicate" autocomplete="email">
+            <div v-if="emailError" style="color:#f87171;font-size:14px;margin-top:6px;">{{ emailError }}</div>
+          </div>
+
+          <!-- Password -->
+          <input v-model="regPass" type="password" class="input-field" placeholder="পাসওয়ার্ড (কমপক্ষে ৬ অক্ষর)" autocomplete="new-password">
+
+          <!-- Confirm Password -->
+          <div>
+            <input v-model="regConfirm" type="password" class="input-field"
+              :style="{borderColor: regPass && regConfirm && regPass !== regConfirm ? '#ef4444' : 'var(--border)'}"
+              placeholder="পাসওয়ার্ড নিশ্চিত করুন" autocomplete="new-password" @keyup.enter="handleRegister">
+            <div v-if="regPass && regConfirm && regPass !== regConfirm" style="color:#f87171;font-size:14px;margin-top:6px;">
+              পাসওয়ার্ড মিলছে না!
+            </div>
+          </div>
         </div>
-        <div style="margin-top:12px;">
-          <input v-model="regReferralCode" type="text" class="input-field" placeholder="Referral Code (optional)" style="font-size:13px;">
+
+        <!-- Referral -->
+        <div style="margin-top:14px;">
+          <input v-model="regReferralCode" type="text" class="input-field" placeholder="রেফারেল কোড (ঐচ্ছিক)" style="font-size:15px;">
         </div>
-        <div v-if="errorMsg" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:12px;padding:12px;font-size:13px;color:#f87171;margin-top:14px;">{{ errorMsg }}</div>
-        <button @click="handleRegister" class="btn-primary" style="width:100%;margin-top:20px;" :disabled="regLoading">
+
+        <!-- Error -->
+        <div v-if="errorMsg" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:12px;padding:14px;color:#f87171;margin-top:16px;font-size:15px;line-height:1.5;">
+          {{ errorMsg }}
+        </div>
+
+        <!-- Submit -->
+        <button @click="handleRegister" class="btn-primary" style="margin-top:22px;" :disabled="regLoading || !!phoneError || !!emailError">
           <span v-if="regLoading" class="spinner"></span>
-          <span v-else>Create Account</span>
+          <span v-else>অ্যাকাউন্ট তৈরি করুন</span>
         </button>
-        <p style="text-align:center;font-size:13px;color:var(--text-muted);margin-top:16px;">
-          Already a member? <a href="login.html" style="color:var(--primary);font-weight:700;text-decoration:none;">Login</a>
+
+        <p style="text-align:center;color:var(--text-muted);margin-top:20px;font-size:15px;">
+          ইতিমধ্যে অ্যাকাউন্ট আছে?
+          <a href="login.html" style="color:var(--primary);font-weight:700;text-decoration:none;">লগইন করুন</a>
         </p>
       </div>
     </main>
@@ -58,9 +203,17 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, signInWithPopup, GoogleAuthProvider, createUserWithEmailAndPassword, updateProfile, browserLocalPersistence, setPersistence } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, collection, getDocs, query, where, updateDoc, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { createApp, ref } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
+import {
+  getAuth, signInWithPopup, GoogleAuthProvider,
+  createUserWithEmailAndPassword, updateProfile,
+  browserLocalPersistence, setPersistence, onAuthStateChanged,
+  fetchSignInMethodsForEmail
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  getFirestore, doc, getDoc, setDoc, collection, getDocs,
+  query, where, updateDoc, increment, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { createApp, ref, onMounted } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCZWRcCP0hXTkfQoRhqxczgdD6cw5kp39c",
@@ -70,79 +223,255 @@ const firebaseConfig = {
   messagingSenderId: "808524719613",
   appId: "1:808524719613:web:7f1abe9e70a346c3376594"
 };
+
 const fireApp = initializeApp(firebaseConfig);
 const auth = getAuth(fireApp);
-setPersistence(auth, browserLocalPersistence).catch(() => {});
 const db = getFirestore(fireApp);
+
+await setPersistence(auth, browserLocalPersistence).catch(() => {});
 
 createApp({
   setup() {
-    const regName = ref(''); const regPhone = ref(''); const regEmail = ref('');
-    const regPass = ref(''); const regConfirm = ref(''); const regLoading = ref(false);
+    const regName         = ref('');
+    const regPhone        = ref('');
+    const regEmail        = ref('');
+    const regPass         = ref('');
+    const regConfirm      = ref('');
     const regReferralCode = ref('');
-    const errorMsg = ref('');
+    const regLoading      = ref(false);
+    const googleLoading   = ref(false);
+    const errorMsg        = ref('');
+    const phoneError      = ref('');
+    const emailError      = ref('');
+
+    // Google phone modal
+    const googlePhoneModal   = ref(false);
+    const googlePhone        = ref('');
+    const googlePhoneError   = ref('');
+    const googlePhoneLoading = ref(false);
+    let   pendingGoogleUid   = null;
+
+    // URL থেকে ref কোড
     const urlRef = new URLSearchParams(window.location.search).get('ref');
     if (urlRef) regReferralCode.value = urlRef;
 
+    // লগইন থাকলে redirect
+    onMounted(() => {
+      onAuthStateChanged(auth, (user) => {
+        if (user && !googlePhoneModal.value) {
+          localStorage.setItem('userId', user.uid);
+          window.location.href = 'index.html';
+        }
+      });
+    });
+
+    // ── ফোন ডুপ্লিকেট চেক ──
+    const checkPhoneDuplicate = async () => {
+      phoneError.value = '';
+      const phone = regPhone.value.trim();
+      if (!phone) return;
+      if (!/^01[3-9]\d{8}$/.test(phone)) {
+        phoneError.value = '⚠️ সঠিক বাংলাদেশী নম্বর দিন (01XXXXXXXXX)';
+        return;
+      }
+      try {
+        const snap = await getDocs(query(collection(db,'users'), where('phone','==',phone)));
+        if (!snap.empty) phoneError.value = '❌ এই ফোন নম্বর দিয়ে ইতিমধ্যে অ্যাকাউন্ট আছে।';
+      } catch(e) {}
+    };
+
+    // ── ইমেইল ডুপ্লিকেট চেক ──
+    const checkEmailDuplicate = async () => {
+      emailError.value = '';
+      const email = regEmail.value.trim();
+      if (!email || !email.includes('@')) return;
+      try {
+        const methods = await fetchSignInMethodsForEmail(auth, email);
+        if (methods && methods.length > 0) {
+          emailError.value = '❌ এই ইমেইল দিয়ে ইতিমধ্যে অ্যাকাউন্ট আছে।';
+          return;
+        }
+        const snap = await getDocs(query(collection(db,'users'), where('email','==',email)));
+        if (!snap.empty) emailError.value = '❌ এই ইমেইল দিয়ে ইতিমধ্যে অ্যাকাউন্ট আছে।';
+      } catch(e) {}
+    };
+
+    // ── Google Signup ──
     const handleGoogleLogin = async () => {
+      errorMsg.value = '';
+      googleLoading.value = true;
       try {
         const provider = new GoogleAuthProvider();
-        const result = await signInWithPopup(auth, provider);
-        const user = result.user;
-        const userRef = doc(db, 'users', user.uid);
-        const snap = await getDoc(userRef);
+        const result   = await signInWithPopup(auth, provider);
+        const user     = result.user;
+        const userRef  = doc(db, 'users', user.uid);
+        const snap     = await getDoc(userRef);
+
         if (!snap.exists()) {
+          // নতুন user — phone খালি রেখে save করুন, modal দিয়ে নেওয়া হবে
           await setDoc(userRef, {
-            uid: user.uid, name: user.displayName||'User', email: user.email,
-            photoURL: user.photoURL||'', balance: 0, phone: '',
-            referralCode: user.uid.substring(0, 8), joinedAt: new Date().toISOString(),
-            lastSeen: serverTimestamp(), isOnline: true
+            uid:          user.uid,
+            name:         user.displayName || 'User',
+            email:        user.email       || '',
+            photoURL:     user.photoURL    || '',
+            phone:        '',
+            balance:      0,
+            referralCode: user.uid.substring(0, 8),
+            referredBy:   regReferralCode.value.trim() || '',
+            joinedAt:     new Date().toISOString(),
+            lastSeen:     serverTimestamp(),
+            isOnline:     true
           });
+
+          pendingGoogleUid = user.uid;
+          localStorage.setItem('userId', user.uid);
+          googleLoading.value = false;
+          googlePhoneModal.value = true;
+
+        } else {
+          // পুরনো user — সরাসরি যাও
+          await updateDoc(userRef, { lastSeen: serverTimestamp(), isOnline: true }).catch(() => {});
+          localStorage.setItem('userId', user.uid);
+          window.location.href = 'index.html';
         }
-        localStorage.setItem('userId', user.uid);
-        window.location.href = 'index.html';
-      } catch (e) { errorMsg.value = 'Google login failed: ' + e.message; }
+      } catch(e) {
+        errorMsg.value = 'Google লগইন ব্যর্থ হয়েছে। আবার চেষ্টা করুন।';
+        googleLoading.value = false;
+      }
     };
 
-    const handleRegister = async () => {
-      if (!regName.value || !regEmail.value || !regPass.value) { errorMsg.value = 'সব field পূরণ করুন।'; return; }
-      if (regPass.value !== regConfirm.value) { errorMsg.value = 'Passwords match করছে না।'; return; }
-      if (regPass.value.length < 6) { errorMsg.value = 'Password কমপক্ষে ৬ character হতে হবে।'; return; }
-      regLoading.value = true; errorMsg.value = '';
+    // ── Google Phone সেভ ──
+    const saveGooglePhone = async () => {
+      googlePhoneError.value = '';
+      const phone = googlePhone.value.trim();
+
+      if (!phone) { googlePhoneError.value = '⚠️ ফোন নম্বর দিন।'; return; }
+      if (!/^01[3-9]\d{8}$/.test(phone)) {
+        googlePhoneError.value = '⚠️ সঠিক বাংলাদেশী নম্বর দিন (01XXXXXXXXX)';
+        return;
+      }
+
+      googlePhoneLoading.value = true;
       try {
-        const result = await createUserWithEmailAndPassword(auth, regEmail.value, regPass.value);
-        await updateProfile(result.user, { displayName: regName.value });
+        const dupSnap = await getDocs(query(collection(db,'users'), where('phone','==',phone)));
+        if (!dupSnap.empty) {
+          googlePhoneError.value = '❌ এই ফোন নম্বর দিয়ে ইতিমধ্যে অ্যাকাউন্ট আছে।';
+          googlePhoneLoading.value = false;
+          return;
+        }
+
+        const uid = pendingGoogleUid || localStorage.getItem('userId');
+        await updateDoc(doc(db, 'users', uid), { phone });
+
+        googlePhoneModal.value = false;
+        window.location.href   = 'index.html';
+      } catch(e) {
+        googlePhoneError.value = 'সমস্যা হয়েছে, আবার চেষ্টা করুন।';
+      } finally {
+        googlePhoneLoading.value = false;
+      }
+    };
+
+    // ── Google Phone Skip ──
+    const skipGooglePhone = () => {
+      googlePhoneModal.value = false;
+      window.location.href   = 'index.html';
+    };
+
+    // ── Email Registration ──
+    const handleRegister = async () => {
+      errorMsg.value = '';
+
+      if (!regName.value.trim())   { errorMsg.value = '⚠️ আপনার নাম দিন।'; return; }
+      if (!regPhone.value.trim())  { errorMsg.value = '⚠️ ফোন নম্বর দিন।'; return; }
+      if (!/^01[3-9]\d{8}$/.test(regPhone.value.trim())) {
+        errorMsg.value = '⚠️ সঠিক বাংলাদেশী নম্বর দিন (01XXXXXXXXX)'; return;
+      }
+      if (!regEmail.value.trim())  { errorMsg.value = '⚠️ ইমেইল দিন।'; return; }
+      if (!regPass.value)          { errorMsg.value = '⚠️ পাসওয়ার্ড দিন।'; return; }
+      if (regPass.value.length < 6){ errorMsg.value = '⚠️ পাসওয়ার্ড কমপক্ষে ৬ অক্ষর হতে হবে।'; return; }
+      if (regPass.value !== regConfirm.value) { errorMsg.value = '⚠️ পাসওয়ার্ড মিলছে না।'; return; }
+      if (phoneError.value || emailError.value) { errorMsg.value = '⚠️ উপরের সমস্যাগুলো ঠিক করুন।'; return; }
+
+      regLoading.value = true;
+      try {
+        // ✅ Phone final duplicate check
+        const phoneSnap = await getDocs(
+          query(collection(db,'users'), where('phone','==', regPhone.value.trim()))
+        );
+        if (!phoneSnap.empty) {
+          errorMsg.value = '❌ এই ফোন নম্বর দিয়ে ইতিমধ্যে অ্যাকাউন্ট আছে।';
+          regLoading.value = false;
+          return;
+        }
+
+        // Firebase Auth create
+        const result = await createUserWithEmailAndPassword(
+          auth, regEmail.value.trim(), regPass.value
+        );
+        await updateProfile(result.user, { displayName: regName.value.trim() });
         const uid = result.user.uid;
+
+        // ✅ Firestore — phone সহ সব data একসাথে সেভ
         await setDoc(doc(db, 'users', uid), {
-          uid, name: regName.value, email: regEmail.value,
-          phone: regPhone.value, balance: 0, photoURL: '',
+          uid,
+          name:         regName.value.trim(),
+          email:        regEmail.value.trim(),
+          phone:        regPhone.value.trim(),   // ✅ phone এখানেই সেভ হয়ে যাচ্ছে
+          balance:      0,
+          photoURL:     '',
           referralCode: uid.substring(0, 8),
-          referredBy: regReferralCode.value || '',
-          joinedAt: new Date().toISOString(),
-          lastSeen: serverTimestamp(), isOnline: true
+          referredBy:   regReferralCode.value.trim() || '',
+          joinedAt:     new Date().toISOString(),
+          lastSeen:     serverTimestamp(),
+          isOnline:     true
         });
-        if (regReferralCode.value) {
+
+        // Referral handle
+        if (regReferralCode.value.trim()) {
           try {
-            const refQuery = query(collection(db, 'users'), where('referralCode', '==', regReferralCode.value));
-            const refSnap = await getDocs(refQuery);
+            const refSnap = await getDocs(
+              query(collection(db,'users'), where('referralCode','==', regReferralCode.value.trim()))
+            );
             if (!refSnap.empty) {
               const referrerId = refSnap.docs[0].id;
-              const refDocRef = doc(db, 'referrals', referrerId);
-              const refDoc = await getDoc(refDocRef);
-              if (refDoc.exists()) { await updateDoc(refDocRef, { totalRefs: increment(1) }); }
-              else { await setDoc(refDocRef, { totalRefs: 1, totalEarned: 0 }); }
+              const refDocRef  = doc(db, 'referrals', referrerId);
+              const refDoc     = await getDoc(refDocRef);
+              if (refDoc.exists()) {
+                await updateDoc(refDocRef, { totalRefs: increment(1) });
+              } else {
+                await setDoc(refDocRef, { totalRefs: 1, totalEarned: 0 });
+              }
             }
-          } catch (re) {}
+          } catch(re) {}
         }
+
         localStorage.setItem('userId', uid);
         window.location.href = 'index.html';
-      } catch (e) {
-        if (e.code === 'auth/email-already-in-use') errorMsg.value = 'Email already in use!';
-        else errorMsg.value = 'Registration failed: ' + e.message;
-      } finally { regLoading.value = false; }
+
+      } catch(e) {
+        if (e.code === 'auth/email-already-in-use') {
+          errorMsg.value = '❌ এই ইমেইল দিয়ে ইতিমধ্যে অ্যাকাউন্ট আছে।';
+          emailError.value = errorMsg.value;
+        } else if (e.code === 'auth/invalid-email') {
+          errorMsg.value = '❌ সঠিক ইমেইল অ্যাড্রেস দিন।';
+        } else if (e.code === 'auth/weak-password') {
+          errorMsg.value = '❌ পাসওয়ার্ড আরও শক্তিশালী করুন।';
+        } else {
+          errorMsg.value = 'রেজিস্ট্রেশন ব্যর্থ: ' + e.message;
+        }
+      } finally {
+        regLoading.value = false;
+      }
     };
 
-    return { regName, regPhone, regEmail, regPass, regConfirm, regReferralCode, regLoading, errorMsg, handleGoogleLogin, handleRegister };
+    return {
+      regName, regPhone, regEmail, regPass, regConfirm, regReferralCode,
+      regLoading, googleLoading, errorMsg, phoneError, emailError,
+      googlePhoneModal, googlePhone, googlePhoneError, googlePhoneLoading,
+      checkPhoneDuplicate, checkEmailDuplicate,
+      handleGoogleLogin, saveGooglePhone, skipGooglePhone, handleRegister
+    };
   }
 }).mount('#app');
 </script>

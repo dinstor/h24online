@@ -7,40 +7,181 @@
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Noto+Sans+Bengali:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css">
+<style>
+:root {
+  --bg: #0f0f1a;
+  --surface: #1a1a2e;
+  --surface2: #1e1e35;
+  --border: rgba(255,255,255,0.08);
+  --text: #ffffff;
+  --text-muted: rgba(255,255,255,0.55);
+  --text-dim: rgba(255,255,255,0.3);
+  --primary: #6c63ff;
+  --primary-dark: #5a52e0;
+  --accent: #c084fc;
+  --green: #22c55e;
+  --red: #ef4444;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: 'Outfit', 'Noto Sans Bengali', sans-serif;
+  font-size: 16px; overflow-x: hidden;
+}
+[v-cloak] { display: none; }
+
+.gradient-text {
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.card-hover:active { opacity: 0.85; transform: scale(0.99); }
+
+.input-field {
+  width: 100%; background: var(--surface2); border: 1.5px solid var(--border);
+  border-radius: 14px; padding: 15px 16px; color: var(--text);
+  font-family: inherit; font-size: 16px; outline: none; transition: border-color 0.2s;
+}
+.input-field:focus { border-color: var(--primary); }
+.input-field::placeholder { color: var(--text-dim); }
+
+.btn-primary {
+  width: 100%; background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: #fff; font-weight: 700; border: none; border-radius: 14px;
+  padding: 15px; font-family: inherit; cursor: pointer; font-size: 17px;
+  transition: opacity 0.2s;
+}
+.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.google-btn {
+  width: 100%; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 14px; display: flex; align-items: center; justify-content: center;
+  gap: 12px; cursor: pointer; color: #fff; font-size: 16px; font-weight: 700;
+  padding: 15px; font-family: inherit; transition: opacity 0.2s;
+}
+.google-btn:active { opacity: 0.8; }
+
+.spinner {
+  width: 20px; height: 20px; border: 2.5px solid rgba(255,255,255,0.3);
+  border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite;
+  display: inline-block; vertical-align: middle;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Phone Modal */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.8);
+  display: flex; align-items: flex-end; justify-content: center;
+  z-index: 1000; backdrop-filter: blur(4px);
+}
+.modal-sheet {
+  background: var(--surface); border-radius: 28px 28px 0 0;
+  padding: 24px 20px 44px; width: 100%; max-width: 480px;
+}
+.modal-handle {
+  display: block; width: 44px; height: 5px;
+  background: var(--border); border-radius: 3px;
+  margin: 0 auto 22px;
+}
+
+.pop-enter-active { animation: popIn 0.3s ease; }
+.pop-leave-active { animation: popIn 0.2s ease reverse; }
+@keyframes popIn {
+  from { opacity:0; transform: translateY(40px); }
+  to { opacity:1; transform: translateY(0); }
+}
+</style>
 </head>
 <body>
 <div id="app" v-cloak>
-  <div id="app" style="max-width:430px;margin:0 auto;min-height:100vh;background:var(--bg);">
-    <div style="min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:24px;">
-      <div style="text-align:center;margin-bottom:32px;">
-        <div style="width:60px;height:60px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:18px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:28px;margin:0 auto 16px;">H</div>
-        <div style="font-size:26px;font-weight:900;margin-bottom:4px;">H24 <span class="gradient-text">ONLINE</span></div>
-        <div style="font-size:14px;color:var(--text-muted);">Login to continue</div>
+
+  <!-- ══ Google Phone Modal ══ -->
+  <transition name="pop">
+    <div v-if="googlePhoneModal" class="modal-overlay">
+      <div class="modal-sheet">
+        <span class="modal-handle"></span>
+        <div style="text-align:center;margin-bottom:24px;">
+          <div style="width:60px;height:60px;background:rgba(108,99,255,0.15);border-radius:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+            <i class="fa-solid fa-phone" style="font-size:24px;color:var(--primary);"></i>
+          </div>
+          <div style="font-weight:800;font-size:21px;margin-bottom:8px;">ফোন নম্বর দিন</div>
+          <div style="font-size:15px;color:var(--text-muted);line-height:1.6;">Transfer পেতে ও অ্যাকাউন্ট সুরক্ষিত রাখতে<br>ফোন নম্বর যোগ করুন।</div>
+        </div>
+
+        <div style="position:relative;margin-bottom:10px;">
+          <i class="fa-solid fa-phone" style="position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--text-dim);font-size:16px;"></i>
+          <input v-model="googlePhone" type="tel" class="input-field" placeholder="01XXXXXXXXX" style="padding-left:46px;" @keyup.enter="saveGooglePhone">
+        </div>
+
+        <div v-if="googlePhoneError" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:12px;padding:12px 14px;color:#f87171;font-size:14px;margin-bottom:14px;line-height:1.5;">
+          {{ googlePhoneError }}
+        </div>
+
+        <button @click="saveGooglePhone" class="btn-primary" style="margin-bottom:12px;" :disabled="googlePhoneLoading">
+          <span v-if="googlePhoneLoading" class="spinner"></span>
+          <span v-else><i class="fa-solid fa-check" style="margin-right:8px;"></i>সংরক্ষণ করুন</span>
+        </button>
+
+        <button @click="skipGooglePhone" style="width:100%;background:transparent;border:1.5px solid var(--border);border-radius:14px;color:var(--text-muted);font-size:15px;font-family:inherit;cursor:pointer;padding:13px;font-weight:600;">
+          এখন না, পরে যোগ করব
+        </button>
       </div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:24px;margin-bottom:20px;">
-        <button @click="handleGoogleLogin" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:14px;display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer;color:#fff;font-size:14px;font-weight:600;margin-bottom:20px;" class="card-hover">
-          <img src="https://www.svgrepo.com/show/475656/google-color.svg" style="width:20px;"> Login with Google
+    </div>
+  </transition>
+
+  <!-- ══ Main Login UI ══ -->
+  <div style="max-width:430px;margin:0 auto;min-height:100vh;background:var(--bg);">
+    <div style="min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:24px;">
+
+      <!-- Logo & Title -->
+      <div style="text-align:center;margin-bottom:36px;">
+        <div style="width:72px;height:72px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:22px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:34px;color:#fff;margin:0 auto 18px;box-shadow:0 8px 32px rgba(108,99,255,0.35);">H</div>
+        <div style="font-size:30px;font-weight:900;">H24 <span class="gradient-text">ONLINE</span></div>
+        <div style="font-size:16px;color:var(--text-muted);margin-top:8px;">আপনার অ্যাকাউন্টে লগইন করুন</div>
+      </div>
+
+      <!-- Card -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:28px;margin-bottom:20px;">
+
+        <!-- Google Login -->
+        <button @click="handleGoogleLogin" class="google-btn card-hover" style="margin-bottom:24px;" :disabled="loginLoading">
+          <img src="https://www.svgrepo.com/show/475656/google-color.svg" style="width:22px;">
+          Google দিয়ে লগইন করুন
         </button>
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+
+        <!-- Divider -->
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
           <div style="flex:1;height:1px;background:var(--border);"></div>
-          <span style="font-size:12px;color:var(--text-dim);">or with credentials</span>
+          <span style="font-size:14px;color:var(--text-dim);">অথবা ইমেইল দিয়ে</span>
           <div style="flex:1;height:1px;background:var(--border);"></div>
         </div>
-        <div style="display:flex;flex-direction:column;gap:12px;">
-          <input v-model="loginEmail" type="email" class="input-field" placeholder="Email address">
-          <input v-model="loginPass" type="password" class="input-field" placeholder="Password">
+
+        <!-- Fields -->
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <input v-model="loginEmail" type="email" class="input-field" placeholder="ইমেইল অ্যাড্রেস" autocomplete="email">
+          <input v-model="loginPass" type="password" class="input-field" placeholder="পাসওয়ার্ড" autocomplete="current-password" @keyup.enter="handleEmailLogin">
         </div>
-        <div style="text-align:right;margin:10px 0 20px;">
-          <span style="font-size:12px;color:var(--primary);font-weight:600;cursor:pointer;">Forgot Password?</span>
+
+        <!-- Forgot -->
+        <div style="text-align:right;margin:12px 0 22px;">
+          <span style="font-size:14px;color:var(--primary);font-weight:600;cursor:pointer;">পাসওয়ার্ড ভুলে গেছেন?</span>
         </div>
-        <div v-if="errorMsg" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:12px;padding:12px;font-size:13px;color:#f87171;margin-bottom:14px;">{{ errorMsg }}</div>
-        <button @click="handleEmailLogin" class="btn-primary" style="width:100%;" :disabled="loginLoading">
+
+        <!-- Error -->
+        <div v-if="errorMsg" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:12px;padding:14px;color:#f87171;margin-bottom:16px;font-size:15px;line-height:1.5;">
+          {{ errorMsg }}
+        </div>
+
+        <!-- Submit -->
+        <button @click="handleEmailLogin" class="btn-primary" :disabled="loginLoading">
           <span v-if="loginLoading" class="spinner"></span>
-          <span v-else>Login</span>
+          <span v-else>লগইন করুন</span>
         </button>
-        <p style="text-align:center;font-size:13px;color:var(--text-muted);margin-top:16px;">
-          New user? <a href="register.html" style="color:var(--primary);font-weight:700;text-decoration:none;">Register Now</a>
+
+        <p style="text-align:center;color:var(--text-muted);margin-top:20px;font-size:15px;">
+          নতুন ব্যবহারকারী?
+          <a href="register.html" style="color:var(--primary);font-weight:700;text-decoration:none;">রেজিস্ট্রেশন করুন</a>
         </p>
       </div>
     </div>
@@ -49,9 +190,16 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword, browserLocalPersistence, setPersistence } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { createApp, ref } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
+import {
+  getAuth, signInWithPopup, GoogleAuthProvider,
+  signInWithEmailAndPassword, browserLocalPersistence, setPersistence,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  getFirestore, doc, getDoc, setDoc, updateDoc,
+  collection, getDocs, query, where, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { createApp, ref, onMounted } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCZWRcCP0hXTkfQoRhqxczgdD6cw5kp39c",
@@ -61,51 +209,171 @@ const firebaseConfig = {
   messagingSenderId: "808524719613",
   appId: "1:808524719613:web:7f1abe9e70a346c3376594"
 };
+
 const fireApp = initializeApp(firebaseConfig);
-const auth = getAuth(fireApp);
-setPersistence(auth, browserLocalPersistence).catch(() => {});
-const db = getFirestore(fireApp);
+const auth   = getAuth(fireApp);
+const db     = getFirestore(fireApp);
+
+await setPersistence(auth, browserLocalPersistence).catch(() => {});
 
 createApp({
   setup() {
-    const loginEmail = ref('');
-    const loginPass = ref('');
-    const loginLoading = ref(false);
-    const errorMsg = ref('');
+    const loginEmail  = ref('');
+    const loginPass   = ref('');
+    const loginLoading= ref(false);
+    const errorMsg    = ref('');
 
+    // ── Google Phone Modal ──
+    const googlePhoneModal   = ref(false);
+    const googlePhone        = ref('');
+    const googlePhoneError   = ref('');
+    const googlePhoneLoading = ref(false);
+    let   pendingGoogleUid   = null;
+
+    // ── লগইন থাকলে সরাসরি পাঠাও ──
+    onMounted(() => {
+      onAuthStateChanged(auth, (user) => {
+        if (user && !googlePhoneModal.value) {
+          localStorage.setItem('userId', user.uid);
+          window.location.href = 'index.html';
+        }
+      });
+    });
+
+    // ══════════════════════════════════════
+    // Google Login
+    // ══════════════════════════════════════
     const handleGoogleLogin = async () => {
+      errorMsg.value = '';
+      loginLoading.value = true;
       try {
         const provider = new GoogleAuthProvider();
-        const result = await signInWithPopup(auth, provider);
-        const user = result.user;
-        const userRef = doc(db, 'users', user.uid);
-        const snap = await getDoc(userRef);
+        const result   = await signInWithPopup(auth, provider);
+        const user     = result.user;
+        const userRef  = doc(db, 'users', user.uid);
+        const snap     = await getDoc(userRef);
+
         if (!snap.exists()) {
+          // ✅ নতুন user — Firestore-এ save করুন (phone খালি)
           await setDoc(userRef, {
-            uid: user.uid, name: user.displayName||'User', email: user.email,
-            photoURL: user.photoURL||'', balance: 0, phone: '',
-            referralCode: user.uid.substring(0, 8), joinedAt: new Date().toISOString()
+            uid:          user.uid,
+            name:         user.displayName || 'User',
+            email:        user.email       || '',
+            photoURL:     user.photoURL    || '',
+            phone:        '',
+            balance:      0,
+            referralCode: user.uid.substring(0, 8),
+            referredBy:   '',
+            joinedAt:     new Date().toISOString(),
+            lastSeen:     serverTimestamp(),
+            isOnline:     true
           });
+
+          // ✅ Phone Modal দেখাও
+          pendingGoogleUid       = user.uid;
+          localStorage.setItem('userId', user.uid);
+          loginLoading.value     = false;
+          googlePhoneModal.value = true;
+
+        } else {
+          // পুরনো user — সরাসরি home
+          await updateDoc(userRef, {
+            lastSeen: serverTimestamp(),
+            isOnline: true
+          }).catch(() => {});
+          localStorage.setItem('userId', user.uid);
+          window.location.href = 'index.html';
         }
-        await updateDoc(doc(db, 'users', user.uid), { lastSeen: serverTimestamp(), isOnline: true }).catch(()=>{});
-        localStorage.setItem('userId', user.uid);
-        window.location.href = 'index.html';
-      } catch (e) { errorMsg.value = 'Google login failed: ' + e.message; }
+
+      } catch(e) {
+        errorMsg.value     = 'Google লগইন ব্যর্থ হয়েছে। আবার চেষ্টা করুন।';
+        loginLoading.value = false;
+      }
     };
 
-    const handleEmailLogin = async () => {
-      if (!loginEmail.value || !loginPass.value) { errorMsg.value = 'Email ও Password দিন।'; return; }
-      loginLoading.value = true; errorMsg.value = '';
+    // ══════════════════════════════════════
+    // Google Phone Save
+    // ══════════════════════════════════════
+    const saveGooglePhone = async () => {
+      googlePhoneError.value = '';
+      const phone = googlePhone.value.trim();
+
+      if (!phone) {
+        googlePhoneError.value = '⚠️ ফোন নম্বর দিন।';
+        return;
+      }
+      if (!/^01[3-9]\d{8}$/.test(phone)) {
+        googlePhoneError.value = '⚠️ সঠিক বাংলাদেশী নম্বর দিন (01XXXXXXXXX)';
+        return;
+      }
+
+      googlePhoneLoading.value = true;
       try {
-        const result = await signInWithEmailAndPassword(auth, loginEmail.value, loginPass.value);
-        await updateDoc(doc(db, 'users', result.user.uid), { lastSeen: serverTimestamp(), isOnline: true }).catch(()=>{});
+        // ✅ ডুপ্লিকেট চেক
+        const dupSnap = await getDocs(
+          query(collection(db, 'users'), where('phone', '==', phone))
+        );
+        if (!dupSnap.empty) {
+          googlePhoneError.value   = '❌ এই ফোন নম্বর দিয়ে ইতিমধ্যে অ্যাকাউন্ট আছে।';
+          googlePhoneLoading.value = false;
+          return;
+        }
+
+        // ✅ Firestore-এ phone save করুন
+        const uid = pendingGoogleUid || localStorage.getItem('userId');
+        await updateDoc(doc(db, 'users', uid), { phone });
+
+        googlePhoneModal.value = false;
+        window.location.href   = 'index.html';
+
+      } catch(e) {
+        googlePhoneError.value = 'সমস্যা হয়েছে, আবার চেষ্টা করুন।';
+      } finally {
+        googlePhoneLoading.value = false;
+      }
+    };
+
+    // ══════════════════════════════════════
+    // Google Phone Skip
+    // ══════════════════════════════════════
+    const skipGooglePhone = () => {
+      googlePhoneModal.value = false;
+      window.location.href   = 'index.html';
+    };
+
+    // ══════════════════════════════════════
+    // Email Login
+    // ══════════════════════════════════════
+    const handleEmailLogin = async () => {
+      if (!loginEmail.value || !loginPass.value) {
+        errorMsg.value = '⚠️ ইমেইল এবং পাসওয়ার্ড দিন।';
+        return;
+      }
+      loginLoading.value = true;
+      errorMsg.value     = '';
+      try {
+        const result = await signInWithEmailAndPassword(
+          auth, loginEmail.value.trim(), loginPass.value
+        );
+        await updateDoc(doc(db, 'users', result.user.uid), {
+          lastSeen: serverTimestamp(),
+          isOnline: true
+        }).catch(() => {});
         localStorage.setItem('userId', result.user.uid);
         window.location.href = 'index.html';
-      } catch (e) { errorMsg.value = 'Invalid email or password!'; }
-      finally { loginLoading.value = false; }
+      } catch(e) {
+        errorMsg.value = '❌ ইমেইল বা পাসওয়ার্ড ভুল!';
+      } finally {
+        loginLoading.value = false;
+      }
     };
 
-    return { loginEmail, loginPass, loginLoading, errorMsg, handleGoogleLogin, handleEmailLogin };
+    return {
+      loginEmail, loginPass, loginLoading, errorMsg,
+      googlePhoneModal, googlePhone, googlePhoneError, googlePhoneLoading,
+      handleGoogleLogin, handleEmailLogin,
+      saveGooglePhone, skipGooglePhone
+    };
   }
 }).mount('#app');
 </script>
