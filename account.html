@@ -160,9 +160,36 @@ body { background: var(--bg); color: var(--text); font-family: 'Outfit', 'Noto S
 <div id="app" v-cloak>
   <div id="toast-el" class="toast-msg"></div>
 
-  <!-- ══════════════════════════════════════
-       WITHDRAW MODAL
-  ══════════════════════════════════════ -->
+  <!-- PHONE ADD MODAL -->
+  <transition name="pop">
+    <div v-if="phoneModal.show" class="modal-overlay" @click.self="phoneModal.show=false">
+      <div class="modal-sheet">
+        <span class="modal-handle"></span>
+        <div style="text-align:center;margin-bottom:22px;">
+          <div style="width:60px;height:60px;background:rgba(34,197,94,0.15);border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
+            <i class="fa-solid fa-phone" style="font-size:26px;color:var(--green);"></i>
+          </div>
+          <div style="font-weight:800;font-size:20px;margin-bottom:8px;">ফোন নম্বর যোগ করুন</div>
+          <div style="font-size:15px;color:var(--text-muted);line-height:1.6;">Transfer ও সুরক্ষার জন্য আপনার ফোন নম্বর যোগ করুন</div>
+        </div>
+        <input v-model="phoneModal.value" type="tel" class="input-field"
+          placeholder="01XXXXXXXXX" style="margin-bottom:10px;font-size:18px;letter-spacing:1px;"
+          @keyup.enter="savePhone">
+        <div v-if="phoneModal.error" style="color:#f87171;font-size:14px;margin-bottom:12px;padding-left:4px;">
+          {{ phoneModal.error }}
+        </div>
+        <button @click="savePhone" style="width:100%;background:linear-gradient(135deg,var(--green),#16a34a);color:#fff;font-weight:700;border:none;border-radius:14px;padding:16px;font-family:inherit;cursor:pointer;font-size:17px;margin-bottom:12px;" :disabled="phoneModal.loading">
+          <span v-if="phoneModal.loading" class="spinner"></span>
+          <span v-else><i class="fa-solid fa-check" style="margin-right:8px;"></i>সংরক্ষণ করুন</span>
+        </button>
+        <button @click="phoneModal.show=false" style="width:100%;background:transparent;border:none;color:var(--text-muted);font-size:15px;font-family:inherit;cursor:pointer;padding:10px;">
+          পরে যোগ করব
+        </button>
+      </div>
+    </div>
+  </transition>
+
+  <!-- WITHDRAW MODAL -->
   <transition name="pop">
     <div v-if="withdrawModal.show" class="modal-overlay" @click.self="withdrawModal.show=false">
       <div class="modal-sheet">
@@ -218,9 +245,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Outfit', 'Noto S
     </div>
   </transition>
 
-  <!-- ══════════════════════════════════════
-       TRANSFER MODAL
-  ══════════════════════════════════════ -->
+  <!-- TRANSFER MODAL -->
   <transition name="pop">
     <div v-if="transferModal.show" class="modal-overlay" @click.self="transferModal.show=false">
       <div class="modal-sheet">
@@ -270,9 +295,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Outfit', 'Noto S
     </div>
   </transition>
 
-  <!-- ══════════════════════════════════════
-       TURNOVER MODAL
-  ══════════════════════════════════════ -->
+  <!-- TURNOVER MODAL -->
   <transition name="pop">
     <div v-if="turnoverModal" class="modal-overlay" style="z-index:1500;" @click.self="turnoverModal=false">
       <div class="modal-sheet" @click.stop style="max-height:90vh;">
@@ -331,9 +354,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Outfit', 'Noto S
     </div>
   </transition>
 
-  <!-- ══════════════════════════════════════
-       MAIN LAYOUT
-  ══════════════════════════════════════ -->
+  <!-- MAIN LAYOUT -->
   <div style="display:flex;flex-direction:column;height:100vh;">
 
     <!-- Header -->
@@ -367,7 +388,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Outfit', 'Noto S
         <div v-if="dataLoaded" style="font-size:16px;color:var(--text-muted);">{{ userEmail }}</div>
         <div v-else class="skeleton" style="height:18px;width:200px;margin:0 auto;"></div>
 
-        <!-- Phone — সবসময় দেখাও -->
+        <!-- Phone display under avatar -->
         <div v-if="dataLoaded && userPhone" style="font-size:15px;color:var(--text-dim);margin-top:6px;">
           <i class="fa-solid fa-phone" style="margin-right:6px;color:var(--green);"></i>{{ userPhone }}
         </div>
@@ -452,17 +473,23 @@ body { background: var(--bg); color: var(--text); font-family: 'Outfit', 'Noto S
             </div>
           </div>
 
-          <!-- Phone — সবসময় দেখাও, খালি হলে dash -->
+          <!-- ✅ Phone -->
           <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
             <div style="width:36px;height:36px;background:rgba(34,197,94,0.12);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
               <i class="fa-solid fa-phone" style="color:var(--green);font-size:15px;"></i>
             </div>
             <div style="flex:1;">
               <div style="font-size:12px;color:var(--text-dim);margin-bottom:2px;">ফোন</div>
-              <div v-if="dataLoaded" style="font-size:17px;font-weight:600;">
-                {{ userPhone || '—' }}
+              <div v-if="!dataLoaded" class="skeleton" style="height:20px;width:120px;"></div>
+              <!-- ✅ phone আছে -->
+              <div v-else-if="userPhone" style="font-size:17px;font-weight:600;color:var(--text);">
+                {{ userPhone }}
               </div>
-              <div v-else class="skeleton" style="height:20px;width:120px;"></div>
+              <!-- ✅ phone নেই -->
+              <div v-else @click="phoneModal.show=true" style="font-size:15px;font-weight:600;color:var(--green);cursor:pointer;display:flex;align-items:center;gap:6px;">
+                <i class="fa-solid fa-plus-circle" style="font-size:14px;"></i>
+                ফোন নম্বর যোগ করুন
+              </div>
             </div>
           </div>
 
@@ -544,7 +571,7 @@ import {
   browserLocalPersistence, setPersistence
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
-  getFirestore, doc, collection, getDocs, query, where,
+  getFirestore, doc, getDoc, setDoc, collection, getDocs, query, where,
   addDoc, updateDoc, increment, runTransaction, serverTimestamp, onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { createApp, ref, computed, onMounted } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
@@ -566,19 +593,21 @@ await setPersistence(auth, browserLocalPersistence).catch(() => {});
 
 createApp({
   setup() {
-    const dataLoaded       = ref(false);
-    const userBalance      = ref(0);
-    const userAvatar       = ref('https://i.pravatar.cc/150?img=12');
-    const userName         = ref('');
-    const userEmail        = ref('');
-    const userPhone        = ref('');   // ✅ Firestore থেকে সরাসরি আসবে
-    const userUID          = ref('———');
-    const supportPin       = ref('---');
-    const stats            = ref({ totalSpent: 0, totalOrders: 0, weeklySpent: 0 });
-    const activeTurnovers  = ref([]);
+    const dataLoaded         = ref(false);
+    const userBalance        = ref(0);
+    const userAvatar         = ref('https://i.pravatar.cc/150?img=12');
+    const userName           = ref('');
+    const userEmail          = ref('');
+    const userPhone          = ref('');   // ✅ phone state
+    const userUID            = ref('———');
+    const supportPin         = ref('---');
+    const stats              = ref({ totalSpent: 0, totalOrders: 0, weeklySpent: 0 });
+    const activeTurnovers    = ref([]);
     const completedTurnovers = ref([]);
-    const turnoverModal    = ref(false);
-    const turnoverTab      = ref('active');
+    const turnoverModal      = ref(false);
+    const turnoverTab        = ref('active');
+
+    const phoneModal = ref({ show: false, value: '', error: '', loading: false });
 
     const withdrawModal = ref({
       show: false, amount: '', gateway: 'bkash',
@@ -617,8 +646,57 @@ createApp({
       { label: 'Live Stream',     sub: 'Watch live events',       icon: 'fa-solid fa-video',               color: '#ef4444', bg: 'rgba(239,68,68,0.12)',   href: 'live.html' },
     ]);
 
-    const fetchTurnovers = async () => {
-      const uid = localStorage.getItem('userId');
+    // ✅ Phone save (পুরনো account এর জন্য)
+    const savePhone = async () => {
+      phoneModal.value.error = '';
+      const phone = phoneModal.value.value.trim();
+      if (!phone) { phoneModal.value.error = '⚠️ ফোন নম্বর দিন।'; return; }
+      if (!/^01[3-9]\d{8}$/.test(phone)) {
+        phoneModal.value.error = '⚠️ সঠিক বাংলাদেশী নম্বর দিন (01XXXXXXXXX)';
+        return;
+      }
+      phoneModal.value.loading = true;
+      try {
+        const currentUser = auth.currentUser;
+        if (!currentUser) {
+          phoneModal.value.error = 'Session শেষ হয়ে গেছে, আবার লগইন করুন।';
+          phoneModal.value.loading = false;
+          return;
+        }
+        const uid = currentUser.uid;
+        const allSnap = await getDocs(collection(db, 'users'));
+        const isDup = allSnap.docs.some(d => d.id !== uid && d.data().phone === phone);
+        if (isDup) {
+          phoneModal.value.error = '❌ এই ফোন নম্বর দিয়ে ইতিমধ্যে অ্যাকাউন্ট আছে।';
+          phoneModal.value.loading = false;
+          return;
+        }
+        await updateDoc(doc(db, 'users', uid), { phone });
+        phoneModal.value.show  = false;
+        phoneModal.value.value = '';
+        showToast('✅ ফোন নম্বর সংরক্ষণ হয়েছে!');
+      } catch(e) {
+        if (e.code === 'permission-denied') {
+          phoneModal.value.error = '❌ Permission denied।';
+        } else if (e.code === 'not-found') {
+          try {
+            const cu = auth.currentUser;
+            await setDoc(doc(db, 'users', cu.uid), { phone }, { merge: true });
+            phoneModal.value.show  = false;
+            phoneModal.value.value = '';
+            showToast('✅ ফোন নম্বর সংরক্ষণ হয়েছে!');
+          } catch(e2) {
+            phoneModal.value.error = 'সমস্যা হয়েছে: ' + e2.message;
+          }
+        } else {
+          phoneModal.value.error = 'সমস্যা হয়েছে: ' + (e.message || e.code);
+        }
+      } finally {
+        phoneModal.value.loading = false;
+      }
+    };
+
+    const fetchTurnovers = async (uid) => {
       if (!uid) return;
       activeTurnovers.value = [];
       completedTurnovers.value = [];
@@ -634,8 +712,7 @@ createApp({
       } catch(e) {}
     };
 
-    const fetchStats = async () => {
-      const uid = localStorage.getItem('userId');
+    const fetchStats = async (uid) => {
       if (!uid) return;
       try {
         const snap = await getDocs(
@@ -666,7 +743,7 @@ createApp({
       if (activeTurnovers.value.length > 0) { wm.error = '⚠️ Turnover Complete হয়নি।'; return; }
       wm.loading = true;
       try {
-        const uid = localStorage.getItem('userId');
+        const uid = auth.currentUser?.uid || localStorage.getItem('userId');
         const pendingSnap = await getDocs(
           query(collection(db,'withdrawals'), where('userId','==',uid), where('status','==','pending'))
         );
@@ -699,19 +776,25 @@ createApp({
       if (!amount || amount < 10)      { tm.error = 'সর্বনিম্ন ৳10 Transfer করুন।'; return; }
       if (amount > userBalance.value)  { tm.error = 'আপনার ব্যালেন্স পর্যাপ্ত নয়।'; return; }
 
-      const senderUid = localStorage.getItem('userId');
+      const senderUid = auth.currentUser?.uid || localStorage.getItem('userId');
       if (userPhone.value && userPhone.value === phone) {
         tm.error = 'নিজের নম্বরে Transfer করা যাবে না।'; return;
       }
       tm.loading = true;
       try {
-        const receiverSnap = await getDocs(
-          query(collection(db,'users'), where('phone','==', phone))
-        );
-        if (receiverSnap.empty) { tm.error = 'এই ফোন নম্বর দিয়ে কোনো একাউন্ট পাওয়া যায়নি।'; tm.loading = false; return; }
-        const receiverId = receiverSnap.docs[0].id;
-        if (receiverId === senderUid) { tm.error = 'নিজেকে Transfer করা যাবে না।'; tm.loading = false; return; }
-
+        const allSnap = await getDocs(collection(db, 'users'));
+        const receiverDoc = allSnap.docs.find(d => d.data().phone === phone);
+        if (!receiverDoc) {
+          tm.error = 'এই ফোন নম্বর দিয়ে কোনো একাউন্ট পাওয়া যায়নি।';
+          tm.loading = false;
+          return;
+        }
+        const receiverId = receiverDoc.id;
+        if (receiverId === senderUid) {
+          tm.error = 'নিজেকে Transfer করা যাবে না।';
+          tm.loading = false;
+          return;
+        }
         await runTransaction(db, async (t) => {
           const sRef = doc(db,'users',senderUid);
           const rRef = doc(db,'users',receiverId);
@@ -720,7 +803,6 @@ createApp({
           t.update(sRef, { balance: sDoc.data().balance - amount });
           t.update(rRef, { balance: increment(amount) });
         });
-
         const turnoverAmt = Math.ceil(amount * 0.5);
         await Promise.all([
           addDoc(collection(db,'transfers'), {
@@ -741,10 +823,9 @@ createApp({
             note: `Transfer from ${userPhone.value || senderUid.substring(0,8)}`, createdAt: serverTimestamp()
           }),
         ]);
-
         tm.success = `✅ ৳${amount} সফলভাবে ${phone} নম্বরে Transfer হয়েছে!`;
         tm.receiverPhone = ''; tm.amount = '';
-        await fetchTurnovers();
+        await fetchTurnovers(senderUid);
       } catch(e) {
         tm.error = e.message === 'Low Balance' ? 'ব্যালেন্স পর্যাপ্ত নয়।' : 'Transfer ব্যর্থ হয়েছে।';
       } finally { tm.loading = false; }
@@ -752,7 +833,7 @@ createApp({
 
     const handleLogout = async () => {
       if (!confirm('আপনি কি নিশ্চিত লগআউট করতে চান?')) return;
-      const uid = localStorage.getItem('userId');
+      const uid = auth.currentUser?.uid || localStorage.getItem('userId');
       if (uid) {
         await updateDoc(doc(db,'users',uid), {
           isOnline: false, lastSeen: serverTimestamp()
@@ -761,6 +842,21 @@ createApp({
       await signOut(auth).catch(() => {});
       localStorage.removeItem('userId');
       window.location.href = 'login.html';
+    };
+
+    // ✅ Helper — Firestore doc থেকে phone পড়ার function
+    const applyUserData = (data, firebaseUser) => {
+      userName.value    = data.name     || firebaseUser?.displayName || '';
+      userEmail.value   = data.email    || firebaseUser?.email       || '';
+      userBalance.value = Number(data.balance)  || 0;
+      userAvatar.value  = data.photoURL || 'https://i.pravatar.cc/150?img=12';
+
+      // ✅ phone — data object এ 'phone' key আছে কিনা explicitly চেক করো
+      // undefined বা null হলে '' রাখো, '0' হলেও সঠিক
+      const rawPhone = data.hasOwnProperty('phone') ? data.phone : null;
+      userPhone.value = (rawPhone && typeof rawPhone === 'string' && rawPhone.trim() !== '')
+        ? rawPhone.trim()
+        : '';
     };
 
     onMounted(() => {
@@ -779,36 +875,41 @@ createApp({
           : String(Math.floor(100000 + Math.random() * 900000));
 
         updateDoc(doc(db, 'users', user.uid), {
-          isOnline: true,
-          lastSeen: serverTimestamp()
+          isOnline: true, lastSeen: serverTimestamp()
         }).catch(() => {});
 
-        // ✅ Real-time listener — Firestore থেকে সরাসরি সব field পড়ো
+        // ✅ Real-time listener
         onSnapshot(doc(db, 'users', user.uid), (snap) => {
           if (snap.exists()) {
-            const d = snap.data();
-            userName.value    = d.name     || user.displayName || '';
-            userEmail.value   = d.email    || user.email       || '';
-            // ✅ phone — Firestore data.phone থেকে নাও; না থাকলে Auth থেকে নাও, তাও না থাকলে খালি
-            userPhone.value   = d.phone    || user.phoneNumber || '';
-            userBalance.value = d.balance  || 0;
-            userAvatar.value  = d.photoURL || 'https://i.pravatar.cc/150?img=12';
+            applyUserData(snap.data(), user);
           } else {
+            // doc নেই — auth থেকে basic info নাও
             userName.value  = user.displayName || '';
             userEmail.value = user.email       || '';
-            userPhone.value = user.phoneNumber || '';
+            userPhone.value = '';
           }
           dataLoaded.value = true;
-        }, () => {
-          // onSnapshot error fallback
-          userName.value   = user.displayName || '';
-          userEmail.value  = user.email       || '';
-          userPhone.value  = user.phoneNumber || '';
+        }, async (err) => {
+          // onSnapshot error — getDoc দিয়ে fallback
+          try {
+            const snap = await getDoc(doc(db, 'users', user.uid));
+            if (snap.exists()) {
+              applyUserData(snap.data(), user);
+            } else {
+              userName.value  = user.displayName || '';
+              userEmail.value = user.email       || '';
+              userPhone.value = '';
+            }
+          } catch(e2) {
+            userName.value  = user.displayName || '';
+            userEmail.value = user.email       || '';
+            userPhone.value = '';
+          }
           dataLoaded.value = true;
         });
 
-        fetchTurnovers();
-        fetchStats();
+        fetchTurnovers(user.uid);
+        fetchStats(user.uid);
       });
     });
 
@@ -818,6 +919,7 @@ createApp({
       activeTurnovers, completedTurnovers, turnoverModal, turnoverTab,
       withdrawModal, submitWithdraw,
       transferModal, submitTransfer,
+      phoneModal, savePhone,
       accountMenu, handleLogout, copyUID, showToast
     };
   }

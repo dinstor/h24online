@@ -55,14 +55,13 @@ body {
   padding: 15px; font-family: inherit; transition: opacity 0.2s;
 }
 .google-btn:active { opacity: 0.8; }
+.google-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 .spinner {
   width: 20px; height: 20px; border: 2.5px solid rgba(255,255,255,0.3);
   border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite;
   display: inline-block; vertical-align: middle;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
-
-/* Google Phone Modal */
 .modal-overlay {
   position: fixed; inset: 0; background: rgba(0,0,0,0.8);
   display: flex; align-items: flex-end; justify-content: center;
@@ -82,7 +81,7 @@ body {
 <body>
 <div id="app" v-cloak>
 
-  <!-- ══ Google Phone Modal (শুধু Google signup এর জন্য) ══ -->
+  <!-- Google Phone Modal -->
   <div v-if="googlePhoneModal" class="modal-overlay">
     <div class="modal-sheet">
       <span class="modal-handle"></span>
@@ -141,15 +140,22 @@ body {
           <!-- Name -->
           <input v-model="regName" type="text" class="input-field" placeholder="পূর্ণ নাম" autocomplete="name">
 
-          <!-- Phone — REQUIRED -->
+          <!-- ✅ Phone — REQUIRED -->
           <div>
             <div style="position:relative;">
-              <i class="fa-solid fa-phone" style="position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--text-dim);font-size:15px;"></i>
+              <i class="fa-solid fa-phone" style="position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--text-dim);font-size:15px;pointer-events:none;"></i>
               <input v-model="regPhone" type="tel" class="input-field"
                 placeholder="ফোন নম্বর (01XXXXXXXXX) — আবশ্যক"
                 style="padding-left:46px;"
-                :style="{borderColor: phoneError ? '#ef4444' : 'var(--border)'}"
-                @blur="checkPhoneDuplicate" autocomplete="tel">
+                :style="{borderColor: phoneError ? '#ef4444' : phoneOk ? '#22c55e' : 'var(--border)'}"
+                @blur="checkPhoneDuplicate"
+                @input="phoneError=''; phoneOk=false"
+                autocomplete="tel"
+                maxlength="11">
+              <span v-if="phoneOk && !phoneChecking" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:20px;padding:2px 10px;font-size:12px;font-weight:700;color:#4ade80;">✓</span>
+              <span v-if="phoneChecking" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);">
+                <span class="spinner" style="width:16px;height:16px;border-width:2px;"></span>
+              </span>
             </div>
             <div v-if="phoneError" style="color:#f87171;font-size:14px;margin-top:6px;padding-left:4px;">{{ phoneError }}</div>
           </div>
@@ -211,7 +217,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
   getFirestore, doc, getDoc, setDoc, collection, getDocs,
-  query, where, updateDoc, increment, serverTimestamp
+  updateDoc, increment, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { createApp, ref, onMounted } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
 
@@ -225,8 +231,8 @@ const firebaseConfig = {
 };
 
 const fireApp = initializeApp(firebaseConfig);
-const auth = getAuth(fireApp);
-const db = getFirestore(fireApp);
+const auth    = getAuth(fireApp);
+const db      = getFirestore(fireApp);
 
 await setPersistence(auth, browserLocalPersistence).catch(() => {});
 
@@ -242,20 +248,19 @@ createApp({
     const googleLoading   = ref(false);
     const errorMsg        = ref('');
     const phoneError      = ref('');
+    const phoneOk         = ref(false);
+    const phoneChecking   = ref(false);
     const emailError      = ref('');
 
-    // Google phone modal
     const googlePhoneModal   = ref(false);
     const googlePhone        = ref('');
     const googlePhoneError   = ref('');
     const googlePhoneLoading = ref(false);
     let   pendingGoogleUid   = null;
 
-    // URL থেকে ref কোড
     const urlRef = new URLSearchParams(window.location.search).get('ref');
     if (urlRef) regReferralCode.value = urlRef;
 
-    // লগইন থাকলে redirect
     onMounted(() => {
       onAuthStateChanged(auth, (user) => {
         if (user && !googlePhoneModal.value) {
@@ -265,22 +270,32 @@ createApp({
       });
     });
 
-    // ── ফোন ডুপ্লিকেট চেক ──
+    // ✅ Phone duplicate check
     const checkPhoneDuplicate = async () => {
-      phoneError.value = '';
+      phoneError.value   = '';
+      phoneOk.value      = false;
       const phone = regPhone.value.trim();
       if (!phone) return;
       if (!/^01[3-9]\d{8}$/.test(phone)) {
         phoneError.value = '⚠️ সঠিক বাংলাদেশী নম্বর দিন (01XXXXXXXXX)';
         return;
       }
+      phoneChecking.value = true;
       try {
-        const snap = await getDocs(query(collection(db,'users'), where('phone','==',phone)));
-        if (!snap.empty) phoneError.value = '❌ এই ফোন নম্বর দিয়ে ইতিমধ্যে অ্যাকাউন্ট আছে।';
-      } catch(e) {}
+        const allSnap = await getDocs(collection(db, 'users'));
+        const isDup   = allSnap.docs.some(d => d.data().phone === phone);
+        if (isDup) {
+          phoneError.value = '❌ এই ফোন নম্বর দিয়ে ইতিমধ্যে অ্যাকাউন্ট আছে।';
+        } else {
+          phoneOk.value = true;
+        }
+      } catch(e) {
+        phoneOk.value = true;
+      } finally {
+        phoneChecking.value = false;
+      }
     };
 
-    // ── ইমেইল ডুপ্লিকেট চেক ──
     const checkEmailDuplicate = async () => {
       emailError.value = '';
       const email = regEmail.value.trim();
@@ -291,14 +306,15 @@ createApp({
           emailError.value = '❌ এই ইমেইল দিয়ে ইতিমধ্যে অ্যাকাউন্ট আছে।';
           return;
         }
-        const snap = await getDocs(query(collection(db,'users'), where('email','==',email)));
-        if (!snap.empty) emailError.value = '❌ এই ইমেইল দিয়ে ইতিমধ্যে অ্যাকাউন্ট আছে।';
+        const allSnap = await getDocs(collection(db, 'users'));
+        const isDup   = allSnap.docs.some(d => d.data().email === email);
+        if (isDup) emailError.value = '❌ এই ইমেইল দিয়ে ইতিমধ্যে অ্যাকাউন্ট আছে।';
       } catch(e) {}
     };
 
-    // ── Google Signup ──
+    // ✅ Google Signup
     const handleGoogleLogin = async () => {
-      errorMsg.value = '';
+      errorMsg.value      = '';
       googleLoading.value = true;
       try {
         const provider = new GoogleAuthProvider();
@@ -308,7 +324,6 @@ createApp({
         const snap     = await getDoc(userRef);
 
         if (!snap.exists()) {
-          // নতুন user — phone খালি রেখে save করুন, modal দিয়ে নেওয়া হবে
           await setDoc(userRef, {
             uid:          user.uid,
             name:         user.displayName || 'User',
@@ -322,47 +337,40 @@ createApp({
             lastSeen:     serverTimestamp(),
             isOnline:     true
           });
-
-          pendingGoogleUid = user.uid;
+          pendingGoogleUid       = user.uid;
           localStorage.setItem('userId', user.uid);
-          googleLoading.value = false;
+          googleLoading.value    = false;
           googlePhoneModal.value = true;
-
         } else {
-          // পুরনো user — সরাসরি যাও
           await updateDoc(userRef, { lastSeen: serverTimestamp(), isOnline: true }).catch(() => {});
           localStorage.setItem('userId', user.uid);
           window.location.href = 'index.html';
         }
       } catch(e) {
-        errorMsg.value = 'Google লগইন ব্যর্থ হয়েছে। আবার চেষ্টা করুন।';
+        errorMsg.value      = 'Google লগইন ব্যর্থ হয়েছে। আবার চেষ্টা করুন।';
         googleLoading.value = false;
       }
     };
 
-    // ── Google Phone সেভ ──
     const saveGooglePhone = async () => {
       googlePhoneError.value = '';
       const phone = googlePhone.value.trim();
-
       if (!phone) { googlePhoneError.value = '⚠️ ফোন নম্বর দিন।'; return; }
       if (!/^01[3-9]\d{8}$/.test(phone)) {
         googlePhoneError.value = '⚠️ সঠিক বাংলাদেশী নম্বর দিন (01XXXXXXXXX)';
         return;
       }
-
       googlePhoneLoading.value = true;
       try {
-        const dupSnap = await getDocs(query(collection(db,'users'), where('phone','==',phone)));
-        if (!dupSnap.empty) {
-          googlePhoneError.value = '❌ এই ফোন নম্বর দিয়ে ইতিমধ্যে অ্যাকাউন্ট আছে।';
+        const uid     = pendingGoogleUid || localStorage.getItem('userId');
+        const allSnap = await getDocs(collection(db, 'users'));
+        const isDup   = allSnap.docs.some(d => d.id !== uid && d.data().phone === phone);
+        if (isDup) {
+          googlePhoneError.value   = '❌ এই ফোন নম্বর দিয়ে ইতিমধ্যে অ্যাকাউন্ট আছে।';
           googlePhoneLoading.value = false;
           return;
         }
-
-        const uid = pendingGoogleUid || localStorage.getItem('userId');
         await updateDoc(doc(db, 'users', uid), { phone });
-
         googlePhoneModal.value = false;
         window.location.href   = 'index.html';
       } catch(e) {
@@ -372,16 +380,14 @@ createApp({
       }
     };
 
-    // ── Google Phone Skip ──
     const skipGooglePhone = () => {
       googlePhoneModal.value = false;
       window.location.href   = 'index.html';
     };
 
-    // ── Email Registration ──
+    // ✅ Email Registration
     const handleRegister = async () => {
       errorMsg.value = '';
-
       if (!regName.value.trim())   { errorMsg.value = '⚠️ আপনার নাম দিন।'; return; }
       if (!regPhone.value.trim())  { errorMsg.value = '⚠️ ফোন নম্বর দিন।'; return; }
       if (!/^01[3-9]\d{8}$/.test(regPhone.value.trim())) {
@@ -395,29 +401,31 @@ createApp({
 
       regLoading.value = true;
       try {
-        // ✅ Phone final duplicate check
-        const phoneSnap = await getDocs(
-          query(collection(db,'users'), where('phone','==', regPhone.value.trim()))
+        // ✅ Final phone duplicate check before creating account
+        const allUsersSnap = await getDocs(collection(db, 'users'));
+        const phoneDup = allUsersSnap.docs.some(
+          d => d.data().phone === regPhone.value.trim()
         );
-        if (!phoneSnap.empty) {
-          errorMsg.value = '❌ এই ফোন নম্বর দিয়ে ইতিমধ্যে অ্যাকাউন্ট আছে।';
+        if (phoneDup) {
+          errorMsg.value   = '❌ এই ফোন নম্বর দিয়ে ইতিমধ্যে অ্যাকাউন্ট আছে।';
+          phoneError.value = errorMsg.value;
           regLoading.value = false;
           return;
         }
 
-        // Firebase Auth create
+        // ✅ Firebase Auth user create
         const result = await createUserWithEmailAndPassword(
           auth, regEmail.value.trim(), regPass.value
         );
         await updateProfile(result.user, { displayName: regName.value.trim() });
         const uid = result.user.uid;
 
-        // ✅ Firestore — phone সহ সব data একসাথে সেভ
+        // ✅ Firestore এ phone সহ সম্পূর্ণ data সেভ
         await setDoc(doc(db, 'users', uid), {
           uid,
           name:         regName.value.trim(),
           email:        regEmail.value.trim(),
-          phone:        regPhone.value.trim(),   // ✅ phone এখানেই সেভ হয়ে যাচ্ছে
+          phone:        regPhone.value.trim(),  // ✅ phone সেভ হচ্ছে
           balance:      0,
           photoURL:     '',
           referralCode: uid.substring(0, 8),
@@ -427,16 +435,15 @@ createApp({
           isOnline:     true
         });
 
-        // Referral handle
+        // ✅ Referral handle
         if (regReferralCode.value.trim()) {
           try {
-            const refSnap = await getDocs(
-              query(collection(db,'users'), where('referralCode','==', regReferralCode.value.trim()))
-            );
-            if (!refSnap.empty) {
-              const referrerId = refSnap.docs[0].id;
-              const refDocRef  = doc(db, 'referrals', referrerId);
-              const refDoc     = await getDoc(refDocRef);
+            const refCode = regReferralCode.value.trim();
+            const snap2   = await getDocs(collection(db, 'users'));
+            const refUser = snap2.docs.find(d => d.data().referralCode === refCode);
+            if (refUser && refUser.id !== uid) {
+              const refDocRef = doc(db, 'referrals', refUser.id);
+              const refDoc    = await getDoc(refDocRef);
               if (refDoc.exists()) {
                 await updateDoc(refDocRef, { totalRefs: increment(1) });
               } else {
@@ -451,7 +458,7 @@ createApp({
 
       } catch(e) {
         if (e.code === 'auth/email-already-in-use') {
-          errorMsg.value = '❌ এই ইমেইল দিয়ে ইতিমধ্যে অ্যাকাউন্ট আছে।';
+          errorMsg.value   = '❌ এই ইমেইল দিয়ে ইতিমধ্যে অ্যাকাউন্ট আছে।';
           emailError.value = errorMsg.value;
         } else if (e.code === 'auth/invalid-email') {
           errorMsg.value = '❌ সঠিক ইমেইল অ্যাড্রেস দিন।';
@@ -467,7 +474,8 @@ createApp({
 
     return {
       regName, regPhone, regEmail, regPass, regConfirm, regReferralCode,
-      regLoading, googleLoading, errorMsg, phoneError, emailError,
+      regLoading, googleLoading, errorMsg,
+      phoneError, phoneOk, phoneChecking, emailError,
       googlePhoneModal, googlePhone, googlePhoneError, googlePhoneLoading,
       checkPhoneDuplicate, checkEmailDuplicate,
       handleGoogleLogin, saveGooglePhone, skipGooglePhone, handleRegister

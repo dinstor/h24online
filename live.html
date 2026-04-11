@@ -8,10 +8,45 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Noto+Sans+Bengali:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/style.css">
+<style>
+  .no-live-popup-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 9999; padding: 24px; backdrop-filter: blur(6px);
+    animation: fadeIn 0.2s ease;
+  }
+  .no-live-popup {
+    background: #1a1a2e; border: 1px solid rgba(239,68,68,0.3);
+    border-radius: 24px; padding: 36px 24px; text-align: center;
+    max-width: 320px; width: 100%;
+    animation: slideUp 0.25s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  @keyframes pulse-ring { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(1.4); opacity: 0; } }
+</style>
 </head>
 <body>
 <div id="app" v-cloak>
   <div id="toast-el" class="toast-msg"></div>
+
+  <!-- No Live Popup -->
+  <div v-if="showNoLivePopup" class="no-live-popup-overlay" @click.self="showNoLivePopup=false">
+    <div class="no-live-popup">
+      <div style="width:72px;height:72px;background:rgba(239,68,68,0.1);border:2px solid rgba(239,68,68,0.3);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+        <i class="fa-solid fa-video-slash" style="font-size:28px;color:#ef4444;"></i>
+      </div>
+      <div style="font-size:20px;font-weight:900;margin-bottom:10px;">এখন লাইভ নেই</div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.55);line-height:1.7;margin-bottom:24px;">
+        লাইভ শুরু হলে আমাদের সোশ্যাল মিডিয়ায় জানানো হবে।<br>ফলো করে রাখুন!
+      </div>
+      <button @click="showNoLivePopup=false"
+        style="background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;font-weight:800;font-size:15px;padding:14px 32px;border-radius:14px;border:none;cursor:pointer;width:100%;font-family:inherit;">
+        ঠিক আছে
+      </button>
+    </div>
+  </div>
+
   <div style="display:flex;flex-direction:column;height:100vh;background:var(--bg);">
     <header class="app-header">
       <div style="padding:14px 16px;display:flex;align-items:center;gap:12px;">
@@ -33,48 +68,48 @@
       </div>
 
       <div v-else>
-        <!-- Live is ON -->
-        <div v-if="liveUrl">
-          <div style="background:linear-gradient(135deg,#1a0505,#2d0808,#1a0505);padding:40px 24px 32px;text-align:center;position:relative;overflow:hidden;">
-            <div style="position:absolute;top:-40px;left:-40px;width:160px;height:160px;background:radial-gradient(circle,rgba(239,68,68,0.15) 0%,transparent 70%);pointer-events:none;"></div>
-            <div style="position:absolute;bottom:-40px;right:-40px;width:160px;height:160px;background:radial-gradient(circle,rgba(239,68,68,0.1) 0%,transparent 70%);pointer-events:none;"></div>
-            <div style="position:relative;display:inline-block;margin-bottom:20px;">
-              <div style="width:80px;height:80px;background:rgba(239,68,68,0.2);border:2px solid rgba(239,68,68,0.5);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto;">
-                <i class="fa-solid fa-video" style="font-size:34px;color:#ef4444;"></i>
-              </div>
-              <div style="position:absolute;inset:-8px;border-radius:50%;border:2px solid rgba(239,68,68,0.3);animation:pulse-ring 1.8s ease-out infinite;"></div>
+        <!-- Live Section (সবসময় দেখাবে) -->
+        <div style="background:linear-gradient(135deg,#1a0505,#2d0808,#1a0505);padding:40px 24px 32px;text-align:center;position:relative;overflow:hidden;">
+          <div style="position:absolute;top:-40px;left:-40px;width:160px;height:160px;background:radial-gradient(circle,rgba(239,68,68,0.15) 0%,transparent 70%);pointer-events:none;"></div>
+          <div style="position:absolute;bottom:-40px;right:-40px;width:160px;height:160px;background:radial-gradient(circle,rgba(239,68,68,0.1) 0%,transparent 70%);pointer-events:none;"></div>
+
+          <div style="position:relative;display:inline-block;margin-bottom:20px;">
+            <div style="width:80px;height:80px;background:rgba(239,68,68,0.2);border:2px solid rgba(239,68,68,0.5);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto;">
+              <i class="fa-solid fa-video" style="font-size:34px;color:#ef4444;"></i>
             </div>
+            <div v-if="liveUrl" style="position:absolute;inset:-8px;border-radius:50%;border:2px solid rgba(239,68,68,0.3);animation:pulse-ring 1.8s ease-out infinite;"></div>
+          </div>
+
+          <div v-if="liveUrl">
             <div style="font-size:22px;font-weight:900;margin-bottom:8px;">🔴 Live চলছে!</div>
             <div style="font-size:13px;color:rgba(255,255,255,0.6);line-height:1.6;margin-bottom:28px;">নিচের বাটনে ট্যাপ করে লাইভ দেখুন</div>
-            <button @click="goLive" style="display:flex;align-items:center;justify-content:center;gap:12px;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;font-weight:800;font-size:17px;padding:18px 32px;border-radius:18px;width:100%;box-shadow:0 8px 32px rgba(239,68,68,0.4);touch-action:manipulation;border:none;cursor:pointer;font-family:inherit;">
-              <i class="fa-solid fa-play" style="font-size:16px;"></i> এখনই দেখুন
-            </button>
-            <div style="margin-top:12px;font-size:11px;color:rgba(255,255,255,0.35);">Chrome Browser-এ open হবে</div>
           </div>
-          <div style="padding:16px;">
-            <div style="background:var(--surface);border:1px solid rgba(239,68,68,0.2);border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:12px;">
-              <div style="width:38px;height:38px;background:rgba(239,68,68,0.12);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                <i class="fa-solid fa-link" style="font-size:14px;color:#ef4444;"></i>
-              </div>
-              <div style="flex:1;min-width:0;">
-                <div style="font-size:11px;color:var(--text-muted);margin-bottom:2px;">Live Link</div>
-                <div style="font-size:12px;color:#fff;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ liveUrl }}</div>
-              </div>
-              <button @click="copyLiveUrl" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;color:var(--text-muted);cursor:pointer;flex-shrink:0;">
-                <i class="fa-regular fa-copy"></i>
-              </button>
-            </div>
+          <div v-else>
+            <div style="font-size:22px;font-weight:900;margin-bottom:8px;">এখন লাইভ নেই</div>
+            <div style="font-size:13px;color:rgba(255,255,255,0.6);line-height:1.6;margin-bottom:28px;">লাইভ শুরু হলে নোটিফিকেশন পাবেন</div>
           </div>
+
+          <!-- ✅ একটাই button — লিংক থাকলে সরাসরি যাবে, না থাকলে popup -->
+          <button @click="goLive"
+            style="display:flex;align-items:center;justify-content:center;gap:12px;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;font-weight:800;font-size:17px;padding:18px 32px;border-radius:18px;width:100%;box-shadow:0 8px 32px rgba(239,68,68,0.4);touch-action:manipulation;border:none;cursor:pointer;font-family:inherit;box-sizing:border-box;">
+            <i class="fa-solid fa-play" style="font-size:16px;"></i> এখনই দেখুন
+          </button>
+          <div style="margin-top:12px;font-size:11px;color:rgba(255,255,255,0.35);">Chrome Browser-এ open হবে</div>
         </div>
 
-        <!-- No Live -->
-        <div v-else style="padding:24px 16px;">
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:48px 24px;text-align:center;">
-            <div style="width:80px;height:80px;background:rgba(239,68,68,0.08);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
-              <i class="fa-solid fa-video-slash" style="font-size:34px;color:var(--text-dim);"></i>
+        <!-- Live Link Card -->
+        <div v-if="liveUrl" style="padding:16px;">
+          <div style="background:var(--surface);border:1px solid rgba(239,68,68,0.2);border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+            <div style="width:38px;height:38px;background:rgba(239,68,68,0.12);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <i class="fa-solid fa-link" style="font-size:14px;color:#ef4444;"></i>
             </div>
-            <div style="font-size:18px;font-weight:800;margin-bottom:8px;">এখন লাইভ নেই</div>
-            <div style="font-size:13px;color:var(--text-muted);line-height:1.6;">লাইভ শুরু হলে নোটিফিকেশন পাবেন।<br>আমাদের সোশ্যাল মিডিয়া ফলো করুন।</div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:11px;color:var(--text-muted);margin-bottom:2px;">Live Link</div>
+              <div style="font-size:12px;color:#fff;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ liveUrl }}</div>
+            </div>
+            <button @click="copyLiveUrl" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;color:var(--text-muted);cursor:pointer;flex-shrink:0;">
+              <i class="fa-regular fa-copy"></i>
+            </button>
           </div>
         </div>
 
@@ -116,12 +151,23 @@ createApp({
     const liveUrl = ref('');
     const liveLoading = ref(true);
     const socials = ref({});
+    const showNoLivePopup = ref(false);
     const iconMap = { facebook: 'fa-brands fa-facebook-f', instagram: 'fa-brands fa-instagram', tiktok: 'fa-brands fa-tiktok', youtube: 'fa-brands fa-youtube', telegram: 'fa-brands fa-telegram', whatsapp: 'fa-brands fa-whatsapp' };
 
-    const goLive = () => { if (liveUrl.value) window.location.href = liveUrl.value; };
+    const goLive = () => {
+      if (liveUrl.value) {
+        // ✅ সরাসরি লিংকে যাবে, SPCK preview খুলবে না
+        window.location.href = liveUrl.value;
+      } else {
+        // লিংক না থাকলে সুন্দর popup দেখাবে
+        showNoLivePopup.value = true;
+      }
+    };
+
     const copyLiveUrl = () => {
       if (liveUrl.value) { navigator.clipboard.writeText(liveUrl.value).catch(()=>{}); }
     };
+
     const openSocialLink = (url) => {
       if (!url) return '#';
       if (url.startsWith('http://') || url.startsWith('https://')) return url;
@@ -135,7 +181,8 @@ createApp({
       try { const s = await getDoc(doc(db, 'admin', 'settings')); if (s.exists()) socials.value = s.data(); } catch(e) {}
       liveLoading.value = false;
     });
-    return { liveUrl, liveLoading, socials, iconMap, goLive, copyLiveUrl, openSocialLink };
+
+    return { liveUrl, liveLoading, socials, iconMap, showNoLivePopup, goLive, copyLiveUrl, openSocialLink };
   }
 }).mount('#app');
 </script>
