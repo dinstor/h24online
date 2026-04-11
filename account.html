@@ -36,7 +36,8 @@ body { background: var(--bg); color: var(--text); font-family: 'Outfit', 'Noto S
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   height: calc(100vh - 60px - 56px);
-  padding-bottom: 20px;
+  padding-bottom: env(safe-area-inset-bottom, 80px);
+  padding-bottom: max(80px, env(safe-area-inset-bottom, 80px));
 }
 .gradient-text {
   background: linear-gradient(135deg, var(--primary), var(--accent));
