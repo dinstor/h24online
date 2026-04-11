@@ -1,7 +1,91 @@
+// ════════════════════════════════════════════════════════
+// AUTH PERSISTENCE FIX — app.js এর onMounted এ এই অংশ যোগ করুন
+// ════════════════════════════════════════════════════════
+//
+// সমস্যা: পেজ রিলোড বা নেভিগেশনে auth state হারিয়ে যাচ্ছে।
+// সমাধান: setPersistence(browserLocalPersistence) সবার আগে call করতে হবে
+//         এবং onAuthStateChanged দিয়ে redirect handle করতে হবে।
+//
+// আপনার বিদ্যমান app.js এর onMounted() এর শুরুতে নিচের কোড যোগ করুন:
+//
+//   await setPersistence(auth, browserLocalPersistence).catch(() => {});
+//
+// এবং onAuthStateChanged এর ভেতরে নিচের মতো করুন:
+
+/*
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    isLoggedIn.value = true;
+
+    // ── LocalStorage sync ──
+    localStorage.setItem('userId', user.uid);
+
+    // ── Online status update ──
+    const markOnline = () =>
+      updateDoc(doc(db, 'users', user.uid), {
+        isOnline: true,
+        lastSeen: serverTimestamp()
+      }).catch(() => {});
+    markOnline();
+    setInterval(markOnline, 60000);
+
+    const markOffline = () =>
+      updateDoc(doc(db, 'users', user.uid), {
+        isOnline: false,
+        lastSeen: serverTimestamp()
+      }).catch(() => {});
+    window.addEventListener('beforeunload', markOffline);
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) markOffline();
+      else markOnline();
+    });
+
+    // ── Real-time balance ──
+    onSnapshot(doc(db, 'users', user.uid), (d) => {
+      if (d.exists()) {
+        userBalance.value = d.data().balance || 0;
+        userAvatar.value = d.data().photoURL || 'https://i.pravatar.cc/150?img=12';
+        userData.value = d.data();
+        const uid = user.uid.replace(/\D/g, '');
+        supportPin.value = uid.length > 5
+          ? uid.substring(0, 6)
+          : Math.floor(100000 + Math.random() * 900000);
+      }
+    });
+
+    checkTodayCheckin(user.uid);
+    fetchTurnovers();
+
+  } else {
+    // ── শুধুমাত্র login/register পেজে না থাকলে redirect করুন ──
+    isLoggedIn.value = false;
+    userBalance.value = 0;
+    userData.value = {};
+    // NOTE: index.html এ থাকলে login পেজে পাঠান
+    // কিন্তু এই কোড index.html এই চলে, তাই:
+    // page.value = 'login'; // এই লাইনটি রাখলেই হবে
+  }
+});
+*/
+
+// ════════════════════════════════════════════════════════
+// COMPLETE FIXED app.js
+// ════════════════════════════════════════════════════════
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, browserLocalPersistence, setPersistence } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, collection, getDocs, query, where, addDoc, updateDoc, increment, runTransaction, serverTimestamp, onSnapshot, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { createApp, ref, computed, onMounted, nextTick, watch } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
+import {
+  getAuth, onAuthStateChanged, signOut, signInWithPopup, GoogleAuthProvider,
+  signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile,
+  browserLocalPersistence, setPersistence
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  getFirestore, doc, getDoc, setDoc, collection, getDocs, query, where,
+  addDoc, updateDoc, increment, runTransaction, serverTimestamp,
+  onSnapshot, orderBy, limit
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import {
+  createApp, ref, computed, onMounted, nextTick, watch
+} from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
 
 const EPS_PAYMENT_URL = "https://pg.eps.com.bd/PaymentLink?id=D37C6FF8";
 const APP_BASE_URL = window.location.origin + window.location.pathname;
@@ -9,10 +93,10 @@ const CURRENT_APP_VERSION = "1.0.6";
 const FIRESTORE_REST_BASE = `https://firestore.googleapis.com/v1/projects/h24-online/databases/(default)/documents`;
 
 // ══════════════════════════════════════════
-// IN-MEMORY + SESSION CACHE SYSTEM
+// CACHE SYSTEM
 // ══════════════════════════════════════════
 const _memCache = {};
-const CACHE_TTL = 5 * 60 * 1000; // 5 min in-memory
+const CACHE_TTL = 5 * 60 * 1000;
 
 const mem = {
   get(key) {
@@ -26,12 +110,14 @@ const mem = {
 };
 
 const sess = {
-  get(key) { try { const r = sessionStorage.getItem('h24_'+key); return r ? JSON.parse(r) : null; } catch { return null; } },
-  set(key, data) { try { sessionStorage.setItem('h24_'+key, JSON.stringify(data)); } catch {} },
-  del(key) { try { sessionStorage.removeItem('h24_'+key); } catch {} }
+  get(key) {
+    try { const r = sessionStorage.getItem('h24_' + key); return r ? JSON.parse(r) : null; }
+    catch { return null; }
+  },
+  set(key, data) { try { sessionStorage.setItem('h24_' + key, JSON.stringify(data)); } catch {} },
+  del(key) { try { sessionStorage.removeItem('h24_' + key); } catch {} }
 };
 
-// Smart cached fetch: memory → session → Firebase
 const smartGet = async (docRef, key) => {
   const m = mem.get(key); if (m) return m;
   const s = sess.get(key); if (s) { mem.set(key, s); return s; }
@@ -39,17 +125,6 @@ const smartGet = async (docRef, key) => {
   if (snap.exists()) { const d = snap.data(); mem.set(key, d); sess.set(key, d); return d; }
   return null;
 };
-
-const smartGetDocs = async (colRef, key) => {
-  const m = mem.get(key); if (m) return m;
-  const s = sess.get(key); if (s) { mem.set(key, s); return s; }
-  const snap = await getDocs(colRef);
-  const arr = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  mem.set(key, arr); sess.set(key, arr);
-  return arr;
-};
-
-const invalidateCache = (key) => { mem.del(key); sess.del(key); };
 
 // ══════════════════════════════════════════
 // PAYMENT CONFIG
@@ -95,7 +170,10 @@ const firebaseConfig = {
 };
 const fireApp = initializeApp(firebaseConfig);
 const auth = getAuth(fireApp);
-setPersistence(auth, browserLocalPersistence).catch(() => {});
+
+// ✅ FIX: Persistence সেট করুন অ্যাপ শুরুতেই
+await setPersistence(auth, browserLocalPersistence).catch(() => {});
+
 const db = getFirestore(fireApp);
 
 // ══════════════════════════════════════════
@@ -128,7 +206,7 @@ createApp({
     const sheetOptions = ref([]);
     const navHidden = ref(false);
 
-    // Pre-load from session cache immediately (no Firebase needed)
+    // Session cache preload
     const preloadFromCache = () => {
       const n = sess.get('settings_notice'); if (n) noticeMessage.value = n.text || noticeMessage.value;
       const a = sess.get('settings_announcement'); if (a) announcementLines.value = a.lines || [];
@@ -145,6 +223,7 @@ createApp({
       }
       const prods = sess.get('products_cache');
       if (prods) {
+        mysteryBoxes.value = []; specialOffers.value = []; gameItems.value = []; otherItems.value = [];
         prods.forEach(item => {
           const cat = item.category;
           if (cat === 'mystery') mysteryBoxes.value.push(item);
@@ -157,13 +236,14 @@ createApp({
       const bn = sess.get('banners_cache'); if (bn) banners.value = bn;
     };
 
-    // ── PTR ──
+    // PTR
     const ptrVisible = ref(false);
     const ptrLoading = ref(false);
     let ptrStartY = 0, ptrTriggered = false;
     const ptrTouchStart = (e) => {
       const el = document.getElementById('accountScroll');
-      if (el && el.scrollTop <= 0) { ptrStartY = e.touches[0].clientY; ptrTriggered = false; } else ptrStartY = 0;
+      if (el && el.scrollTop <= 0) { ptrStartY = e.touches[0].clientY; ptrTriggered = false; }
+      else ptrStartY = 0;
     };
     const ptrTouchMove = (e) => {
       if (!ptrStartY) return;
@@ -172,15 +252,18 @@ createApp({
     const ptrTouchEnd = async () => {
       if (!ptrTriggered) return;
       ptrLoading.value = true;
-      // Invalidate relevant caches and refresh
-      ['settings_notice','settings_announcement','settings_logo','settings_payment','admin_settings'].forEach(k => { mem.del(k); sess.del(k); });
-      try { const user = auth.currentUser; if (user) { await fetchStats(); await fetchTurnovers(); await fetchReferralStats(); await checkTodayCheckin(user.uid); } }
-      catch(e) {}
+      ['settings_notice','settings_announcement','settings_logo','settings_payment','admin_settings'].forEach(k => {
+        mem.del(k); sess.del(k);
+      });
+      try {
+        const user = auth.currentUser;
+        if (user) { await fetchStats(); await fetchTurnovers(); await fetchReferralStats(); await checkTodayCheckin(user.uid); }
+      } catch(e) {}
       ptrLoading.value = false; ptrVisible.value = false; ptrTriggered = false; ptrStartY = 0;
       showToast('✅ Refreshed!');
     };
 
-    // ── Turnover ──
+    // Turnover
     const turnoverModal = ref(false);
     const turnoverTab = ref('active');
     const turnoverLoading = ref(false);
@@ -206,12 +289,12 @@ createApp({
     };
     const openTurnoverModal = () => { turnoverTab.value = 'active'; turnoverModal.value = true; };
 
-    // ── Announcement ──
+    // Announcement
     const announcementLines = ref([]);
     const announcementModal = ref(false);
     const showAnnouncement = () => { announcementModal.value = true; };
 
-    // ── Check-In ──
+    // Check-In
     const checkInClaimed = ref(false);
     const claimDailyBonus = async () => {
       if (!isLoggedIn.value) { navigateTo('login'); return; }
@@ -223,34 +306,40 @@ createApp({
       const checkinRef = doc(db, 'checkins', `${uid}_${today}`);
       try {
         const snap = await getDoc(checkinRef);
-        if (snap.exists()) { checkInClaimed.value = true; showPopup('error', 'Already Claimed', 'আজকের বোনাস আগেই নেওয়া হয়েছে। কাল আবার আসুন!'); return; }
+        if (snap.exists()) {
+          checkInClaimed.value = true;
+          showPopup('error', 'Already Claimed', 'আজকের বোনাস আগেই নেওয়া হয়েছে। কাল আবার আসুন!');
+          return;
+        }
         await setDoc(checkinRef, { userId: uid, date: today, amount: 10, claimedAt: serverTimestamp() });
         await updateDoc(doc(db, 'users', uid), { balance: increment(10) });
         await addDoc(collection(db, 'balanceLogs'), { userId: uid, type: 'daily_bonus', amount: 10, note: 'Daily Check-In', createdAt: serverTimestamp() });
         await addDoc(collection(db, 'turnovers'), { userId: uid, type: 'daily_bonus', label: 'Daily Bonus Turnover (৳10)', required: 10, done: 0, status: 'active', createdAt: serverTimestamp() });
         await fetchTurnovers();
         checkInClaimed.value = true;
-        showPopup('success', 'বোনাস পেয়েছেন! 🎉', '৳১০ আপনার ওয়ালেটে যোগ হয়েছে। আবার আসুন কাল!');
+        showPopup('success', 'বোনাস পেয়েছেন! 🎉', '৳১০ আপনার ওয়ালেটে যোগ হয়েছে।');
       } catch (e) { showPopup('error', 'Error', 'কিছু সমস্যা হয়েছে।'); }
     };
     const checkTodayCheckin = async (uid) => {
       const today = new Date().toISOString().slice(0, 10);
-      try { const snap = await getDoc(doc(db, 'checkins', `${uid}_${today}`)); checkInClaimed.value = snap.exists(); } catch (e) {}
+      try {
+        const snap = await getDoc(doc(db, 'checkins', `${uid}_${today}`));
+        checkInClaimed.value = snap.exists();
+      } catch (e) {}
     };
 
-    // ── Rounds ──
+    // Rounds
     const loadRounds = async () => {
-      // Already loaded from session cache in preloadFromCache
       if (rounds.value.length > 0) return;
       try {
         const data = await smartGet(doc(db, 'settings', 'rounds'), 'settings_rounds');
-        if (data?.list) { rounds.value = data.list; }
+        if (data?.list) rounds.value = data.list;
         const sheetData = await smartGet(doc(db, 'settings', 'sheetInfo'), 'settings_sheetInfo');
         if (sheetData?.list) sheetOptions.value = sheetData.list;
       } catch (e) {}
     };
 
-    // ── Referral ──
+    // Referral
     const referralStats = ref({ totalRefs: 0, totalEarned: 0 });
     const referralLink = computed(() => {
       const uid = localStorage.getItem('userId') || '';
@@ -258,19 +347,21 @@ createApp({
     });
     const copyReferralLink = () => { navigator.clipboard.writeText(referralLink.value); showToast('✅ লিংক কপি হয়েছে!'); };
     const shareReferral = async () => {
-      if (navigator.share) { try { await navigator.share({ title: 'H24 Online', text: 'H24 Online-এ যোগ দিন!', url: referralLink.value }); } catch (e) {} }
-      else copyReferralLink();
+      if (navigator.share) {
+        try { await navigator.share({ title: 'H24 Online', text: 'H24 Online-এ যোগ দিন!', url: referralLink.value }); }
+        catch (e) {}
+      } else copyReferralLink();
     };
     const fetchReferralStats = async () => {
       const uid = localStorage.getItem('userId');
       if (!uid) return;
       try {
-        const cached = mem.get('referralStats_'+uid);
+        const cached = mem.get('referralStats_' + uid);
         if (cached) { referralStats.value = cached; return; }
         const snap = await getDoc(doc(db, 'referrals', uid));
         if (snap.exists()) {
           const d = { totalRefs: snap.data().totalRefs || 0, totalEarned: snap.data().totalEarned || 0 };
-          referralStats.value = d; mem.set('referralStats_'+uid, d);
+          referralStats.value = d; mem.set('referralStats_' + uid, d);
         }
       } catch (e) {}
     };
@@ -283,9 +374,11 @@ createApp({
       return 'https://' + url;
     };
 
-    // ── Popup ──
+    // Popup
     const popup = ref({ show: false, type: '', title: '', msg: '', btnText: 'OK', confirm: null });
-    const showPopup = (type, title, msg, btnText = 'OK', confirm = null) => { popup.value = { show: true, type, title, msg, btnText, confirm }; };
+    const showPopup = (type, title, msg, btnText = 'OK', confirm = null) => {
+      popup.value = { show: true, type, title, msg, btnText, confirm };
+    };
     const closePopup = () => {
       if (popup.value.btnText === 'Deposit') { popup.value.show = false; navigateTo('add-money'); }
       else if (popup.value.btnText === 'Orders') { popup.value.show = false; navigateTo('orders'); }
@@ -293,7 +386,7 @@ createApp({
       else popup.value.show = false;
     };
 
-    // ── App Version ──
+    // App Version
     const updateModal = ref({ show: false, newVersion: '', message: '', changelog: [], updateUrl: '', forceUpdate: false });
     const checkAppVersion = async () => {
       try {
@@ -310,11 +403,14 @@ createApp({
           if (l > c) { needsUpdate = true; break; } if (l < c) break;
         }
         if (!needsUpdate) return;
-        updateModal.value = { show: true, newVersion: latestVersion, message: data.message || 'নতুন আপডেট!', changelog: data.changelog || [], updateUrl: data.updateUrl || '', forceUpdate: data.forceUpdate || false };
+        updateModal.value = {
+          show: true, newVersion: latestVersion, message: data.message || 'নতুন আপডেট!',
+          changelog: data.changelog || [], updateUrl: data.updateUrl || '', forceUpdate: data.forceUpdate || false
+        };
       } catch (e) {}
     };
 
-    // ── Withdraw ──
+    // Withdraw
     const withdrawModal = ref({ show: false, amount: '', gateway: 'bkash', accountNumber: '', loading: false, error: '' });
     const openWithdrawModal = () => {
       if (!isLoggedIn.value) { navigateTo('login'); return; }
@@ -349,7 +445,7 @@ createApp({
       } finally { wm.loading = false; }
     };
 
-    // ── Auth ──
+    // Auth refs (index.html এর login/register page এর জন্য)
     const loginEmail = ref(''), loginPass = ref(''), loginLoading = ref(false);
     const regName = ref(''), regPhone = ref(''), regEmail = ref('');
     const regPass = ref(''), regConfirm = ref(''), regLoading = ref(false);
@@ -365,7 +461,11 @@ createApp({
         const userRef = doc(db, 'users', user.uid);
         const snap = await getDoc(userRef);
         if (!snap.exists()) {
-          await setDoc(userRef, { uid: user.uid, name: user.displayName || 'User', email: user.email, photoURL: user.photoURL || '', balance: 0, phone: '', referralCode: user.uid.substring(0, 8), joinedAt: new Date().toISOString() });
+          await setDoc(userRef, {
+            uid: user.uid, name: user.displayName || 'User', email: user.email,
+            photoURL: user.photoURL || '', balance: 0, phone: '',
+            referralCode: user.uid.substring(0, 8), joinedAt: new Date().toISOString()
+          });
         }
         await updateDoc(doc(db, 'users', user.uid), { lastSeen: serverTimestamp(), isOnline: true }).catch(() => {});
         localStorage.setItem('userId', user.uid);
@@ -389,10 +489,21 @@ createApp({
       if (regPass.value !== regConfirm.value || regPass.value.length < 6) return;
       regLoading.value = true;
       try {
+        // Phone duplicate check
+        if (regPhone.value) {
+          const phoneQ = query(collection(db, 'users'), where('phone', '==', regPhone.value.trim()));
+          const phoneSnap = await getDocs(phoneQ);
+          if (!phoneSnap.empty) { alert('এই ফোন নম্বর দিয়ে ইতিমধ্যে অ্যাকাউন্ট আছে।'); regLoading.value = false; return; }
+        }
         const result = await createUserWithEmailAndPassword(auth, regEmail.value, regPass.value);
         await updateProfile(result.user, { displayName: regName.value });
         const uid = result.user.uid;
-        await setDoc(doc(db, 'users', uid), { uid, name: regName.value, email: regEmail.value, phone: regPhone.value, balance: 0, photoURL: '', referralCode: uid.substring(0, 8), referredBy: regReferralCode.value || '', joinedAt: new Date().toISOString(), lastSeen: serverTimestamp(), isOnline: true });
+        await setDoc(doc(db, 'users', uid), {
+          uid, name: regName.value, email: regEmail.value, phone: regPhone.value,
+          balance: 0, photoURL: '', referralCode: uid.substring(0, 8),
+          referredBy: regReferralCode.value || '', joinedAt: new Date().toISOString(),
+          lastSeen: serverTimestamp(), isOnline: true
+        });
         if (regReferralCode.value) {
           try {
             const refSnap = await getDocs(query(collection(db, 'users'), where('referralCode', '==', regReferralCode.value)));
@@ -412,22 +523,27 @@ createApp({
       } finally { regLoading.value = false; }
     };
 
+    // ✅ FIX: সঠিক লগআউট
     const handleLogout = async () => {
       if (confirm('আপনি কি নিশ্চিত লগআউট করতে চান?')) {
         if (chatUnsubscribe.value) chatUnsubscribe.value();
         const uid = localStorage.getItem('userId');
-        if (uid) await updateDoc(doc(db, 'users', uid), { isOnline: false, lastSeen: serverTimestamp() }).catch(() => {});
+        if (uid) {
+          await updateDoc(doc(db, 'users', uid), { isOnline: false, lastSeen: serverTimestamp() }).catch(() => {});
+        }
         try { await signOut(auth); } catch (e) {}
         localStorage.removeItem('userId');
-        sessionStorage.clear(); // Clear all caches on logout
-        isLoggedIn.value = false; userBalance.value = 0; userData.value = {};
+        sessionStorage.clear();
+        isLoggedIn.value = false;
+        userBalance.value = 0;
+        userData.value = {};
         navigateTo('login');
       }
     };
 
     const goProtected = (p) => { isLoggedIn.value ? navigateTo(p) : navigateTo('login'); };
 
-    // ── Banner ──
+    // Banner
     const handleBannerClick = (banner) => {
       if (!banner) return;
       if (banner.productId) {
@@ -438,7 +554,7 @@ createApp({
       if (banner.link) window.open(openSocialLink(banner.link), '_blank');
     };
 
-    // ── Purchase Modal ──
+    // Purchase Modal
     const purchaseModal = ref({
       show: false, product: {}, packages: [], selectedPkg: null,
       playerId: '', selectedRound: '', payMethod: 'wallet',
@@ -458,7 +574,7 @@ createApp({
       window.open(EPS_PAYMENT_URL, '_blank');
     };
 
-    // ── Turnover Progress ──
+    // Turnover Progress
     const updateTurnoverProgress = async (uid, spentAmount) => {
       try {
         const snap = await getDocs(query(collection(db, 'turnovers'), where('userId', '==', uid), where('status', '==', 'active')));
@@ -476,7 +592,7 @@ createApp({
       } catch (e) {}
     };
 
-    // ── Referral Commission ──
+    // Referral Commission
     const addReferralCommission = async (buyerUid, orderPrice) => {
       try {
         const buyerSnap = await getDoc(doc(db, 'users', buyerUid));
@@ -494,7 +610,7 @@ createApp({
         if (refDoc.exists()) await updateDoc(refDocRef, { totalEarned: increment(commission) });
         else await setDoc(refDocRef, { totalRefs: 0, totalEarned: commission });
         await addDoc(collection(db, 'balanceLogs'), { userId: referrerId, type: 'referral', amount: commission, note: 'Refer Bonus', createdAt: serverTimestamp() });
-        mem.del('referralStats_'+referrerId); // Invalidate referral cache
+        mem.del('referralStats_' + referrerId);
       } catch (e) {}
     };
 
@@ -525,7 +641,7 @@ createApp({
             });
             await addReferralCommission(uid, pm.selectedPkg.price);
             await updateTurnoverProgress(uid, pm.selectedPkg.price);
-            mem.del('orders_'+uid); sess.del('orders_'+uid); // Invalidate orders cache
+            mem.del('orders_' + uid); sess.del('orders_' + uid);
             showPopup('success', 'Order Placed!', 'Your order is pending for delivery.', 'Orders');
           } catch (e) { showPopup('error', 'Failed', 'Transaction failed. Try again.'); }
         });
@@ -570,7 +686,7 @@ createApp({
       }
     };
 
-    // ── Add Money ──
+    // Add Money
     const addMoneyStep = ref(1), addAmount = ref(''), addMethod = ref('');
     const addTrxId = ref(''), addEpsRef = ref(''), addError = ref('');
     const addLoading = ref(false), addSuccess = ref(false);
@@ -633,7 +749,7 @@ createApp({
       addSuccess.value = true;
     };
 
-    // ── Orders ──
+    // Orders
     const orders = ref([]), ordersLoading = ref(false), orderFilter = ref('all');
     const filteredOrders = computed(() => orderFilter.value === 'all' ? orders.value : orders.value.filter(o => o.status === orderFilter.value));
     const fetchOrders = async () => {
@@ -641,17 +757,17 @@ createApp({
       if (!uid) return;
       ordersLoading.value = true;
       try {
-        const cached = mem.get('orders_'+uid);
+        const cached = mem.get('orders_' + uid);
         if (cached) { orders.value = cached; ordersLoading.value = false; return; }
         const snap = await getDocs(query(collection(db, 'orders'), where('userId', '==', uid)));
         let list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         list.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
         orders.value = list;
-        mem.set('orders_'+uid, list);
+        mem.set('orders_' + uid, list);
       } catch (e) {} finally { ordersLoading.value = false; }
     };
 
-    // ── Codes ──
+    // Codes
     const codes = ref([]), codesLoading = ref(false);
     const fetchCodes = async () => {
       const uid = localStorage.getItem('userId');
@@ -663,13 +779,16 @@ createApp({
       } catch (e) {} finally { codesLoading.value = false; }
     };
 
-    // ── Chat ──
+    // Chat
     const chatMessages = ref([]), chatInput = ref(''), adminTyping = ref(false), adminOnline = ref(false);
     const chatUnsubscribe = ref(null);
     let chatRoomId = null;
     const watchAdminStatus = () => {
-      try { onSnapshot(doc(db, 'settings', 'adminStatus'), (snap) => { adminOnline.value = snap.exists() ? snap.data().online === true : false; }); }
-      catch(e) { adminOnline.value = false; }
+      try {
+        onSnapshot(doc(db, 'settings', 'adminStatus'), (snap) => {
+          adminOnline.value = snap.exists() ? snap.data().online === true : false;
+        });
+      } catch(e) { adminOnline.value = false; }
     };
     const initChat = async () => {
       const user = auth.currentUser;
@@ -679,7 +798,9 @@ createApp({
       const roomRef = doc(db, 'chats', chatRoomId);
       try {
         const roomSnap = await getDoc(roomRef);
-        if (!roomSnap.exists()) await setDoc(roomRef, { userId: uid, userName: userData.value.name || 'User', userEmail: userData.value.email || '', lastMsg: '', lastMsgAt: serverTimestamp(), unreadAdmin: 0 });
+        if (!roomSnap.exists()) {
+          await setDoc(roomRef, { userId: uid, userName: userData.value.name || 'User', userEmail: userData.value.email || '', lastMsg: '', lastMsgAt: serverTimestamp(), unreadAdmin: 0 });
+        }
       } catch (e) {}
       const msgsRef = collection(db, 'chats', chatRoomId, 'messages');
       const q = query(msgsRef, orderBy('createdAt', 'asc'), limit(100));
@@ -713,7 +834,7 @@ createApp({
       return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
     };
 
-    // ── Balance History ──
+    // Balance History
     const balanceHistory = ref([]), balanceHistoryLoading = ref(false), pendingWithdrawals = ref([]);
     const cancelWithdraw = async (wdId, amount) => {
       const pw = pendingWithdrawals.value.find(p => p.id === wdId);
@@ -746,18 +867,26 @@ createApp({
         ]);
         depSnap.forEach(d => {
           const data = d.data();
-          if (data.status === 'completed' || data.status === 'approved') items.push({ id: d.id, type: 'deposit', label: 'Deposit', amount: Number(data.amount || 0), note: data.method ? data.method.toUpperCase() : 'Manual', createdAt: data.createdAt });
+          if (data.status === 'completed' || data.status === 'approved') {
+            items.push({ id: d.id, type: 'deposit', label: 'Deposit', amount: Number(data.amount || 0), note: data.method ? data.method.toUpperCase() : 'Manual', createdAt: data.createdAt });
+          }
         });
         wdSnap.forEach(d => {
           const data = d.data();
-          if (data.status === 'pending') pendingWithdrawals.value.push({ id: d.id, amount: Number(data.amount || 0), gateway: data.gateway || '', accountNumber: data.accountNumber || '', createdAt: data.createdAt, cancelling: false });
-          else if (data.status === 'completed' || data.status === 'approved') items.push({ id: d.id, type: 'withdraw', label: 'Withdraw', amount: Number(data.amount || 0), note: data.gateway ? data.gateway.toUpperCase() : '', createdAt: data.createdAt });
+          if (data.status === 'pending') {
+            pendingWithdrawals.value.push({ id: d.id, amount: Number(data.amount || 0), gateway: data.gateway || '', accountNumber: data.accountNumber || '', createdAt: data.createdAt, cancelling: false });
+          } else if (data.status === 'completed' || data.status === 'approved') {
+            items.push({ id: d.id, type: 'withdraw', label: 'Withdraw', amount: Number(data.amount || 0), note: data.gateway ? data.gateway.toUpperCase() : '', createdAt: data.createdAt });
+          }
         });
         try {
           const logSnap = await getDocs(query(collection(db, 'balanceLogs'), where('userId', '==', uid)));
           logSnap.forEach(d => {
             const data = d.data();
-            const typeMap = { 'daily_bonus': { label: 'Daily Bonus' }, 'referral': { label: 'Refer Earn' }, 'admin_credit': { label: data.note || 'Admin Credit' }, 'admin_debit': { label: 'Admin Debit' } };
+            const typeMap = {
+              'daily_bonus': { label: 'Daily Bonus' }, 'referral': { label: 'Refer Earn' },
+              'admin_credit': { label: data.note || 'Admin Credit' }, 'admin_debit': { label: 'Admin Debit' }
+            };
             const t = typeMap[data.type] || { label: data.type || 'Adjustment' };
             items.push({ id: d.id, type: data.type, label: t.label, amount: Math.abs(Number(data.amount || 0)), isDebit: data.type === 'admin_debit' || data.amount < 0, note: data.note || data.reason || '', createdAt: data.createdAt });
           });
@@ -768,11 +897,11 @@ createApp({
       } catch (e) {} finally { balanceHistoryLoading.value = false; }
     };
 
-    // ── Stats ──
+    // Stats
     const fetchStats = async () => {
       const uid = localStorage.getItem('userId');
       if (!uid) return;
-      const cached = mem.get('stats_'+uid);
+      const cached = mem.get('stats_' + uid);
       if (cached) { stats.value = cached; return; }
       try {
         const snap = await getDocs(query(collection(db, 'orders'), where('userId', '==', uid)));
@@ -787,11 +916,11 @@ createApp({
           }
         });
         const result = { totalSpent: spent, totalOrders: count, weeklySpent: weekly };
-        stats.value = result; mem.set('stats_'+uid, result);
+        stats.value = result; mem.set('stats_' + uid, result);
       } catch (e) {}
     };
 
-    // ── Utilities ──
+    // Utilities
     const copyNum = (num) => { if (num) { navigator.clipboard.writeText(num).catch(() => {}); showToast('✅ Copied: ' + num); } };
     const copyCode = (code) => { navigator.clipboard.writeText(code).catch(() => {}); showToast('✅ Code Copied!'); };
     const imgError = (e) => { e.target.src = 'https://placehold.co/400x400/1c1c28/6c63ff?text=H24'; };
@@ -818,7 +947,7 @@ createApp({
       { label: 'Live Stream', sub: 'Watch live events', icon: 'fa-solid fa-video', color: '#ef4444', bg: 'rgba(239,68,68,0.12)', action: () => navigateTo('live') },
     ]);
 
-    // ── Navigation ──
+    // Navigation
     const pageHistory = ref(['home']);
     let toastTimer = null;
     const showToast = (msg, duration = 2200) => {
@@ -859,7 +988,10 @@ createApp({
     const copyLiveUrl = () => { if (liveUrl.value) { navigator.clipboard.writeText(liveUrl.value).catch(() => {}); showToast('✅ Live link copied!'); } };
     const resetZoom = () => {
       const meta = document.querySelector('meta[name=viewport]');
-      if (meta) { meta.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=0'); setTimeout(() => { meta.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=0, viewport-fit=cover'); }, 50); }
+      if (meta) {
+        meta.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=0');
+        setTimeout(() => { meta.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=0, viewport-fit=cover'); }, 50);
+      }
     };
     const goLive = () => { if (liveUrl.value) window.location.href = liveUrl.value; };
 
@@ -881,11 +1013,8 @@ createApp({
       if (newPage === 'add-money') { addMoneyStep.value = 1; addSuccess.value = false; addError.value = ''; addEpsRef.value = ''; }
     });
 
-    // ══════════════════════════════════════════
-    // PARALLEL DATA LOADING WITH CACHE
-    // ══════════════════════════════════════════
+    // Parallel data loading
     const loadAllSettingsAndProducts = async () => {
-      // Load all settings in parallel
       const [nSnap, annSnap, logoSnap, pSnap, sSnap, amtSnap, roundsSnap, sheetsSnap] = await Promise.all([
         getDoc(doc(db, 'settings', 'notice')),
         getDoc(doc(db, 'settings', 'announcement')),
@@ -912,7 +1041,6 @@ createApp({
       if (roundsSnap.exists() && roundsSnap.data().list) { rounds.value = roundsSnap.data().list; sess.set('settings_rounds', roundsSnap.data()); }
       if (sheetsSnap.exists() && sheetsSnap.data().list) { sheetOptions.value = sheetsSnap.data().list; sess.set('settings_sheetInfo', sheetsSnap.data()); }
 
-      // Load products and banners in parallel only if not cached
       const hasCachedProds = !!sess.get('products_cache');
       const hasCachedBanners = !!sess.get('banners_cache');
       if (!hasCachedProds || !hasCachedBanners) {
@@ -922,6 +1050,7 @@ createApp({
         ]);
         if (prodSnap) {
           const prodArr = [];
+          mysteryBoxes.value = []; specialOffers.value = []; gameItems.value = []; otherItems.value = [];
           prodSnap.forEach(d => {
             const item = { id: d.id, ...d.data() };
             prodArr.push(item);
@@ -965,23 +1094,31 @@ createApp({
       history.pushState({ depth: 1 }, '', window.location.href);
       window.addEventListener('popstate', () => navigateBack());
 
-      // ── INSTANT: Load from session cache (no Firebase) ──
+      // ── INSTANT: session cache ──
       preloadFromCache();
 
       watchAdminStatus();
 
-      // ── Auth listener ──
-      onAuthStateChanged(auth, (user) => {
+      // ── ✅ FIX: Auth State Listener ──
+      // onAuthStateChanged একবারই fire হবে, persist থাকবে
+      onAuthStateChanged(auth, async (user) => {
         if (user) {
           isLoggedIn.value = true;
-          const markOnline = () => updateDoc(doc(db, 'users', user.uid), { isOnline: true, lastSeen: serverTimestamp() }).catch(() => {});
+          localStorage.setItem('userId', user.uid);
+
+          const markOnline = () =>
+            updateDoc(doc(db, 'users', user.uid), { isOnline: true, lastSeen: serverTimestamp() }).catch(() => {});
           markOnline();
-          // Mark online every 60s
           setInterval(markOnline, 60000);
-          const markOffline = () => updateDoc(doc(db, 'users', user.uid), { isOnline: false, lastSeen: serverTimestamp() }).catch(() => {});
+
+          const markOffline = () =>
+            updateDoc(doc(db, 'users', user.uid), { isOnline: false, lastSeen: serverTimestamp() }).catch(() => {});
           window.addEventListener('beforeunload', markOffline);
-          document.addEventListener('visibilitychange', () => { if (document.hidden) markOffline(); else markOnline(); });
-          // Real-time balance listener (always fresh)
+          document.addEventListener('visibilitychange', () => {
+            if (document.hidden) markOffline(); else markOnline();
+          });
+
+          // ── Real-time balance (সবসময় fresh) ──
           onSnapshot(doc(db, 'users', user.uid), (d) => {
             if (d.exists()) {
               userBalance.value = d.data().balance || 0;
@@ -991,17 +1128,31 @@ createApp({
               supportPin.value = uid.length > 5 ? uid.substring(0, 6) : Math.floor(100000 + Math.random() * 900000);
             }
           });
+
           checkTodayCheckin(user.uid);
           fetchTurnovers();
-        } else { isLoggedIn.value = false; }
+
+        } else {
+          // ── লগইন নেই: login পেজে পাঠান ──
+          isLoggedIn.value = false;
+          userBalance.value = 0;
+          userData.value = {};
+          if (page.value !== 'login' && page.value !== 'register') {
+            navigateTo('login');
+          }
+        }
       });
 
-      // ── Background: fetch fresh from Firebase (parallel) ──
+      // ── Background data load ──
       loadAllSettingsAndProducts().then(async () => {
         await nextTick();
         if (banners.value.length > 0) {
           setTimeout(() => {
-            new Swiper('.mySwiper', { loop: true, autoplay: { delay: 3500, disableOnInteraction: false }, pagination: { el: '.swiper-pagination', clickable: true } });
+            new Swiper('.mySwiper', {
+              loop: true,
+              autoplay: { delay: 3500, disableOnInteraction: false },
+              pagination: { el: '.swiper-pagination', clickable: true }
+            });
           }, 100);
         }
       }).catch(() => {});
