@@ -11,9 +11,6 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css"/>
 <link rel="stylesheet" href="assets/css/style.css">
 <style>
-/* ═══════════════════════════════════════
-   PURCHASE MODAL - REDESIGNED
-═══════════════════════════════════════ */
 .purchase-overlay{
   position:fixed;inset:0;
   background:rgba(0,0,0,0.75);
@@ -64,8 +61,6 @@
   flex-shrink:0;transition:all 0.15s;
 }
 .purchase-close:active{background:rgba(239,68,68,0.15);color:#f87171;}
-
-/* Step Label */
 .step-label{
   font-size:10.5px;font-weight:700;
   color:rgba(255,255,255,0.35);
@@ -80,8 +75,6 @@
   display:flex;align-items:center;justify-content:center;
   font-size:10px;font-weight:800;color:#fff;
 }
-
-/* Package Grid */
 .pkg-grid{
   display:grid;
   grid-template-columns:1fr 1fr;
@@ -123,8 +116,6 @@
   transition:all 0.2s cubic-bezier(0.34,1.56,0.64,1);
 }
 .pkg-card-new.active .pkg-check-badge{opacity:1;transform:scale(1);}
-
-/* Dropdown */
 .styled-select-wrap{position:relative;}
 .styled-select{
   width:100%;
@@ -147,8 +138,6 @@
   color:rgba(255,255,255,0.35);
   pointer-events:none;font-size:13px;
 }
-
-/* Payment Tabs */
 .pay-tabs{display:flex;gap:6px;margin-bottom:14px;}
 .pay-tab{
   flex:1;padding:9px 6px;
@@ -166,8 +155,6 @@
   border-color:var(--primary);
   color:#fff;
 }
-
-/* Total Bar */
 .total-bar{
   background:rgba(108,99,255,0.08);
   border:1px solid rgba(108,99,255,0.18);
@@ -176,8 +163,6 @@
   display:flex;align-items:center;justify-content:space-between;
   margin-bottom:12px;
 }
-
-/* Multi-select chips for sheet & round in purchase modal */
 .multi-chip-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
 .multi-chip{
   display:inline-flex;align-items:center;gap:5px;
@@ -208,6 +193,45 @@
 .multi-chip.active .multi-chip-check{
   background:var(--primary);border-color:var(--primary);color:#fff;
 }
+
+/* Single-select round chip — radio style */
+.round-chip{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:8px 14px;
+  border-radius:10px;
+  border:1.5px solid rgba(255,255,255,0.09);
+  background:rgba(255,255,255,0.04);
+  font-size:12px;font-weight:700;
+  color:rgba(255,255,255,0.45);
+  cursor:pointer;transition:all 0.15s;
+}
+.round-chip.active{
+  border-color:#f97316;
+  background:rgba(249,115,22,0.14);
+  color:#fb923c;
+  box-shadow:0 0 10px rgba(249,115,22,0.15);
+}
+.round-chip:active{transform:scale(0.92);}
+.round-radio{
+  width:14px;height:14px;
+  border-radius:50%;
+  border:1.5px solid rgba(255,255,255,0.2);
+  background:transparent;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+  transition:all 0.15s;
+}
+.round-chip.active .round-radio{
+  background:#f97316;
+  border-color:#f97316;
+}
+.round-chip.active .round-radio::after{
+  content:'';
+  width:5px;height:5px;
+  border-radius:50%;
+  background:#fff;
+}
+
 .selected-tags{
   display:flex;flex-wrap:wrap;gap:4px;
   padding:8px 10px;
@@ -226,8 +250,6 @@
 }
 .sel-tag-x{cursor:pointer;color:rgba(165,180,252,0.6);font-size:10px;margin-left:2px;}
 .sel-tag-x:hover{color:#f87171;}
-
-/* Copy box */
 .copy-box{
   background:rgba(108,99,255,0.07);
   border:1px dashed rgba(108,99,255,0.35);
@@ -235,8 +257,6 @@
   text-align:center;cursor:pointer;transition:all 0.2s;
 }
 .copy-box:active{transform:scale(0.97);}
-
-/* EPS Card */
 .eps-card{
   background:linear-gradient(135deg,#0d4f3c,#1a6b50);
   border:2px solid rgba(34,197,94,0.35);
@@ -244,8 +264,6 @@
   cursor:pointer;transition:all 0.2s;
 }
 .eps-card:active{transform:scale(0.97);}
-
-/* Wallet info */
 .wallet-info-card{
   background:rgba(108,99,255,0.07);
   border:1px solid rgba(108,99,255,0.18);
@@ -254,9 +272,24 @@
   display:flex;align-items:center;justify-content:space-between;
 }
 
-/* ═══════════════════════════════════════
-   BOOK SHEET POPUP - CIRCULAR DESIGN (matches screenshot)
-═══════════════════════════════════════ */
+/* Auto-selected round badge */
+.auto-round-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(249,115,22,0.12);
+  border:1px solid rgba(249,115,22,0.3);
+  border-radius:12px;
+  padding:10px 14px;
+  font-size:13px;font-weight:700;color:#fb923c;
+  margin-bottom:10px;
+}
+.auto-badge-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:#f97316;
+  box-shadow:0 0 6px rgba(249,115,22,0.7);
+  animation:pulse-dot 1.5s ease-in-out infinite;
+}
+@keyframes pulse-dot{0%,100%{opacity:1;}50%{opacity:0.4;}}
+
 .bs-overlay{
   position:fixed;inset:0;
   background:rgba(0,0,0,0.85);
@@ -282,8 +315,6 @@
   margin:14px auto 0;
   flex-shrink:0;
 }
-
-/* Round Nav */
 .bs-round-nav{
   display:flex;align-items:center;gap:12px;
   padding:18px 20px 16px;
@@ -305,11 +336,7 @@
 .bs-nav-arrow.disabled{opacity:0.2;cursor:not-allowed;}
 .bs-round-center{flex:1;text-align:center;}
 .bs-round-title{font-size:22px;font-weight:900;color:#fff;letter-spacing:-0.5px;}
-.bs-round-time{
-  font-size:15px;font-weight:700;
-  color:#8b5cf6;
-  margin-top:4px;
-}
+.bs-round-time{font-size:15px;font-weight:700;color:#8b5cf6;margin-top:4px;}
 .bs-close{
   width:48px;height:48px;
   background:rgba(255,255,255,0.07);
@@ -320,17 +347,10 @@
   transition:all 0.15s;flex-shrink:0;
 }
 .bs-close:active{background:rgba(239,68,68,0.2);color:#f87171;}
-
-/* Scrollable inner content */
 .bs-scrollable{
-  overflow-y:auto;
-  overflow-x:hidden;
-  flex:1;
-  scrollbar-width:none;
+  overflow-y:auto;overflow-x:hidden;flex:1;scrollbar-width:none;
 }
 .bs-scrollable::-webkit-scrollbar{display:none;}
-
-/* Section header */
 .bs-section-header{
   font-size:12px;font-weight:800;
   color:rgba(255,255,255,0.28);
@@ -340,19 +360,9 @@
   flex-shrink:0;
 }
 .bs-section-header::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.06);}
-
-/* Amount row — horizontal scroll */
-.bs-amt-scroll{
-  overflow-x:auto;
-  padding:0 20px 6px;
-  scrollbar-width:none;
-}
+.bs-amt-scroll{overflow-x:auto;padding:0 20px 6px;scrollbar-width:none;}
 .bs-amt-scroll::-webkit-scrollbar{display:none;}
-.bs-amt-row{
-  display:flex;
-  gap:10px;
-  width:max-content;
-}
+.bs-amt-row{display:flex;gap:10px;width:max-content;}
 .bs-amt{
   background:rgba(255,255,255,0.05);
   border:1.5px solid rgba(255,255,255,0.1);
@@ -360,159 +370,113 @@
   color:rgba(255,255,255,0.45);
   font-size:16px;font-weight:800;
   padding:11px 20px;
-  cursor:pointer;
-  transition:all 0.15s;
+  cursor:pointer;transition:all 0.15s;
   font-family:'Outfit',sans-serif;
-  white-space:nowrap;
-  flex-shrink:0;
+  white-space:nowrap;flex-shrink:0;
 }
 .bs-amt.active{
   background:rgba(249,115,22,0.18);
-  border-color:#f97316;
-  color:#fb923c;
+  border-color:#f97316;color:#fb923c;
   box-shadow:0 0 14px rgba(249,115,22,0.3);
 }
 .bs-amt:not(.active):active{transform:scale(0.9);}
-
-/* Legend */
-.bs-legend{
-  display:flex;gap:16px;
-  padding:10px 20px 12px;
-  align-items:center;
-}
+.bs-legend{display:flex;gap:16px;padding:10px 20px 12px;align-items:center;}
 .bs-leg{display:flex;align-items:center;gap:6px;font-size:13px;color:rgba(255,255,255,0.4);font-weight:600;}
 .bs-leg-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;}
-
-/* Sheet grid — 2 rows, horizontal scroll, CIRCULAR */
-.bs-sheets-scroll{
-  overflow-x:auto;
-  padding:0 20px 12px;
-  scrollbar-width:none;
-}
+.bs-sheets-scroll{overflow-x:auto;padding:0 20px 12px;scrollbar-width:none;}
 .bs-sheets-scroll::-webkit-scrollbar{display:none;}
 .bs-sheets-grid{
-  display:grid;
-  grid-template-rows:1fr 1fr;
-  grid-auto-flow:column;
-  gap:12px;
-  width:max-content;
+  display:grid;grid-template-rows:1fr 1fr;
+  grid-auto-flow:column;gap:12px;width:max-content;
 }
-
-/* Circular sheet button */
 .bs-sheet{
-  width:72px;height:72px;
-  border-radius:50%;
+  width:72px;height:72px;border-radius:50%;
   background:rgba(255,255,255,0.06);
   border:2px solid rgba(255,255,255,0.12);
   display:flex;align-items:center;justify-content:center;
-  cursor:pointer;
-  font-size:12px;font-weight:800;
-  color:rgba(255,255,255,0.55);
-  transition:all 0.2s;
-  position:relative;overflow:hidden;
-  text-align:center;line-height:1.2;
-  padding:4px;flex-shrink:0;
-  user-select:none;
+  cursor:pointer;font-size:12px;font-weight:800;
+  color:rgba(255,255,255,0.55);transition:all 0.2s;
+  position:relative;overflow:hidden;text-align:center;
+  line-height:1.2;padding:4px;flex-shrink:0;user-select:none;
 }
 .bs-sheet:not(.taken):not(.selected):active{transform:scale(0.88);}
 .bs-sheet.selected{
-  background:rgba(249,115,22,0.15);
-  border-color:#f97316;
-  border-width:3px;
-  color:#fff;
-  box-shadow:0 0 0 5px rgba(249,115,22,0.18), 0 0 22px rgba(249,115,22,0.4);
+  background:rgba(249,115,22,0.15);border-color:#f97316;border-width:3px;color:#fff;
+  box-shadow:0 0 0 5px rgba(249,115,22,0.18),0 0 22px rgba(249,115,22,0.4);
 }
 .bs-sheet.taken{
-  background:rgba(239,68,68,0.07);
-  border-color:rgba(239,68,68,0.3);
-  color:rgba(239,68,68,0.35);
-  cursor:not-allowed;
+  background:rgba(239,68,68,0.07);border-color:rgba(239,68,68,0.3);
+  color:rgba(239,68,68,0.35);cursor:not-allowed;
 }
 .bs-taken-line{
-  position:absolute;
-  width:78%;height:2px;
-  background:rgba(239,68,68,0.45);
-  transform:rotate(-35deg);
-  border-radius:2px;
-  pointer-events:none;
+  position:absolute;width:78%;height:2px;
+  background:rgba(239,68,68,0.45);transform:rotate(-35deg);
+  border-radius:2px;pointer-events:none;
 }
-
-/* Selected sheet tags */
 .bs-selected-tags{
   display:flex;flex-wrap:wrap;gap:5px;
-  margin:4px 20px 4px;
-  padding:10px 14px;
+  margin:4px 20px 4px;padding:10px 14px;
   background:rgba(249,115,22,0.06);
-  border:1px solid rgba(249,115,22,0.18);
-  border-radius:14px;
+  border:1px solid rgba(249,115,22,0.18);border-radius:14px;
 }
 .bs-sel-tag{
   display:inline-flex;align-items:center;
-  background:rgba(249,115,22,0.15);
-  border:1px solid rgba(249,115,22,0.3);
-  border-radius:20px;
-  padding:3px 10px;
-  font-size:12px;font-weight:700;color:#fb923c;
+  background:rgba(249,115,22,0.15);border:1px solid rgba(249,115,22,0.3);
+  border-radius:20px;padding:3px 10px;font-size:12px;font-weight:700;color:#fb923c;
 }
 
-/* Footer */
+/* Auto round indicator in book sheet */
+.bs-auto-round-info{
+  margin:0 20px 8px;
+  background:rgba(139,92,246,0.08);
+  border:1px solid rgba(139,92,246,0.2);
+  border-radius:12px;
+  padding:10px 14px;
+  display:flex;align-items:center;gap:8px;
+  font-size:12px;color:rgba(255,255,255,0.5);font-weight:600;
+}
+
 .bs-footer{
   display:flex;align-items:center;gap:10px;
   padding:14px 20px 6px;
-  border-top:1px solid rgba(255,255,255,0.07);
-  flex-shrink:0;
+  border-top:1px solid rgba(255,255,255,0.07);flex-shrink:0;
 }
 .bs-stat-box{
-  background:rgba(255,255,255,0.04);
-  border:1px solid rgba(255,255,255,0.08);
-  border-radius:16px;
-  padding:12px 14px;
-  text-align:center;
-  flex:1;
+  background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);
+  border-radius:16px;padding:12px 14px;text-align:center;flex:1;
 }
 .bs-stat-label{font-size:11px;color:rgba(255,255,255,0.3);font-weight:700;text-transform:uppercase;letter-spacing:0.8px;}
 .bs-stat-val{font-size:22px;font-weight:900;color:#fff;margin-top:4px;}
 .bs-book-btn{
-  background:linear-gradient(135deg,#f97316,#ea580c);
-  border:none;border-radius:16px;
-  color:#fff;font-size:16px;font-weight:800;
-  height:60px;
-  cursor:pointer;flex:1.8;
-  font-family:'Outfit',sans-serif;
-  transition:all 0.2s;
+  background:linear-gradient(135deg,#f97316,#ea580c);border:none;border-radius:16px;
+  color:#fff;font-size:16px;font-weight:800;height:60px;cursor:pointer;flex:1.8;
+  font-family:'Outfit',sans-serif;transition:all 0.2s;
   display:flex;align-items:center;justify-content:center;gap:8px;
   box-shadow:0 4px 20px rgba(249,115,22,0.4),0 0 0 1px rgba(249,115,22,0.12) inset;
 }
 .bs-book-btn:not(:disabled):active{transform:scale(0.95);}
 .bs-book-btn:disabled{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.18);box-shadow:none;cursor:not-allowed;}
 
-/* Animations */
 .pop-enter-active{transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);}
 .pop-leave-active{transition:all 0.2s ease-in;}
 .pop-enter-from,.pop-leave-to{opacity:0;transform:scale(0.88) translateY(24px);}
-
 .slide-enter-active{transition:all 0.35s cubic-bezier(0.16,1,0.3,1);}
 .slide-leave-active{transition:all 0.22s ease-in;}
 .slide-enter-from,.slide-leave-to{opacity:0;transform:scale(0.92);}
-
-/* Purchase slide up */
 .purchase-slide-enter-active{transition:all 0.38s cubic-bezier(0.16,1,0.3,1);}
 .purchase-slide-leave-active{transition:all 0.25s ease-in;}
 .purchase-slide-enter-from,.purchase-slide-leave-to{transform:translateY(100%);}
 
-/* FAB */
 .book-sheet-fab{
   position:fixed;
   bottom:calc(var(--nav-height) + env(safe-area-inset-bottom) + 16px);
-  right:18px;
-  width:60px;height:60px;
+  right:18px;width:60px;height:60px;
   background:linear-gradient(145deg,#f97316,#ea580c);
   color:#fff;border:none;border-radius:50%;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
   z-index:500;
   box-shadow:0 4px 20px rgba(249,115,22,0.5),0 0 0 6px rgba(249,115,22,0.12);
-  cursor:pointer;
-  transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  cursor:pointer;transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);
   font-family:'Outfit',sans-serif;
 }
 .book-sheet-fab:active{transform:scale(0.88);}
@@ -607,25 +571,27 @@
             </div>
           </div>
 
-          <!-- Step 3: Round (Multi-select) -->
+          <!-- Step 3: Round (Single-select — radio style) -->
           <div style="margin-bottom:14px;">
             <div class="step-label">
               <span class="step-num" style="background:#f97316;">3</span> Round সিলেক্ট করুন
-              <span style="margin-left:auto;font-size:10px;color:rgba(255,255,255,0.25);">একাধিক যাবে</span>
+              <span style="margin-left:auto;font-size:10px;color:rgba(255,255,255,0.25);">একটি সিলেক্ট করুন</span>
             </div>
             <div class="multi-chip-wrap">
               <div v-for="r in rounds" :key="r.label"
-                class="multi-chip"
-                :class="{ active: purchaseModal.selectedRounds.includes(r.label) }"
-                @click="toggleRound(r.label)">
-                <span class="multi-chip-check"><i v-if="purchaseModal.selectedRounds.includes(r.label)" class="fa-solid fa-check" style="font-size:7px;"></i></span>
+                class="round-chip"
+                :class="{ active: purchaseModal.selectedRound === r.label }"
+                @click="purchaseModal.selectedRound = r.label">
+                <span class="round-radio">
+                  <span v-if="purchaseModal.selectedRound === r.label" style="width:5px;height:5px;border-radius:50%;background:#fff;display:block;"></span>
+                </span>
                 {{ r.label }}
               </div>
             </div>
-            <div v-if="purchaseModal.selectedRounds.length > 0" class="selected-tags">
-              <span v-for="rd in purchaseModal.selectedRounds" :key="rd" class="sel-tag" style="background:rgba(249,115,22,0.15);border-color:rgba(249,115,22,0.3);color:#fb923c;">
-                {{ rd }}<span class="sel-tag-x" @click.stop="toggleRound(rd)">✕</span>
-              </span>
+            <div v-if="purchaseModal.selectedRound" style="margin-top:6px;display:flex;align-items:center;gap:6px;background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.2);border-radius:10px;padding:8px 12px;">
+              <i class="fa-solid fa-circle-check" style="color:#f97316;font-size:13px;"></i>
+              <span style="font-size:12px;font-weight:700;color:#fb923c;">{{ purchaseModal.selectedRound }}</span>
+              <span @click="purchaseModal.selectedRound=''" style="margin-left:auto;cursor:pointer;color:rgba(251,146,60,0.5);font-size:11px;">✕</span>
             </div>
           </div>
 
@@ -706,14 +672,14 @@
             </div>
             <div v-if="purchaseModal.selectedPkg !== null" style="text-align:right;">
               <div style="font-size:10px;color:rgba(255,255,255,0.25);margin-bottom:2px;">
-                {{ purchaseModal.selectedSheets.length }}টি Sheet · {{ purchaseModal.selectedRounds.length }}টি Round
+                {{ purchaseModal.selectedSheets.length }}টি Sheet · {{ purchaseModal.selectedRound ? '1' : '0' }}টি Round
               </div>
               <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.5);">{{ purchaseModal.packages[purchaseModal.selectedPkg]?.name }}</div>
             </div>
           </div>
 
           <button @click="handlePurchaseBuy" class="btn-primary" style="width:100%;font-size:14.5px;padding:15px;"
-            :disabled="purchaseModal.verifying || purchaseModal.selectedPkg === null || purchaseModal.selectedSheets.length === 0 || purchaseModal.selectedRounds.length === 0">
+            :disabled="purchaseModal.verifying || purchaseModal.selectedPkg === null || purchaseModal.selectedSheets.length === 0 || !purchaseModal.selectedRound">
             <span v-if="purchaseModal.verifying" class="spinner"></span>
             <span v-else style="display:flex;align-items:center;justify-content:center;gap:8px;">
               <span v-if="purchaseModal.payMethod==='wallet'"><i class="fa-solid fa-wallet" style="margin-right:4px;"></i>Wallet থেকে পেমেন্ট</span>
@@ -776,6 +742,12 @@
           </div>
         </div>
 
+        <!-- Auto-selected round info -->
+        <div class="bs-auto-round-info">
+          <i class="fa-solid fa-clock" style="color:#8b5cf6;font-size:13px;"></i>
+          <span>বর্তমান সময় অনুযায়ী <strong style="color:#a78bfa;">{{ bsCurrentRound.label }}</strong> অটো সিলেক্ট হয়েছে</span>
+        </div>
+
         <!-- Scrollable content area -->
         <div class="bs-scrollable">
 
@@ -819,7 +791,6 @@
                   taken: bsTakenSheets.includes(sheet.label)
                 }"
                 @click="bsToggleSheet(sheet.label)">
-                <!-- diagonal taken line -->
                 <div v-if="bsTakenSheets.includes(sheet.label)" class="bs-taken-line"></div>
                 <span style="position:relative;z-index:1;word-break:break-all;padding:2px;">{{ sheet.label }}</span>
               </div>
@@ -832,7 +803,6 @@
             <span v-for="s in bookSheetModal.selectedSheets" :key="s" class="bs-sel-tag">{{ s }}</span>
           </div>
 
-          <!-- bottom spacer -->
           <div style="height:8px;"></div>
         </div>
 
@@ -862,35 +832,70 @@
 
   <!-- HOME PAGE -->
   <div style="display:flex;flex-direction:column;height:100vh;">
+
+    <!-- ════════════════════════
+         HEADER — বড় লেখা ও আইকন
+    ════════════════════════ -->
     <header class="app-header" style="position:sticky;top:0;flex-shrink:0;">
-      <div style="padding:12px 16px;display:flex;justify-content:space-between;align-items:center;">
-        <div style="display:flex;align-items:center;gap:10px;">
-          <div style="width:36px;height:36px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px;overflow:hidden;">
-            <img v-if="logoUrl" :src="logoUrl" style="width:100%;height:100%;object-fit:cover;border-radius:10px;" @error="logoUrl=''">
+      <div style="padding:14px 16px;display:flex;justify-content:space-between;align-items:center;">
+
+        <!-- বাম পাশ: Logo + Title -->
+        <div style="display:flex;align-items:center;gap:11px;">
+          <!-- Logo — বড় (44×44) -->
+          <div style="width:44px;height:44px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:22px;overflow:hidden;flex-shrink:0;">
+            <img v-if="logoUrl" :src="logoUrl" style="width:100%;height:100%;object-fit:cover;border-radius:12px;" @error="logoUrl=''">
             <span v-else>H</span>
           </div>
           <div>
-            <div style="font-weight:800;font-size:16px;letter-spacing:-0.5px;">H24 <span class="gradient-text">ONLINE</span></div>
-            <div style="font-size:10px;color:var(--text-muted);font-weight:500;margin-top:-2px;">H24 Online Platform</div>
+            <!-- Title — বড় (19px) -->
+            <div style="font-weight:800;font-size:19px;letter-spacing:-0.5px;line-height:1.1;">H24 <span class="gradient-text">ONLINE</span></div>
+            <!-- Subtitle — বড় (12px) -->
+            <div style="font-size:12px;color:var(--text-muted);font-weight:500;margin-top:1px;">H24 Online Platform</div>
           </div>
         </div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <div v-if="isLoggedIn" @click="goPage('account.html')" style="cursor:pointer;display:flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:6px 10px;">
-            <i class="fa-solid fa-wallet" style="font-size:13px;color:var(--primary);"></i>
-            <span style="font-size:13px;font-weight:700;">{{ userBalance }}৳</span>
+
+        <!-- ডান পাশ: Balance + User -->
+        <div style="display:flex;align-items:center;gap:9px;">
+
+          <!-- Wallet Balance — বড় -->
+          <div v-if="isLoggedIn" @click="goPage('account.html')"
+            style="cursor:pointer;display:flex;align-items:center;gap:7px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:8px 13px;touch-action:manipulation;">
+            <i class="fa-solid fa-wallet" style="font-size:16px;color:var(--primary);"></i>
+            <span style="font-size:15px;font-weight:800;">{{ userBalance }}৳</span>
           </div>
-          <a v-if="!isLoggedIn" href="login.html" style="cursor:pointer;background:var(--primary);border-radius:10px;padding:7px 14px;font-size:12px;font-weight:700;color:#fff;text-decoration:none;">Login</a>
-          <div v-if="isLoggedIn" @click="goPage('account.html')" style="cursor:pointer;display:flex;align-items:center;gap:8px;touch-action:manipulation;">
+
+          <!-- Login button (লগইন না থাকলে) -->
+          <a v-if="!isLoggedIn" href="login.html"
+            style="cursor:pointer;background:var(--primary);border-radius:11px;padding:9px 16px;font-size:14px;font-weight:700;color:#fff;text-decoration:none;">
+            Login
+          </a>
+
+          <!-- User Name + Avatar — বড় -->
+          <div v-if="isLoggedIn" @click="goPage('account.html')"
+            style="cursor:pointer;display:flex;align-items:center;gap:9px;touch-action:manipulation;">
             <div style="text-align:right;">
-              <div style="font-size:12px;font-weight:700;color:#fff;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ userData.name||'User' }}</div>
-              <div style="font-size:10px;color:var(--green);display:flex;align-items:center;justify-content:flex-end;gap:3px;"><span style="width:5px;height:5px;background:var(--green);border-radius:50%;display:inline-block;"></span>Online</div>
+              <!-- ইউজারের আসল নাম — বড় (14px) -->
+              <div style="font-size:14px;font-weight:800;color:#fff;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                {{ userData.name || userData.displayName || authDisplayName || 'User' }}
+              </div>
+              <!-- Online indicator — বড় (11px) -->
+              <div style="font-size:11px;color:var(--green);display:flex;align-items:center;justify-content:flex-end;gap:4px;">
+                <span style="width:6px;height:6px;background:var(--green);border-radius:50%;display:inline-block;"></span>
+                Online
+              </div>
             </div>
-            <div class="avatar-ring" style="width:36px;height:36px;flex-shrink:0;">
-              <div class="avatar-inner" style="width:100%;height:100%;"><img :src="userAvatar" style="width:100%;height:100%;object-fit:cover;"></div>
+            <!-- Avatar — বড় (42×42) -->
+            <div class="avatar-ring" style="width:42px;height:42px;flex-shrink:0;">
+              <div class="avatar-inner" style="width:100%;height:100%;">
+                <img :src="userAvatar" style="width:100%;height:100%;object-fit:cover;">
+              </div>
             </div>
           </div>
+
         </div>
       </div>
+
+      <!-- Notice Bar -->
       <div class="notice-bar" style="padding:6px 12px;overflow:hidden;">
         <span class="notice-scroll">📢 {{ noticeMessage }}</span>
       </div>
@@ -1015,9 +1020,10 @@
     <div style="display:grid;grid-template-columns:repeat(5,1fr);height:60px;">
       <a href="index.html" class="nav-item active"><i class="fa-solid fa-house"></i><span>Home</span></a>
       <div @click="goProtected('add-money.html')" class="nav-item"><i class="fa-solid fa-wallet"></i><span>Deposit</span></div>
-      <a href="live.html" class="nav-item nav-live" style="flex-direction:row;font-size:12px;gap:3px;padding:0!important;margin:8px 6px;touch-action:manipulation;">
+      <!-- LIVE button -->
+      <div @click="goLiveNav" class="nav-item nav-live" style="flex-direction:row;font-size:12px;gap:3px;padding:0!important;margin:8px 6px;touch-action:manipulation;cursor:pointer;">
         <span class="live-dot"></span><span style="font-size:12px;font-weight:800;">LIVE</span>
-      </a>
+      </div>
       <div @click="goProtected('orders.html')" class="nav-item"><i class="fa-solid fa-receipt"></i><span>Orders</span></div>
       <div @click="goProtected('account.html')" class="nav-item"><i class="fa-solid fa-user"></i><span>Account</span></div>
     </div>
@@ -1043,7 +1049,6 @@ import { createApp, ref, computed, onMounted, nextTick } from "https://unpkg.com
 const EPS_PAYMENT_URL = "https://pg.eps.com.bd/PaymentLink?id=D37C6FF8";
 const FIRESTORE_REST_BASE = `https://firestore.googleapis.com/v1/projects/h24-online/databases/(default)/documents`;
 
-// ══ CACHE SYSTEM ══
 const _cache = {};
 const CACHE_TTL = 5 * 60 * 1000;
 const cacheGet = (key) => { const e=_cache[key]; if(!e)return null; if(Date.now()-e.ts>CACHE_TTL){delete _cache[key];return null;} return e.data; };
@@ -1077,20 +1082,23 @@ const db=getFirestore(fireApp);
 createApp({
   setup() {
     const isLoggedIn=ref(false), userBalance=ref(0), userAvatar=ref('https://i.pravatar.cc/150?img=12'), userData=ref({});
+    // ── Firebase Auth displayName আলাদা রাখি যাতে Firestore load হওয়ার আগেও নাম দেখায় ──
+    const authDisplayName=ref('');
     const noticeMessage=ref('আমাদের H24 Online স্টোরে আপনাকে স্বাগতম! সেরা দামে গেম টপআপ করুন।');
     const logoUrl=ref(''), banners=ref([]), mysteryBoxes=ref([]), specialOffers=ref([]), gameItems=ref([]), otherItems=ref([]);
     const socials=ref({}), adminNumbers=ref({bkash:'',nagad:'',rocket:''}), announcementLines=ref([]);
     const announcementModal=ref(false), checkInClaimed=ref(false), navHidden=ref(false);
     const rounds=ref([]), sheetOptions=ref([]);
+    const liveNavUrl=ref('');
 
     const iconMap={facebook:'fa-brands fa-facebook-f',instagram:'fa-brands fa-instagram',tiktok:'fa-brands fa-tiktok',youtube:'fa-brands fa-youtube',telegram:'fa-brands fa-telegram',whatsapp:'fa-brands fa-whatsapp'};
 
     const popup=ref({show:false,type:'',title:'',msg:'',btnText:'OK',confirm:null});
 
-    // Purchase modal
+    // ── Purchase modal ──
     const purchaseModal=ref({
       show:false,product:{},packages:[],selectedPkg:null,
-      selectedSheets:[],selectedRounds:[],
+      selectedSheets:[],selectedRound:'',
       payMethod:'wallet',gateway:'bkash',trxId:'',epsRef:'',verifying:false
     });
 
@@ -1099,8 +1107,7 @@ createApp({
       if(pm.selectedPkg===null)return 0;
       const unitPrice=pm.packages[pm.selectedPkg]?.price||0;
       const sheets=pm.selectedSheets.length||1;
-      const rounds2=pm.selectedRounds.length||1;
-      return unitPrice*sheets*rounds2;
+      return unitPrice*sheets;
     });
 
     const toggleSheet=(label)=>{
@@ -1108,20 +1115,17 @@ createApp({
       const idx=arr.indexOf(label);
       if(idx>=0)arr.splice(idx,1);else arr.push(label);
     };
-    const toggleRound=(label)=>{
-      const arr=purchaseModal.value.selectedRounds;
-      const idx=arr.indexOf(label);
-      if(idx>=0)arr.splice(idx,1);else arr.push(label);
-    };
 
     // ── Book Sheet Modal ──
     const bsAmounts=[10,30,50,100,200,300,400,500];
+
     const bsRounds=computed(()=>{
       if(rounds.value&&rounds.value.length>0){
         return rounds.value.map(r=>{const p=r.label.split(' - ');return{label:p[0]||r.label,time:p[1]||''};});
       }
       return [];
     });
+
     const bsSheetList=computed(()=>{
       if(sheetOptions.value&&sheetOptions.value.length>0)return sheetOptions.value;
       return [];
@@ -1131,13 +1135,42 @@ createApp({
     const bsCurrentRound=computed(()=>bsRounds.value[bookSheetModal.value.roundIndex]||{label:'',time:''});
     const bsTakenSheets=computed(()=>bookSheetModal.value.takenSheetsMap[bookSheetModal.value.roundIndex]||[]);
 
+    const parseRoundTime=(timeStr)=>{
+      if(!timeStr)return null;
+      const parts=timeStr.trim().split(' ');
+      if(parts.length<2)return null;
+      const [hStr,mStr]=parts[0].split(':');
+      const meridiem=parts[1].toUpperCase();
+      let h=parseInt(hStr)||0, m=parseInt(mStr)||0;
+      if(meridiem==='PM'&&h!==12)h+=12;
+      if(meridiem==='AM'&&h===12)h=0;
+      return {h,m};
+    };
+
+    const getAutoRoundIndex=()=>{
+      if(!bsRounds.value.length)return 0;
+      const now=new Date();
+      const nowMinutes=now.getHours()*60+now.getMinutes();
+      for(let i=0;i<bsRounds.value.length;i++){
+        const r=bsRounds.value[i];
+        const parsed=parseRoundTime(r.time);
+        if(!parsed)continue;
+        const roundMinutes=parsed.h*60+parsed.m;
+        if(nowMinutes<roundMinutes)return i;
+      }
+      return bsRounds.value.length-1;
+    };
+
     const openBookSheet=()=>{
       if(!isLoggedIn.value){goPage('login.html');return;}
       if(bsRounds.value.length===0){showPopup('error','লোড হচ্ছে','Round তথ্য লোড হয়নি। একটু পরে চেষ্টা করুন।');return;}
-      bookSheetModal.value={show:true,roundIndex:0,selectedAmt:null,selectedSheets:[],takenSheetsMap:{},booking:false};
-      loadTakenSheets(0);
+      const autoIdx=getAutoRoundIndex();
+      bookSheetModal.value={show:true,roundIndex:autoIdx,selectedAmt:null,selectedSheets:[],takenSheetsMap:{},booking:false};
+      loadTakenSheets(autoIdx);
     };
+
     const closeBookSheet=()=>{bookSheetModal.value.show=false;};
+
     const bsChangeRound=(dir)=>{
       const bsm=bookSheetModal.value;
       const ni=bsm.roundIndex+dir;
@@ -1145,6 +1178,7 @@ createApp({
       bsm.roundIndex=ni;bsm.selectedSheets=[];
       loadTakenSheets(ni);
     };
+
     const loadTakenSheets=async(roundIdx)=>{
       try{
         const roundLabel=bsRounds.value[roundIdx]?.label;
@@ -1160,12 +1194,14 @@ createApp({
         bookSheetModal.value.takenSheetsMap={...bookSheetModal.value.takenSheetsMap,[roundIdx]:taken};
       }catch(e){}
     };
+
     const bsToggleSheet=(label)=>{
       if(bsTakenSheets.value.includes(label))return;
       const bsm=bookSheetModal.value;
       const idx=bsm.selectedSheets.indexOf(label);
       if(idx>=0)bsm.selectedSheets.splice(idx,1);else bsm.selectedSheets.push(label);
     };
+
     const handleBookSheet=async()=>{
       const bsm=bookSheetModal.value;
       if(!bsm.selectedAmt||bsm.selectedSheets.length===0)return;
@@ -1193,6 +1229,18 @@ createApp({
       });
     };
 
+    // ── Live Nav ──
+    const goLiveNav=async()=>{
+      if(liveNavUrl.value){window.location.href=liveNavUrl.value;return;}
+      try{
+        const s=await getDoc(doc(db,'settings','live'));
+        const url=s.exists()?s.data().url||'':'';
+        liveNavUrl.value=url;
+        if(url){window.location.href=url;}
+        else{showPopup('error','এখন লাইভ নেই','লাইভ শুরু হলে আমাদের সোশ্যাল মিডিয়ায় জানানো হবে।');}
+      }catch(e){showPopup('error','Error','লোড হয়নি, আবার চেষ্টা করুন।');}
+    };
+
     let toastTimer=null;
     const showToast=(msg,duration=2200)=>{const el=document.getElementById('toast-el');if(!el)return;el.textContent=msg;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),duration);};
     const goPage=(url)=>{window.location.href=url;};
@@ -1214,12 +1262,36 @@ createApp({
       if(banner.link)window.open(openSocialLink(banner.link),'_blank');
     };
 
+    const getAutoRoundLabel=()=>{
+      if(!rounds.value||rounds.value.length===0)return '';
+      const now=new Date();
+      const nowMinutes=now.getHours()*60+now.getMinutes();
+      for(let i=0;i<rounds.value.length;i++){
+        const r=rounds.value[i];
+        // label format: "1st Round - 03:00 PM"
+        const parts=r.label.split(' - ');
+        const timeStr=parts[1]||'';
+        if(!timeStr)continue;
+        const tp=timeStr.trim().split(' ');
+        if(tp.length<2)continue;
+        const [hStr,mStr]=tp[0].split(':');
+        const meridiem=tp[1].toUpperCase();
+        let h=parseInt(hStr)||0,m=parseInt(mStr)||0;
+        if(meridiem==='PM'&&h!==12)h+=12;
+        if(meridiem==='AM'&&h===12)h=0;
+        const roundMinutes=h*60+m;
+        if(nowMinutes<roundMinutes)return r.label; // প্রথম upcoming round
+      }
+      return rounds.value[rounds.value.length-1]?.label||''; // সব শেষ হলে last round
+    };
+
     const openPurchase=(item)=>{
       if(!isLoggedIn.value){goPage('login.html');return;}
+      const autoRound=getAutoRoundLabel();
       purchaseModal.value={
         show:true,product:item,
         packages:item.packages?.length>0?item.packages:[{name:'Default',price:item.price||0}],
-        selectedPkg:null,selectedSheets:[],selectedRounds:[],
+        selectedPkg:null,selectedSheets:[],selectedRound:autoRound,
         payMethod:'wallet',gateway:'bkash',trxId:'',epsRef:'',verifying:false
       };
     };
@@ -1232,6 +1304,7 @@ createApp({
     const addReferralCommission=async(buyerUid,orderPrice)=>{
       try{const bs=await getDoc(doc(db,'users',buyerUid));if(!bs.exists())return;const rb=bs.data().referredBy;if(!rb)return;const rq=query(collection(db,'users'),where('referralCode','==',rb));const rs=await getDocs(rq);if(rs.empty)return;const rid=rs.docs[0].id;const c=Math.floor(orderPrice*0.10);if(c<=0)return;await updateDoc(doc(db,'users',rid),{balance:increment(c)});const rd=doc(db,'referrals',rid);const rdoc=await getDoc(rd);if(rdoc.exists())await updateDoc(rd,{totalEarned:increment(c)});else await setDoc(rd,{totalRefs:0,totalEarned:c});await addDoc(collection(db,'balanceLogs'),{userId:rid,type:'referral',amount:c,note:'Refer Bonus',createdAt:serverTimestamp()});}catch(e){}
     };
+
     const updateTurnoverProgress=async(uid,spentAmount)=>{
       try{const snap=await getDocs(query(collection(db,'turnovers'),where('userId','==',uid),where('status','==','active')));let remaining=spentAmount;for(const d of snap.docs){if(remaining<=0)break;const data=d.data();const needed=data.required-(data.done||0);if(needed<=0){await updateDoc(doc(db,'turnovers',d.id),{status:'completed',done:data.required});continue;}const toAdd=Math.min(remaining,needed);const newDone=(data.done||0)+toAdd;if(newDone>=data.required)await updateDoc(doc(db,'turnovers',d.id),{done:data.required,status:'completed'});else await updateDoc(doc(db,'turnovers',d.id),{done:newDone});remaining-=toAdd;}}catch(e){}
     };
@@ -1240,12 +1313,15 @@ createApp({
       const pm=purchaseModal.value;
       if(pm.selectedPkg===null)return showPopup('error','প্যাকেজ নেই','অন্তত একটি প্যাকেজ সিলেক্ট করুন।');
       if(pm.selectedSheets.length===0)return showPopup('error','Sheet নেই','অন্তত একটি Sheet No সিলেক্ট করুন।');
-      if(pm.selectedRounds.length===0)return showPopup('error','Round নেই','অন্তত একটি Round সিলেক্ট করুন।');
+      if(!pm.selectedRound)return showPopup('error','Round নেই','একটি Round সিলেক্ট করুন।');
+
       const uid=localStorage.getItem('userId');
       const pack=pm.packages[pm.selectedPkg];
       const totalPrice=purchaseTotalPrice.value;
       const sheetStr=pm.selectedSheets.join(', ');
-      const roundStr=pm.selectedRounds.join(', ');
+      const roundStr=pm.selectedRound;
+      const orderCount=pm.selectedSheets.length;
+
       const makeOrderData=(sheetLabel,roundLabel)=>({
         userId:uid,packageName:pack.name,price:pack.price,quantity:1,totalPrice:pack.price,
         playerId:sheetLabel,sheetInfo:sheetLabel,
@@ -1253,9 +1329,9 @@ createApp({
         productName:pm.product.name,category:pm.product.category,
         createdAt:serverTimestamp()
       });
+
       if(pm.payMethod==='wallet'){
         if(userBalance.value<totalPrice)return showPopup('error','Low Balance',`৳${totalPrice} প্রয়োজন কিন্তু ব্যালেন্স ৳${userBalance.value}।`,'Deposit');
-        const orderCount=pm.selectedSheets.length*pm.selectedRounds.length;
         showPopup('confirm','Confirm Purchase',`${pack.name}\nSheet: ${sheetStr}\nRound: ${roundStr}\n\nমোট অর্ডার: ${orderCount}টি\nমোট: ৳${totalPrice}`,'Confirm',async()=>{
           popup.value.show=false;purchaseModal.value.show=false;
           try{
@@ -1265,15 +1341,14 @@ createApp({
               if(uDoc.data().balance<totalPrice)throw'Low Balance';
               t.update(uRef,{balance:uDoc.data().balance-totalPrice});
               for(const sh of pm.selectedSheets){
-                for(const rd of pm.selectedRounds){
-                  t.set(doc(collection(db,'orders')),{...makeOrderData(sh,rd),status:'pending',paymentMethod:'wallet'});
-                }
+                t.set(doc(collection(db,'orders')),{...makeOrderData(sh,pm.selectedRound),status:'pending',paymentMethod:'wallet'});
               }
             });
             await addReferralCommission(uid,totalPrice);await updateTurnoverProgress(uid,totalPrice);
             showPopup('success','Order Placed! 🎉',`${orderCount}টি অর্ডার সম্পন্ন হয়েছে।\nমোট: ৳${totalPrice}`,'Orders');
           }catch(e){showPopup('error','Failed','Transaction failed. Try again.');}
         });
+
       }else if(pm.payMethod==='direct'){
         if(!pm.trxId||pm.trxId.length<5)return showPopup('error','Invalid TrxID','সঠিক Transaction ID দিন।');
         pm.verifying=true;
@@ -1282,18 +1357,22 @@ createApp({
           try{const txSnap=await getDoc(doc(db,'transactions',trxId));if(txSnap.exists()){const txData=txSnap.data();if(txData.status==='used')verifyMsg='এই TrxID আগেই ব্যবহার হয়েছে।';else if(Number(txData.amount)!==totalPrice)verifyMsg=`Amount মিলছে না। Expected ৳${totalPrice}.`;else{await updateDoc(doc(db,'transactions',trxId),{status:'used',usedBy:uid,usedAt:serverTimestamp()});verifyOk=true;}}}catch(fe){}
           if(!verifyOk&&!verifyMsg&&PAYMENT_CONFIG_READY&&PAYMENT_SCRIPT_URL){try{const vRes=await fetch(`${PAYMENT_SCRIPT_URL}?trxID=${trxId}&apiKey=${PAYMENT_CLIENT_KEY}&amount=${totalPrice}`);if(vRes.ok){const vData=await vRes.json();verifyOk=vData.status==='success';verifyMsg=vData.message||'';}}catch(fe){}}
           if(verifyOk){
-            const orderCount=pm.selectedSheets.length*pm.selectedRounds.length;
-            for(const sh of pm.selectedSheets){for(const rd of pm.selectedRounds){await addDoc(collection(db,'orders'),{...makeOrderData(sh,rd),status:'processing',paymentMethod:pm.gateway+'_auto',trxId,isAutoVerified:true});}}
+            for(const sh of pm.selectedSheets){
+              await addDoc(collection(db,'orders'),{...makeOrderData(sh,pm.selectedRound),status:'processing',paymentMethod:pm.gateway+'_auto',trxId,isAutoVerified:true});
+            }
             await addReferralCommission(uid,totalPrice);pm.show=false;
             showPopup('success','Payment Verified! ✅',`${orderCount}টি অর্ডার সম্পন্ন।`,'Orders');
           }else showPopup('error','Verification Failed ❌',verifyMsg||'TrxID মিলছে না।');
         }catch(e){showPopup('error','Error','Connection failed. Try again.');}
         finally{pm.verifying=false;}
+
       }else if(pm.payMethod==='eps'){
         if(!pm.epsRef||pm.epsRef.length<4)return showPopup('error','EPS Reference','EPS Reference নম্বর দিন।');
         pm.verifying=true;
         try{
-          for(const sh of pm.selectedSheets){for(const rd of pm.selectedRounds){await addDoc(collection(db,'orders'),{...makeOrderData(sh,rd),status:'pending',paymentMethod:'eps',epsRef:pm.epsRef.trim(),isEps:true});}}
+          for(const sh of pm.selectedSheets){
+            await addDoc(collection(db,'orders'),{...makeOrderData(sh,pm.selectedRound),status:'pending',paymentMethod:'eps',epsRef:pm.epsRef.trim(),isEps:true});
+          }
           pm.show=false;showPopup('success','Order Submitted!','EPS পেমেন্ট যাচাই হলে অর্ডার প্রসেস হবে।','Orders');
         }catch(e){showPopup('error','Error','Order submit failed. Try again.');}
         finally{pm.verifying=false;}
@@ -1315,7 +1394,6 @@ createApp({
       }catch(e){showPopup('error','Error','কিছু সমস্যা হয়েছে।');}
     };
 
-    // ══ Data Loading ══
     const loadAllData=async()=>{
       const cp=sessionGet('products_cache');
       if(cp){cp.forEach(item=>{const cat=item.category;if(cat==='mystery')mysteryBoxes.value.push(item);else if(cat==='special')specialOffers.value.push(item);else if(cat==='freefire'||cat==='ingame')gameItems.value.push(item);else if(cat==='shell'||cat==='giftcard'||cat==='subscription')otherItems.value.push(item);else gameItems.value.push(item);});}
@@ -1330,7 +1408,7 @@ createApp({
 
       const fetchFresh=async()=>{
         try{
-          const [nSnap,annSnap,logoSnap,pSnap,sSnap,roundsSnap,sheetsSnap,bannerSnap,prodSnap]=await Promise.all([
+          const [nSnap,annSnap,logoSnap,pSnap,sSnap,roundsSnap,sheetsSnap,bannerSnap,prodSnap,liveSnap]=await Promise.all([
             getDoc(doc(db,'settings','notice')),
             getDoc(doc(db,'settings','announcement')),
             getDoc(doc(db,'settings','logo')),
@@ -1339,7 +1417,8 @@ createApp({
             getDoc(doc(db,'settings','rounds')),
             getDoc(doc(db,'settings','sheetInfo')),
             getDocs(collection(db,'banners')),
-            getDocs(collection(db,'products'))
+            getDocs(collection(db,'products')),
+            getDoc(doc(db,'settings','live'))
           ]);
           if(nSnap.exists()){noticeMessage.value=nSnap.data().text;sessionSet('settings_notice',nSnap.data());}
           if(annSnap.exists()){announcementLines.value=annSnap.data().lines||[];sessionSet('settings_announcement',annSnap.data());}
@@ -1348,6 +1427,7 @@ createApp({
           if(sSnap.exists()){socials.value=sSnap.data();sessionSet('admin_settings',sSnap.data());}
           if(roundsSnap.exists()&&roundsSnap.data().list){rounds.value=roundsSnap.data().list;sessionSet('settings_rounds',roundsSnap.data());}
           if(sheetsSnap.exists()&&sheetsSnap.data().list){sheetOptions.value=sheetsSnap.data().list;sessionSet('settings_sheetInfo',sheetsSnap.data());}
+          if(liveSnap.exists())liveNavUrl.value=liveSnap.data().url||'';
           if(!cb){const bArr=bannerSnap.docs.map(d=>({image:d.data().image||'',link:d.data().link||'',productId:d.data().productId||''}));banners.value=bArr;sessionSet('banners_cache',bArr);}
           if(!cp){const prodArr=[];const boxes=[],special=[],games=[],other=[];prodSnap.forEach(d=>{const item={id:d.id,...d.data()};prodArr.push(item);const cat=item.category;if(cat==='mystery')boxes.push(item);else if(cat==='special')special.push(item);else if(cat==='freefire'||cat==='ingame')games.push(item);else if(cat==='shell'||cat==='giftcard'||cat==='subscription')other.push(item);else games.push(item);});mysteryBoxes.value=boxes;specialOffers.value=special;gameItems.value=games;otherItems.value=other;sessionSet('products_cache',prodArr);}
         }catch(e){}
@@ -1369,26 +1449,44 @@ createApp({
       onAuthStateChanged(auth,(user)=>{
         if(user){
           isLoggedIn.value=true;
+          // ── Firebase Auth থেকে সাথে সাথে displayName নিয়ে নাও ──
+          if(user.displayName){
+            authDisplayName.value=user.displayName;
+            // Firestore load হওয়ার আগেও নাম দেখাবে
+            userData.value={...userData.value, name: user.displayName};
+          }
           localStorage.setItem('userId',user.uid);
           updateDoc(doc(db,'users',user.uid),{isOnline:true,lastSeen:serverTimestamp()}).catch(()=>{});
-          onSnapshot(doc(db,'users',user.uid),(d)=>{if(d.exists()){userBalance.value=d.data().balance||0;userAvatar.value=d.data().photoURL||'https://i.pravatar.cc/150?img=12';userData.value=d.data();}});
+          // ── Firestore realtime — নাম ও ব্যালেন্স update করবে ──
+          onSnapshot(doc(db,'users',user.uid),(d)=>{
+            if(d.exists()){
+              const data=d.data();
+              userBalance.value=data.balance||0;
+              userAvatar.value=data.photoURL||'https://i.pravatar.cc/150?img=12';
+              // Firestore-এ name থাকলে সেটা priority পাবে
+              userData.value={...data};
+            }
+          });
           const today=new Date().toISOString().slice(0,10);
           getDoc(doc(db,'checkins',`${user.uid}_${today}`)).then(s=>{checkInClaimed.value=s.exists();}).catch(()=>{});
-        }else{isLoggedIn.value=false;}
+        }else{
+          isLoggedIn.value=false;
+          authDisplayName.value='';
+        }
       });
 
       await loadAllData();
     });
 
     return {
-      isLoggedIn,userBalance,userAvatar,userData,
+      isLoggedIn,userBalance,userAvatar,userData,authDisplayName,
       noticeMessage,logoUrl,banners,mysteryBoxes,specialOffers,gameItems,otherItems,
       socials,iconMap,adminNumbers,announcementLines,announcementModal,
       checkInClaimed,navHidden,rounds,sheetOptions,
-      popup,purchaseModal,purchaseTotalPrice,toggleSheet,toggleRound,
+      popup,purchaseModal,purchaseTotalPrice,toggleSheet,
       goPage,goProtected,openSocialLink,showPopup,closePopup,imgError,getMinPrice,
       handleBannerClick,openPurchase,handlePurchaseBuy,handleEpsPurchaseRedirect,
-      claimDailyBonus,copyNum,
+      claimDailyBonus,copyNum,goLiveNav,
       bsAmounts,bsRounds,bsSheetList,bsCurrentRound,bsTakenSheets,
       bookSheetModal,openBookSheet,closeBookSheet,bsChangeRound,bsToggleSheet,handleBookSheet,
     };

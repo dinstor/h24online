@@ -12,61 +12,146 @@
 <body>
 <div id="app" v-cloak>
   <div style="display:flex;flex-direction:column;height:100vh;">
+
+    <!-- Header -->
     <header class="app-header">
-      <div style="padding:14px 16px;display:flex;align-items:center;gap:12px;">
-        <a href="index.html" style="background:var(--surface2);border:none;border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);text-decoration:none;">
-          <i class="fa-solid fa-arrow-left"></i>
+      <div style="padding:16px 16px;display:flex;align-items:center;gap:14px;">
+        <a href="index.html" style="background:var(--surface2);border:none;border-radius:12px;width:42px;height:42px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);text-decoration:none;flex-shrink:0;">
+          <i class="fa-solid fa-arrow-left" style="font-size:17px;"></i>
         </a>
-        <div style="font-weight:800;font-size:17px;">My Orders</div>
+        <div style="font-weight:800;font-size:20px;">My Orders</div>
+        <!-- Order count badge -->
+        <div v-if="!loading && orders.length>0" style="margin-left:auto;background:rgba(108,99,255,0.15);border:1px solid rgba(108,99,255,0.3);border-radius:20px;padding:4px 12px;font-size:13px;font-weight:700;color:var(--primary);">
+          {{ orders.length }} টি
+        </div>
       </div>
     </header>
+
     <main class="page-scroll" style="padding:16px;">
-      <div style="display:flex;gap:8px;margin-bottom:16px;overflow-x:auto;padding-bottom:4px;">
+
+      <!-- Filter Pills -->
+      <div style="display:flex;gap:8px;margin-bottom:18px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none;">
         <button v-for="f in ['all','pending','processing','completed','cancelled']" :key="f"
           class="filter-pill" :class="{active:orderFilter===f}" @click="orderFilter=f"
-          style="white-space:nowrap;text-transform:capitalize;">{{ f }}</button>
+          style="white-space:nowrap;text-transform:capitalize;font-size:13px;font-weight:700;padding:9px 16px;border-radius:20px;flex-shrink:0;">
+          {{ f === 'all' ? 'সব' : f === 'pending' ? 'Pending' : f === 'processing' ? 'Processing' : f === 'completed' ? 'Completed' : 'Cancelled' }}
+          <span v-if="f!=='all'" style="margin-left:4px;font-size:11px;opacity:0.7;">({{ orders.filter(o=>o.status===f).length }})</span>
+          <span v-else style="margin-left:4px;font-size:11px;opacity:0.7;">({{ orders.length }})</span>
+        </button>
       </div>
-      <div v-if="loading" style="text-align:center;padding:40px;">
-        <div class="spinner" style="width:32px;height:32px;border-top-color:var(--primary);border-width:3px;margin:0 auto;"></div>
+
+      <!-- Loading -->
+      <div v-if="loading" style="text-align:center;padding:60px 20px;">
+        <div class="spinner" style="width:36px;height:36px;border-top-color:var(--primary);border-width:3px;margin:0 auto 16px;"></div>
+        <div style="font-size:14px;color:var(--text-muted);font-weight:600;">অর্ডার লোড হচ্ছে...</div>
       </div>
-      <div v-else-if="filteredOrders.length===0" style="text-align:center;padding:40px 20px;">
-        <i class="fa-solid fa-receipt" style="font-size:48px;color:var(--text-dim);margin-bottom:16px;display:block;"></i>
-        <div style="font-size:16px;font-weight:700;color:var(--text-muted);">No Orders Found</div>
-        <a href="index.html" class="btn-primary" style="display:inline-block;margin-top:16px;text-decoration:none;">Shop Now</a>
+
+      <!-- Empty -->
+      <div v-else-if="filteredOrders.length===0" style="text-align:center;padding:60px 20px;">
+        <div style="width:80px;height:80px;background:rgba(108,99,255,0.1);border-radius:24px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+          <i class="fa-solid fa-receipt" style="font-size:36px;color:var(--text-dim);"></i>
+        </div>
+        <div style="font-size:18px;font-weight:800;color:var(--text-muted);margin-bottom:8px;">কোনো অর্ডার নেই</div>
+        <div style="font-size:14px;color:var(--text-dim);margin-bottom:24px;">এই ক্যাটাগরিতে কোনো অর্ডার পাওয়া যায়নি</div>
+        <a href="index.html" class="btn-primary" style="display:inline-flex;align-items:center;gap:8px;text-decoration:none;padding:13px 24px;font-size:15px;">
+          <i class="fa-solid fa-cart-shopping"></i> Shop Now
+        </a>
       </div>
-      <div v-else style="display:flex;flex-direction:column;gap:12px;">
-        <div v-for="o in filteredOrders" :key="o.id" style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
-            <div>
-              <div style="font-weight:700;font-size:14px;margin-bottom:2px;">{{ o.productName||'Product' }}</div>
-              <div style="font-size:12px;color:var(--text-muted);">{{ o.packageName }}</div>
-              <div style="font-size:11px;color:var(--text-dim);margin-top:3px;display:flex;align-items:center;gap:4px;">
-                <i class="fa-solid fa-calendar-clock" style="font-size:10px;color:var(--primary);"></i>
+
+      <!-- Order List -->
+      <div v-else style="display:flex;flex-direction:column;gap:14px;">
+        <div v-for="o in filteredOrders" :key="o.id"
+          style="background:var(--surface);border:1px solid var(--border);border-radius:20px;overflow:hidden;">
+
+          <!-- Card Top: product name + status -->
+          <div style="padding:16px 16px 12px;display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid var(--border);">
+            <div style="flex:1;min-width:0;margin-right:10px;">
+              <!-- Product Name — বড় -->
+              <div style="font-weight:800;font-size:16px;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                {{ o.productName||'Product' }}
+              </div>
+              <!-- Package Name -->
+              <div style="font-size:13px;color:var(--text-muted);font-weight:600;margin-bottom:5px;">
+                {{ o.packageName || '—' }}
+              </div>
+              <!-- Date -->
+              <div style="font-size:12px;color:var(--text-dim);display:flex;align-items:center;gap:5px;">
+                <i class="fa-solid fa-calendar-clock" style="font-size:11px;color:var(--primary);"></i>
                 {{ formatDate(o.createdAt) }}
               </div>
             </div>
-            <span class="badge" :class="'status-'+o.status" style="font-size:10px;padding:4px 10px;border-radius:20px;white-space:nowrap;">{{ o.status }}</span>
+            <!-- Status Badge -->
+            <span class="badge" :class="'status-'+o.status"
+              style="font-size:12px;font-weight:700;padding:6px 13px;border-radius:20px;white-space:nowrap;flex-shrink:0;">
+              {{ o.status === 'pending' ? '⏳ Pending' : o.status === 'processing' ? '⚙️ Processing' : o.status === 'completed' ? '✅ Done' : o.status === 'cancelled' ? '❌ Cancelled' : o.status }}
+            </span>
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;color:var(--text-muted);">
-            <div><i class="fa-solid fa-table-cells" style="margin-right:4px;color:var(--primary);"></i>Sheet: <span style="color:#fff;font-weight:600;">{{ o.playerId || o.sheetInfo || '—' }}</span></div>
-            <div v-if="o.selectedRound||o.roundInfo">
-              <i class="fa-solid fa-clock" style="margin-right:4px;color:var(--orange);"></i>
-              <span style="color:#fff;font-weight:600;">{{ o.selectedRound || o.roundInfo }}</span>
+
+          <!-- Card Bottom: details grid -->
+          <div style="padding:14px 16px;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+
+            <!-- Sheet No -->
+            <div style="display:flex;flex-direction:column;gap:3px;">
+              <div style="font-size:11px;color:var(--text-dim);font-weight:700;text-transform:uppercase;letter-spacing:0.8px;">
+                <i class="fa-solid fa-table-cells" style="color:var(--primary);margin-right:4px;"></i>Sheet No
+              </div>
+              <div style="font-size:15px;font-weight:800;color:#fff;">
+                {{ o.playerId || o.sheetInfo || '—' }}
+              </div>
             </div>
-            <div v-else><i class="fa-solid fa-clock" style="margin-right:4px;color:var(--text-dim);"></i>Round: <span style="color:var(--text-dim);">—</span></div>
-            <div><i class="fa-solid fa-bangladeshi-taka-sign" style="margin-right:4px;color:var(--green);"></i>৳{{ o.price }}</div>
-            <div style="font-size:11px;"><i class="fa-solid fa-hashtag" style="margin-right:4px;color:var(--text-dim);"></i><span style="font-family:monospace;letter-spacing:1px;color:var(--text-muted);">#{{ o.id.substring(0,7).toUpperCase() }}</span></div>
+
+            <!-- Round -->
+            <div style="display:flex;flex-direction:column;gap:3px;">
+              <div style="font-size:11px;color:var(--text-dim);font-weight:700;text-transform:uppercase;letter-spacing:0.8px;">
+                <i class="fa-solid fa-clock" style="color:#f97316;margin-right:4px;"></i>Round
+              </div>
+              <div style="font-size:15px;font-weight:800;color:#fb923c;">
+                {{ o.selectedRound || o.roundInfo || '—' }}
+              </div>
+            </div>
+
+            <!-- Amount -->
+            <div style="display:flex;flex-direction:column;gap:3px;">
+              <div style="font-size:11px;color:var(--text-dim);font-weight:700;text-transform:uppercase;letter-spacing:0.8px;">
+                <i class="fa-solid fa-bangladeshi-taka-sign" style="color:var(--green);margin-right:4px;"></i>Amount
+              </div>
+              <div style="font-size:16px;font-weight:800;color:var(--green);">৳{{ o.price || o.totalPrice || '0' }}</div>
+            </div>
+
+            <!-- Order ID -->
+            <div style="display:flex;flex-direction:column;gap:3px;">
+              <div style="font-size:11px;color:var(--text-dim);font-weight:700;text-transform:uppercase;letter-spacing:0.8px;">
+                <i class="fa-solid fa-hashtag" style="color:var(--text-dim);margin-right:4px;"></i>Order ID
+              </div>
+              <div style="font-size:13px;font-weight:700;color:var(--text-muted);font-family:monospace;letter-spacing:1px;">
+                #{{ o.id.substring(0,8).toUpperCase() }}
+              </div>
+            </div>
+
           </div>
+
+          <!-- Payment Method row (যদি থাকে) -->
+          <div v-if="o.paymentMethod" style="margin:0 16px 14px;background:rgba(108,99,255,0.06);border:1px solid rgba(108,99,255,0.12);border-radius:12px;padding:9px 14px;display:flex;align-items:center;gap:8px;">
+            <i class="fa-solid fa-credit-card" style="color:var(--primary);font-size:13px;"></i>
+            <span style="font-size:13px;font-weight:700;color:var(--text-muted);text-transform:capitalize;">{{ o.paymentMethod.replace(/_/g,' ') }}</span>
+            <span v-if="o.trxId" style="margin-left:auto;font-size:12px;font-weight:700;color:var(--primary);font-family:monospace;letter-spacing:1px;">{{ o.trxId }}</span>
+          </div>
+
         </div>
       </div>
+
+      <div style="height:20px;"></div>
     </main>
   </div>
-  <!-- Nav -->
+
+  <!-- Bottom Nav -->
   <div class="nav-bar">
     <div style="display:grid;grid-template-columns:repeat(5,1fr);height:60px;">
       <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i><span>Home</span></a>
       <a href="add-money.html" class="nav-item"><i class="fa-solid fa-wallet"></i><span>Deposit</span></a>
-      <a href="live.html" class="nav-item nav-live" style="flex-direction:row;font-size:12px;gap:3px;padding:0!important;margin:8px 6px;"><span class="live-dot"></span><span style="font-size:12px;font-weight:800;">LIVE</span></a>
+      <a href="live.html" class="nav-item nav-live" style="flex-direction:row;font-size:12px;gap:3px;padding:0!important;margin:8px 6px;">
+        <span class="live-dot"></span><span style="font-size:12px;font-weight:800;">LIVE</span>
+      </a>
       <a href="orders.html" class="nav-item active"><i class="fa-solid fa-receipt"></i><span>Orders</span></a>
       <a href="account.html" class="nav-item"><i class="fa-solid fa-user"></i><span>Account</span></a>
     </div>
@@ -79,7 +164,14 @@ import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/
 import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { createApp, ref, computed, onMounted } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
 
-const firebaseConfig = { apiKey:"AIzaSyCZWRcCP0hXTkfQoRhqxczgdD6cw5kp39c", authDomain:"h24-online.firebaseapp.com", projectId:"h24-online", storageBucket:"h24-online.firebasestorage.app", messagingSenderId:"808524719613", appId:"1:808524719613:web:7f1abe9e70a346c3376594" };
+const firebaseConfig = {
+  apiKey:"AIzaSyCZWRcCP0hXTkfQoRhqxczgdD6cw5kp39c",
+  authDomain:"h24-online.firebaseapp.com",
+  projectId:"h24-online",
+  storageBucket:"h24-online.firebasestorage.app",
+  messagingSenderId:"808524719613",
+  appId:"1:808524719613:web:7f1abe9e70a346c3376594"
+};
 const fireApp = initializeApp(firebaseConfig);
 const auth = getAuth(fireApp);
 const db = getFirestore(fireApp);
@@ -89,12 +181,22 @@ createApp({
     const orders = ref([]);
     const loading = ref(true);
     const orderFilter = ref('all');
-    const filteredOrders = computed(() => orderFilter.value === 'all' ? orders.value : orders.value.filter(o => o.status === orderFilter.value));
+
+    const filteredOrders = computed(() =>
+      orderFilter.value === 'all'
+        ? orders.value
+        : orders.value.filter(o => o.status === orderFilter.value)
+    );
+
     const formatDate = (ts) => {
       if (!ts) return 'Processing...';
       const d = ts.toDate ? ts.toDate() : new Date(ts.seconds * 1000);
-      return d.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+      return d.toLocaleDateString('en-US', {
+        day: 'numeric', month: 'short', year: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+      });
     };
+
     onMounted(() => {
       onAuthStateChanged(auth, async (user) => {
         if (!user) { window.location.href = 'login.html'; return; }
@@ -107,6 +209,7 @@ createApp({
         loading.value = false;
       });
     });
+
     return { orders, loading, orderFilter, filteredOrders, formatDate };
   }
 }).mount('#app');
