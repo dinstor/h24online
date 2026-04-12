@@ -272,24 +272,6 @@
   display:flex;align-items:center;justify-content:space-between;
 }
 
-/* Auto-selected round badge */
-.auto-round-badge{
-  display:inline-flex;align-items:center;gap:6px;
-  background:rgba(249,115,22,0.12);
-  border:1px solid rgba(249,115,22,0.3);
-  border-radius:12px;
-  padding:10px 14px;
-  font-size:13px;font-weight:700;color:#fb923c;
-  margin-bottom:10px;
-}
-.auto-badge-dot{
-  width:8px;height:8px;border-radius:50%;
-  background:#f97316;
-  box-shadow:0 0 6px rgba(249,115,22,0.7);
-  animation:pulse-dot 1.5s ease-in-out infinite;
-}
-@keyframes pulse-dot{0%,100%{opacity:1;}50%{opacity:0.4;}}
-
 .bs-overlay{
   position:fixed;inset:0;
   background:rgba(0,0,0,0.85);
@@ -425,7 +407,6 @@
   border-radius:20px;padding:3px 10px;font-size:12px;font-weight:700;color:#fb923c;
 }
 
-/* Auto round indicator in book sheet */
 .bs-auto-round-info{
   margin:0 20px 8px;
   background:rgba(139,92,246,0.08);
@@ -481,6 +462,40 @@
 }
 .book-sheet-fab:active{transform:scale(0.88);}
 .book-sheet-fab.fab-hidden{transform:translateY(140%);opacity:0;pointer-events:none;}
+
+/* ── ফিক্সড হেডার ইউজার কার্ড ── */
+.header-user-card{
+  cursor:pointer;
+  display:flex;align-items:center;gap:8px;
+  touch-action:manipulation;
+  min-width:0;
+  flex-shrink:1;
+}
+.header-user-info{
+  text-align:right;
+  min-width:0;
+}
+.header-user-name{
+  font-size:13px;
+  font-weight:800;
+  color:#fff;
+  max-width:85px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  line-height:1.2;
+}
+.header-user-balance{
+  font-size:12px;
+  font-weight:800;
+  color:var(--primary);
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:3px;
+  margin-top:2px;
+  white-space:nowrap;
+}
 </style>
 </head>
 <body>
@@ -613,7 +628,7 @@
             <div v-if="purchaseModal.payMethod==='wallet'" class="wallet-info-card">
               <div>
                 <div style="font-size:10.5px;color:rgba(255,255,255,0.35);font-weight:600;margin-bottom:2px;">আমার ব্যালেন্স</div>
-                <div style="font-size:22px;font-weight:800;color:var(--primary);">৳{{ userBalance }}</div>
+                <div style="font-size:22px;font-weight:800;color:var(--primary);">৳{{ Number(userBalance).toFixed(2) }}</div>
               </div>
               <a href="add-money.html" style="background:var(--primary);color:#fff;font-size:11px;font-weight:700;padding:8px 14px;border-radius:10px;text-decoration:none;display:flex;align-items:center;gap:5px;">
                 <i class="fa-solid fa-plus" style="font-size:10px;"></i>Deposit
@@ -668,7 +683,7 @@
           <div class="total-bar">
             <div>
               <div style="font-size:10.5px;color:rgba(255,255,255,0.35);font-weight:600;margin-bottom:2px;">মোট পরিমাণ</div>
-              <div style="font-size:24px;font-weight:800;color:var(--primary);">৳{{ purchaseTotalPrice }}</div>
+              <div style="font-size:24px;font-weight:800;color:var(--primary);">৳{{ Number(purchaseTotalPrice).toFixed(2) }}</div>
             </div>
             <div v-if="purchaseModal.selectedPkg !== null" style="text-align:right;">
               <div style="font-size:10px;color:rgba(255,255,255,0.25);margin-bottom:2px;">
@@ -834,35 +849,25 @@
   <div style="display:flex;flex-direction:column;height:100vh;">
 
     <!-- ════════════════════════
-         HEADER — বড় লেখা ও আইকন
+         HEADER
     ════════════════════════ -->
     <header class="app-header" style="position:sticky;top:0;flex-shrink:0;">
       <div style="padding:14px 16px;display:flex;justify-content:space-between;align-items:center;">
 
         <!-- বাম পাশ: Logo + Title -->
-        <div style="display:flex;align-items:center;gap:11px;">
-          <!-- Logo — বড় (44×44) -->
+        <div style="display:flex;align-items:center;gap:11px;flex-shrink:0;">
           <div style="width:44px;height:44px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:22px;overflow:hidden;flex-shrink:0;">
             <img v-if="logoUrl" :src="logoUrl" style="width:100%;height:100%;object-fit:cover;border-radius:12px;" @error="logoUrl=''">
             <span v-else>H</span>
           </div>
           <div>
-            <!-- Title — বড় (19px) -->
             <div style="font-weight:800;font-size:19px;letter-spacing:-0.5px;line-height:1.1;">H24 <span class="gradient-text">ONLINE</span></div>
-            <!-- Subtitle — বড় (12px) -->
             <div style="font-size:12px;color:var(--text-muted);font-weight:500;margin-top:1px;">H24 Online Platform</div>
           </div>
         </div>
 
-        <!-- ডান পাশ: Balance + User -->
-        <div style="display:flex;align-items:center;gap:9px;">
-
-          <!-- Wallet Balance — বড় -->
-          <div v-if="isLoggedIn" @click="goPage('account.html')"
-            style="cursor:pointer;display:flex;align-items:center;gap:7px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:8px 13px;touch-action:manipulation;">
-            <i class="fa-solid fa-wallet" style="font-size:16px;color:var(--primary);"></i>
-            <span style="font-size:15px;font-weight:800;">{{ userBalance }}৳</span>
-          </div>
+        <!-- ডান পাশ: User Info — ফিক্সড layout -->
+        <div style="display:flex;align-items:center;gap:9px;flex-shrink:0;">
 
           <!-- Login button (লগইন না থাকলে) -->
           <a v-if="!isLoggedIn" href="login.html"
@@ -870,25 +875,37 @@
             Login
           </a>
 
-          <!-- User Name + Avatar — বড় -->
-          <div v-if="isLoggedIn" @click="goPage('account.html')"
-            style="cursor:pointer;display:flex;align-items:center;gap:9px;touch-action:manipulation;">
-            <div style="text-align:right;">
-              <!-- ইউজারের আসল নাম — বড় (14px) -->
-              <div style="font-size:14px;font-weight:800;color:#fff;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+          <!-- User Name + Balance + Avatar — single compact block -->
+          <div v-if="isLoggedIn" class="header-user-card" @click="goPage('account.html')">
+            <div class="header-user-info">
+              <!-- নাম -->
+              <div class="header-user-name">
                 {{ userData.name || userData.displayName || authDisplayName || 'User' }}
               </div>
-              <!-- Online indicator — বড় (11px) -->
-              <div style="font-size:11px;color:var(--green);display:flex;align-items:center;justify-content:flex-end;gap:4px;">
-                <span style="width:6px;height:6px;background:var(--green);border-radius:50%;display:inline-block;"></span>
-                Online
+              <!-- Balance — Online এর জায়গায়, ৳1045.00 ফরম্যাট -->
+              <div class="header-user-balance">
+                <i class="fa-solid fa-wallet" style="font-size:10px;opacity:0.8;"></i>
+                ৳{{ Number(userBalance).toFixed(2) }}
               </div>
             </div>
-            <!-- Avatar — বড় (42×42) -->
-            <div class="avatar-ring" style="width:42px;height:42px;flex-shrink:0;">
-              <div class="avatar-inner" style="width:100%;height:100%;">
-                <img :src="userAvatar" style="width:100%;height:100%;object-fit:cover;">
+            <!-- Avatar + Online dot -->
+            <div style="position:relative;flex-shrink:0;">
+              <div class="avatar-ring" style="width:42px;height:42px;">
+                <div class="avatar-inner" style="width:100%;height:100%;">
+                  <img :src="userAvatar" style="width:100%;height:100%;object-fit:cover;">
+                </div>
               </div>
+              <!-- Online status dot -->
+              <span style="
+                position:absolute;
+                bottom:1px;right:1px;
+                width:11px;height:11px;
+                background:var(--green);
+                border-radius:50%;
+                border:2px solid var(--bg);
+                display:block;
+                box-shadow:0 0 6px rgba(34,197,94,0.8);
+              "></span>
             </div>
           </div>
 
@@ -1082,7 +1099,6 @@ const db=getFirestore(fireApp);
 createApp({
   setup() {
     const isLoggedIn=ref(false), userBalance=ref(0), userAvatar=ref('https://i.pravatar.cc/150?img=12'), userData=ref({});
-    // ── Firebase Auth displayName আলাদা রাখি যাতে Firestore load হওয়ার আগেও নাম দেখায় ──
     const authDisplayName=ref('');
     const noticeMessage=ref('আমাদের H24 Online স্টোরে আপনাকে স্বাগতম! সেরা দামে গেম টপআপ করুন।');
     const logoUrl=ref(''), banners=ref([]), mysteryBoxes=ref([]), specialOffers=ref([]), gameItems=ref([]), otherItems=ref([]);
@@ -1095,7 +1111,6 @@ createApp({
 
     const popup=ref({show:false,type:'',title:'',msg:'',btnText:'OK',confirm:null});
 
-    // ── Purchase modal ──
     const purchaseModal=ref({
       show:false,product:{},packages:[],selectedPkg:null,
       selectedSheets:[],selectedRound:'',
@@ -1116,7 +1131,6 @@ createApp({
       if(idx>=0)arr.splice(idx,1);else arr.push(label);
     };
 
-    // ── Book Sheet Modal ──
     const bsAmounts=[10,30,50,100,200,300,400,500];
 
     const bsRounds=computed(()=>{
@@ -1209,7 +1223,7 @@ createApp({
       const totalPrice=bsm.selectedAmt*bsm.selectedSheets.length;
       const roundLabel=bsCurrentRound.value.label;
       const roundTime=bsCurrentRound.value.time;
-      if(userBalance.value<totalPrice){showPopup('error','Low Balance',`৳${totalPrice} প্রয়োজন কিন্তু আপনার ব্যালেন্স ৳${userBalance.value}।`,'Deposit');return;}
+      if(userBalance.value<totalPrice){showPopup('error','Low Balance',`৳${totalPrice} প্রয়োজন কিন্তু আপনার ব্যালেন্স ৳${Number(userBalance.value).toFixed(2)}।`,'Deposit');return;}
       showPopup('confirm','Confirm Booking',`${roundLabel} Round (${roundTime})\nSheet: ${bsm.selectedSheets.join(', ')}\nমোট: ৳${totalPrice}`,'Confirm',async()=>{
         popup.value.show=false;bsm.booking=true;
         try{
@@ -1229,7 +1243,6 @@ createApp({
       });
     };
 
-    // ── Live Nav ──
     const goLiveNav=async()=>{
       if(liveNavUrl.value){window.location.href=liveNavUrl.value;return;}
       try{
@@ -1268,7 +1281,6 @@ createApp({
       const nowMinutes=now.getHours()*60+now.getMinutes();
       for(let i=0;i<rounds.value.length;i++){
         const r=rounds.value[i];
-        // label format: "1st Round - 03:00 PM"
         const parts=r.label.split(' - ');
         const timeStr=parts[1]||'';
         if(!timeStr)continue;
@@ -1280,9 +1292,9 @@ createApp({
         if(meridiem==='PM'&&h!==12)h+=12;
         if(meridiem==='AM'&&h===12)h=0;
         const roundMinutes=h*60+m;
-        if(nowMinutes<roundMinutes)return r.label; // প্রথম upcoming round
+        if(nowMinutes<roundMinutes)return r.label;
       }
-      return rounds.value[rounds.value.length-1]?.label||''; // সব শেষ হলে last round
+      return rounds.value[rounds.value.length-1]?.label||'';
     };
 
     const openPurchase=(item)=>{
@@ -1331,7 +1343,7 @@ createApp({
       });
 
       if(pm.payMethod==='wallet'){
-        if(userBalance.value<totalPrice)return showPopup('error','Low Balance',`৳${totalPrice} প্রয়োজন কিন্তু ব্যালেন্স ৳${userBalance.value}।`,'Deposit');
+        if(userBalance.value<totalPrice)return showPopup('error','Low Balance',`৳${totalPrice} প্রয়োজন কিন্তু ব্যালেন্স ৳${Number(userBalance.value).toFixed(2)}।`,'Deposit');
         showPopup('confirm','Confirm Purchase',`${pack.name}\nSheet: ${sheetStr}\nRound: ${roundStr}\n\nমোট অর্ডার: ${orderCount}টি\nমোট: ৳${totalPrice}`,'Confirm',async()=>{
           popup.value.show=false;purchaseModal.value.show=false;
           try{
@@ -1449,21 +1461,17 @@ createApp({
       onAuthStateChanged(auth,(user)=>{
         if(user){
           isLoggedIn.value=true;
-          // ── Firebase Auth থেকে সাথে সাথে displayName নিয়ে নাও ──
           if(user.displayName){
             authDisplayName.value=user.displayName;
-            // Firestore load হওয়ার আগেও নাম দেখাবে
             userData.value={...userData.value, name: user.displayName};
           }
           localStorage.setItem('userId',user.uid);
           updateDoc(doc(db,'users',user.uid),{isOnline:true,lastSeen:serverTimestamp()}).catch(()=>{});
-          // ── Firestore realtime — নাম ও ব্যালেন্স update করবে ──
           onSnapshot(doc(db,'users',user.uid),(d)=>{
             if(d.exists()){
               const data=d.data();
               userBalance.value=data.balance||0;
               userAvatar.value=data.photoURL||'https://i.pravatar.cc/150?img=12';
-              // Firestore-এ name থাকলে সেটা priority পাবে
               userData.value={...data};
             }
           });
