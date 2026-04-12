@@ -7,10 +7,57 @@
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Noto+Sans+Bengali:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css">
+<style>
+:root {
+  --bg: #0f0f1a; --surface: #1a1a2e; --surface2: #1e1e35;
+  --border: rgba(255,255,255,0.08); --text: #ffffff;
+  --text-muted: rgba(255,255,255,0.55); --text-dim: rgba(255,255,255,0.3);
+  --primary: #6c63ff; --accent: #c084fc; --green: #22c55e; --gold: #ffd700;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { background: var(--bg); color: var(--text); font-family: 'Outfit', 'Noto Sans Bengali', sans-serif; overflow: hidden; }
+[v-cloak] { display: none; }
+
+.app-header { background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+.page-scroll { overflow-y: auto; -webkit-overflow-scrolling: touch; height: calc(100vh - 60px - 60px); padding-bottom: 80px; }
+
+/* Filter pills */
+.filter-pill { background: var(--surface2); border: 1.5px solid var(--border); color: var(--text-muted); cursor: pointer; font-family: inherit; border-radius: 20px; transition: all 0.2s; }
+.filter-pill.active { background: rgba(108,99,255,0.15); border-color: var(--primary); color: var(--primary); }
+
+/* Status badges */
+.badge { display: inline-block; }
+.status-pending    { background: rgba(255,165,0,0.15); border: 1px solid rgba(255,165,0,0.3); color: #fb923c; }
+.status-processing { background: rgba(108,99,255,0.15); border: 1px solid rgba(108,99,255,0.3); color: #a5b4fc; }
+.status-completed  { background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.3); color: #4ade80; }
+.status-cancelled  { background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #f87171; }
+
+.btn-primary { background: linear-gradient(135deg, var(--primary), #5a52e0); color: #fff; border: none; border-radius: 14px; padding: 14px 24px; font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+
+.spinner { width: 36px; height: 36px; border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.card-hover:active { opacity: 0.85; transform: scale(0.99); }
+
+/* ✅ NAV */
+.nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--border); z-index: 200; height: 60px; }
+.nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: var(--text-dim); text-decoration: none; font-size: 11px; font-weight: 600; padding: 6px 0; transition: color 0.2s; cursor: pointer; }
+.nav-item i { font-size: 20px; }
+.nav-item.active { color: var(--primary); }
+
+/* ✅ LIVE NAV */
+.nav-live { background: linear-gradient(135deg,#ef4444,#dc2626); border-radius: 16px; color: #fff !important; flex-direction: row !important; font-size: 12px !important; gap: 4px !important; padding: 0 !important; margin: 8px 6px !important; cursor: pointer; }
+.live-dot { width: 7px; height: 7px; background: #fff; border-radius: 50%; animation: pulse-red 1.2s infinite; }
+@keyframes pulse-red { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.5)} }
+
+.toast-msg { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px); background: rgba(30,30,55,0.95); color: #fff; padding: 12px 22px; border-radius: 50px; font-size: 15px; font-weight: 600; opacity: 0; transition: all 0.25s; pointer-events: none; z-index: 9999; white-space: nowrap; border: 1px solid rgba(108,99,255,0.3); }
+.toast-msg.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
 </head>
 <body>
 <div id="app" v-cloak>
+  <div id="toast-el" class="toast-msg"></div>
+
   <div style="display:flex;flex-direction:column;height:100vh;">
 
     <!-- Header -->
@@ -20,7 +67,6 @@
           <i class="fa-solid fa-arrow-left" style="font-size:17px;"></i>
         </a>
         <div style="font-weight:800;font-size:20px;">My Orders</div>
-        <!-- Order count badge -->
         <div v-if="!loading && orders.length>0" style="margin-left:auto;background:rgba(108,99,255,0.15);border:1px solid rgba(108,99,255,0.3);border-radius:20px;padding:4px 12px;font-size:13px;font-weight:700;color:var(--primary);">
           {{ orders.length }} টি
         </div>
@@ -33,16 +79,17 @@
       <div style="display:flex;gap:8px;margin-bottom:18px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none;">
         <button v-for="f in ['all','pending','processing','completed','cancelled']" :key="f"
           class="filter-pill" :class="{active:orderFilter===f}" @click="orderFilter=f"
-          style="white-space:nowrap;text-transform:capitalize;font-size:13px;font-weight:700;padding:9px 16px;border-radius:20px;flex-shrink:0;">
-          {{ f === 'all' ? 'All' : f === 'pending' ? 'Pending' : f === 'processing' ? 'Processing' : f === 'completed' ? 'Completed' : 'Cancelled' }}
-          <span v-if="f!=='all'" style="margin-left:4px;font-size:11px;opacity:0.7;">({{ orders.filter(o=>o.status===f).length }})</span>
-          <span v-else style="margin-left:4px;font-size:11px;opacity:0.7;">({{ orders.length }})</span>
+          style="white-space:nowrap;font-size:13px;font-weight:700;padding:9px 16px;border-radius:20px;flex-shrink:0;">
+          {{ f==='all'?'সব':f==='pending'?'Pending':f==='processing'?'Processing':f==='completed'?'Completed':'Cancelled' }}
+          <span style="margin-left:4px;font-size:11px;opacity:0.7;">
+            ({{ f==='all' ? orders.length : orders.filter(o=>o.status===f).length }})
+          </span>
         </button>
       </div>
 
       <!-- Loading -->
       <div v-if="loading" style="text-align:center;padding:60px 20px;">
-        <div class="spinner" style="width:36px;height:36px;border-top-color:var(--primary);border-width:3px;margin:0 auto 16px;"></div>
+        <div class="spinner" style="margin:0 auto 16px;"></div>
         <div style="font-size:14px;color:var(--text-muted);font-weight:600;">অর্ডার লোড হচ্ছে...</div>
       </div>
 
@@ -53,7 +100,7 @@
         </div>
         <div style="font-size:18px;font-weight:800;color:var(--text-muted);margin-bottom:8px;">কোনো অর্ডার নেই</div>
         <div style="font-size:14px;color:var(--text-dim);margin-bottom:24px;">এই ক্যাটাগরিতে কোনো অর্ডার পাওয়া যায়নি</div>
-        <a href="index.html" class="btn-primary" style="display:inline-flex;align-items:center;gap:8px;text-decoration:none;padding:13px 24px;font-size:15px;">
+        <a href="index.html" class="btn-primary" style="text-decoration:none;padding:13px 24px;font-size:15px;">
           <i class="fa-solid fa-cart-shopping"></i> Shop Now
         </a>
       </div>
@@ -63,80 +110,53 @@
         <div v-for="o in filteredOrders" :key="o.id"
           style="background:var(--surface);border:1px solid var(--border);border-radius:20px;overflow:hidden;">
 
-          <!-- Card Top: product name + status -->
           <div style="padding:16px 16px 12px;display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid var(--border);">
             <div style="flex:1;min-width:0;margin-right:10px;">
-              <!-- Product Name — বড় -->
-              <div style="font-weight:800;font-size:16px;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                {{ o.productName||'Product' }}
-              </div>
-              <!-- Package Name -->
-              <div style="font-size:13px;color:var(--text-muted);font-weight:600;margin-bottom:5px;">
-                {{ o.packageName || '—' }}
-              </div>
-              <!-- Date -->
+              <div style="font-weight:800;font-size:16px;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ o.productName||'Product' }}</div>
+              <div style="font-size:13px;color:var(--text-muted);font-weight:600;margin-bottom:5px;">{{ o.packageName || '—' }}</div>
               <div style="font-size:12px;color:var(--text-dim);display:flex;align-items:center;gap:5px;">
                 <i class="fa-solid fa-calendar-clock" style="font-size:11px;color:var(--primary);"></i>
                 {{ formatDate(o.createdAt) }}
               </div>
             </div>
-            <!-- Status Badge -->
             <span class="badge" :class="'status-'+o.status"
               style="font-size:12px;font-weight:700;padding:6px 13px;border-radius:20px;white-space:nowrap;flex-shrink:0;">
-              {{ o.status === 'pending' ? '⏳ Pending' : o.status === 'processing' ? '⚙️ Processing' : o.status === 'completed' ? '✅ Done' : o.status === 'cancelled' ? '❌ Cancelled' : o.status }}
+              {{ o.status==='pending'?'⏳ Pending':o.status==='processing'?'⚙️ Processing':o.status==='completed'?'✅ Done':o.status==='cancelled'?'❌ Cancelled':o.status }}
             </span>
           </div>
 
-          <!-- Card Bottom: details grid -->
           <div style="padding:14px 16px;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-
-            <!-- Sheet No -->
             <div style="display:flex;flex-direction:column;gap:3px;">
               <div style="font-size:11px;color:var(--text-dim);font-weight:700;text-transform:uppercase;letter-spacing:0.8px;">
                 <i class="fa-solid fa-table-cells" style="color:var(--primary);margin-right:4px;"></i>Sheet No
               </div>
-              <div style="font-size:15px;font-weight:800;color:#fff;">
-                {{ o.playerId || o.sheetInfo || '—' }}
-              </div>
+              <div style="font-size:15px;font-weight:800;">{{ o.playerId || o.sheetInfo || '—' }}</div>
             </div>
-
-            <!-- Round -->
             <div style="display:flex;flex-direction:column;gap:3px;">
               <div style="font-size:11px;color:var(--text-dim);font-weight:700;text-transform:uppercase;letter-spacing:0.8px;">
                 <i class="fa-solid fa-clock" style="color:#f97316;margin-right:4px;"></i>Round
               </div>
-              <div style="font-size:15px;font-weight:800;color:#fb923c;">
-                {{ o.selectedRound || o.roundInfo || '—' }}
-              </div>
+              <div style="font-size:15px;font-weight:800;color:#fb923c;">{{ o.selectedRound || o.roundInfo || '—' }}</div>
             </div>
-
-            <!-- Amount -->
             <div style="display:flex;flex-direction:column;gap:3px;">
               <div style="font-size:11px;color:var(--text-dim);font-weight:700;text-transform:uppercase;letter-spacing:0.8px;">
                 <i class="fa-solid fa-bangladeshi-taka-sign" style="color:var(--green);margin-right:4px;"></i>Amount
               </div>
               <div style="font-size:16px;font-weight:800;color:var(--green);">৳{{ o.price || o.totalPrice || '0' }}</div>
             </div>
-
-            <!-- Order ID -->
             <div style="display:flex;flex-direction:column;gap:3px;">
               <div style="font-size:11px;color:var(--text-dim);font-weight:700;text-transform:uppercase;letter-spacing:0.8px;">
                 <i class="fa-solid fa-hashtag" style="color:var(--text-dim);margin-right:4px;"></i>Order ID
               </div>
-              <div style="font-size:13px;font-weight:700;color:var(--text-muted);font-family:monospace;letter-spacing:1px;">
-                #{{ o.id.substring(0,8).toUpperCase() }}
-              </div>
+              <div style="font-size:13px;font-weight:700;color:var(--text-muted);font-family:monospace;letter-spacing:1px;">#{{ o.id.substring(0,8).toUpperCase() }}</div>
             </div>
-
           </div>
 
-          <!-- Payment Method row (যদি থাকে) -->
           <div v-if="o.paymentMethod" style="margin:0 16px 14px;background:rgba(108,99,255,0.06);border:1px solid rgba(108,99,255,0.12);border-radius:12px;padding:9px 14px;display:flex;align-items:center;gap:8px;">
             <i class="fa-solid fa-credit-card" style="color:var(--primary);font-size:13px;"></i>
             <span style="font-size:13px;font-weight:700;color:var(--text-muted);text-transform:capitalize;">{{ o.paymentMethod.replace(/_/g,' ') }}</span>
             <span v-if="o.trxId" style="margin-left:auto;font-size:12px;font-weight:700;color:var(--primary);font-family:monospace;letter-spacing:1px;">{{ o.trxId }}</span>
           </div>
-
         </div>
       </div>
 
@@ -144,14 +164,14 @@
     </main>
   </div>
 
-  <!-- Bottom Nav -->
+  <!-- ✅ BOTTOM NAV — Live JS redirect -->
   <div class="nav-bar">
     <div style="display:grid;grid-template-columns:repeat(5,1fr);height:60px;">
       <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i><span>Home</span></a>
       <a href="add-money.html" class="nav-item"><i class="fa-solid fa-wallet"></i><span>Deposit</span></a>
-      <a href="live.html" class="nav-item nav-live" style="flex-direction:row;font-size:12px;gap:3px;padding:0!important;margin:8px 6px;">
+      <div class="nav-item nav-live" @click="goLive">
         <span class="live-dot"></span><span style="font-size:12px;font-weight:800;">LIVE</span>
-      </a>
+      </div>
       <a href="orders.html" class="nav-item active"><i class="fa-solid fa-receipt"></i><span>Orders</span></a>
       <a href="account.html" class="nav-item"><i class="fa-solid fa-user"></i><span>Account</span></a>
     </div>
@@ -161,7 +181,8 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, doc, getDoc, collection, getDocs, query, where }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { createApp, ref, computed, onMounted } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
 
 const firebaseConfig = {
@@ -174,13 +195,14 @@ const firebaseConfig = {
 };
 const fireApp = initializeApp(firebaseConfig);
 const auth = getAuth(fireApp);
-const db = getFirestore(fireApp);
+const db   = getFirestore(fireApp);
 
 createApp({
   setup() {
-    const orders = ref([]);
-    const loading = ref(true);
+    const orders      = ref([]);
+    const loading     = ref(true);
     const orderFilter = ref('all');
+    let   liveNavUrl  = '';
 
     const filteredOrders = computed(() =>
       orderFilter.value === 'all'
@@ -191,26 +213,46 @@ createApp({
     const formatDate = (ts) => {
       if (!ts) return 'Processing...';
       const d = ts.toDate ? ts.toDate() : new Date(ts.seconds * 1000);
-      return d.toLocaleDateString('en-US', {
-        day: 'numeric', month: 'short', year: 'numeric',
-        hour: '2-digit', minute: '2-digit'
-      });
+      return d.toLocaleDateString('en-US', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
     };
 
-    onMounted(() => {
+    let tTimer = null;
+    const showToast = (msg) => {
+      const el = document.getElementById('toast-el');
+      if (!el) return;
+      el.textContent = msg; el.classList.add('show');
+      clearTimeout(tTimer);
+      tTimer = setTimeout(() => el.classList.remove('show'), 2400);
+    };
+
+    // ✅ Live nav — index.html এর goLiveNav এর মতো
+    const goLive = async () => {
+      if (liveNavUrl) { window.location.href = liveNavUrl; return; }
+      try {
+        const s = await getDoc(doc(db, 'settings', 'live'));
+        const url = s.exists() ? s.data().url || '' : '';
+        liveNavUrl = url;
+        if (url) window.location.href = url;
+        else showToast('⚠️ এখন লাইভ নেই');
+      } catch(e) { showToast('⚠️ লোড হয়নি, আবার চেষ্টা করুন'); }
+    };
+
+    onMounted(async () => {
       onAuthStateChanged(auth, async (user) => {
         if (!user) { window.location.href = 'login.html'; return; }
         try {
-          const snap = await getDocs(query(collection(db, 'orders'), where('userId', '==', user.uid)));
+          const snap = await getDocs(query(collection(db, 'orders'), where('userId','==',user.uid)));
           let list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-          list.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+          list.sort((a,b) => (b.createdAt?.seconds||0) - (a.createdAt?.seconds||0));
           orders.value = list;
         } catch(e) {}
         loading.value = false;
       });
+      // live URL preload
+      try { const s = await getDoc(doc(db,'settings','live')); if(s.exists()) liveNavUrl = s.data().url || ''; } catch(_){}
     });
 
-    return { orders, loading, orderFilter, filteredOrders, formatDate };
+    return { orders, loading, orderFilter, filteredOrders, formatDate, goLive };
   }
 }).mount('#app');
 </script>
