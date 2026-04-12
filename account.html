@@ -103,18 +103,13 @@ body { background: var(--bg); color: var(--text); font-family: 'Outfit', 'Noto S
   white-space: nowrap; border: 1px solid rgba(108,99,255,0.3);
 }
 .toast-msg.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-/* ✅ NAV BAR — slide hide on scroll */
 .nav-bar {
   position: fixed; bottom: 0; left: 0; right: 0;
   background: var(--surface); border-top: 1px solid var(--border);
   z-index: 200; height: 60px;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.nav-bar.nav-hidden {
-  transform: translateY(100%);
-}
-
+.nav-bar.nav-hidden { transform: translateY(100%); }
 .nav-item {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 3px; color: var(--text-dim); text-decoration: none;
@@ -285,10 +280,11 @@ body { background: var(--bg); color: var(--text); font-family: 'Outfit', 'Noto S
         </div>
         <div v-if="transferModal.amount >= 10" style="background:rgba(108,99,255,0.08);border:1px solid rgba(108,99,255,0.2);border-radius:14px;padding:14px;font-size:15px;margin-bottom:16px;line-height:2;">
           <div style="display:flex;justify-content:space-between;"><span style="color:var(--text-muted);">Transfer Amount:</span><span style="font-weight:700;">৳{{ transferModal.amount }}</span></div>
-          <div style="display:flex;justify-content:space-between;"><span style="color:var(--text-muted);">Turnover Added:</span><span style="color:#fb923c;font-weight:700;">৳{{ Math.ceil(transferModal.amount * 0.5) }}</span></div>
+          <div style="display:flex;justify-content:space-between;"><span style="color:var(--text-muted);">Sender Turnover:</span><span style="color:#fb923c;font-weight:700;">৳{{ Math.ceil(transferModal.amount * 0.5) }}</span></div>
+          <div style="display:flex;justify-content:space-between;"><span style="color:var(--text-muted);">Receiver Turnover:</span><span style="color:#fb923c;font-weight:700;">৳{{ Math.ceil(transferModal.amount * 0.5) }}</span></div>
         </div>
         <div style="background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.2);border-radius:14px;padding:14px;font-size:15px;color:rgba(249,115,22,0.9);margin-bottom:22px;line-height:1.8;">
-          <i class="fa-solid fa-circle-info" style="margin-right:8px;"></i> সর্বনিম্ন ৳10 Transfer করা যাবে। প্রতিটি Transfer এ ৫০% Turnover যোগ হবে।
+          <i class="fa-solid fa-circle-info" style="margin-right:8px;"></i> সর্বনিম্ন ৳10 Transfer করা যাবে। Sender ও Receiver উভয়ের একাউন্টে ৫০% Turnover যোগ হবে।
         </div>
         <div v-if="transferModal.error" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:14px;padding:14px;font-size:15px;color:#f87171;margin-bottom:18px;">{{ transferModal.error }}</div>
         <div v-if="transferModal.success" style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:14px;padding:14px;font-size:15px;color:#4ade80;margin-bottom:18px;text-align:center;">
@@ -547,12 +543,12 @@ body { background: var(--bg); color: var(--text); font-family: 'Outfit', 'Noto S
     </main>
   </div>
 
-  <!-- ✅ Bottom Nav — nav-hidden class bind করা হয়েছে -->
+  <!-- Bottom Nav -->
   <div class="nav-bar" :class="{'nav-hidden': navHidden}">
     <div style="display:grid;grid-template-columns:repeat(5,1fr);height:60px;">
       <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i><span>Home</span></a>
       <a href="add-money.html" class="nav-item"><i class="fa-solid fa-wallet"></i><span>Deposit</span></a>
-      <a href="live.html" class="nav-item nav-live" style="flex-direction:row;font-size:12px;gap:4px;padding:0!important;margin:8px 6px;">
+      <a href="live.html" class="nav-item nav-live" style="flex-direction:row;font-size:12px;gap:4px;padding:0!important;margin:8px 6px;" @click.prevent="goLive">
         <span class="live-dot"></span><span style="font-size:13px;font-weight:800;">LIVE</span>
       </a>
       <a href="orders.html" class="nav-item"><i class="fa-solid fa-receipt"></i><span>Orders</span></a>
@@ -586,7 +582,8 @@ const fireApp = initializeApp(firebaseConfig);
 const auth   = getAuth(fireApp);
 const db     = getFirestore(fireApp);
 
-await setPersistence(auth, browserLocalPersistence).catch(() => {});
+// ✅ FIX 1: await ছাড়া setPersistence — crash হবে না
+setPersistence(auth, browserLocalPersistence).catch(() => {});
 
 createApp({
   setup() {
@@ -603,9 +600,7 @@ createApp({
     const completedTurnovers = ref([]);
     const turnoverModal      = ref(false);
     const turnoverTab        = ref('active');
-
-    // ✅ Nav hide on scroll
-    const navHidden = ref(false);
+    const navHidden          = ref(false);
 
     const phoneModal = ref({ show: false, value: '', error: '', loading: false });
 
@@ -657,42 +652,28 @@ createApp({
       phoneModal.value.loading = true;
       try {
         const currentUser = auth.currentUser;
-        if (!currentUser) {
-          phoneModal.value.error = 'Session শেষ হয়ে গেছে, আবার লগইন করুন।';
-          phoneModal.value.loading = false;
-          return;
-        }
+        if (!currentUser) { phoneModal.value.error = 'Session শেষ হয়ে গেছে, আবার লগইন করুন।'; return; }
         const uid = currentUser.uid;
         const allSnap = await getDocs(collection(db, 'users'));
         const isDup = allSnap.docs.some(d => d.id !== uid && d.data().phone === phone);
-        if (isDup) {
-          phoneModal.value.error = '❌ এই ফোন নম্বর দিয়ে ইতিমধ্যে অ্যাকাউন্ট আছে।';
-          phoneModal.value.loading = false;
-          return;
-        }
+        if (isDup) { phoneModal.value.error = '❌ এই ফোন নম্বর দিয়ে ইতিমধ্যে অ্যাকাউন্ট আছে।'; return; }
         await updateDoc(doc(db, 'users', uid), { phone });
+        userPhone.value = phone;
         phoneModal.value.show  = false;
         phoneModal.value.value = '';
         showToast('✅ ফোন নম্বর সংরক্ষণ হয়েছে!');
       } catch(e) {
-        if (e.code === 'permission-denied') {
-          phoneModal.value.error = '❌ Permission denied।';
-        } else if (e.code === 'not-found') {
+        if (e.code === 'not-found') {
           try {
             const cu = auth.currentUser;
             await setDoc(doc(db, 'users', cu.uid), { phone }, { merge: true });
+            userPhone.value = phone;
             phoneModal.value.show  = false;
             phoneModal.value.value = '';
             showToast('✅ ফোন নম্বর সংরক্ষণ হয়েছে!');
-          } catch(e2) {
-            phoneModal.value.error = 'সমস্যা হয়েছে: ' + e2.message;
-          }
-        } else {
-          phoneModal.value.error = 'সমস্যা হয়েছে: ' + (e.message || e.code);
-        }
-      } finally {
-        phoneModal.value.loading = false;
-      }
+          } catch(e2) { phoneModal.value.error = 'সমস্যা হয়েছে: ' + e2.message; }
+        } else { phoneModal.value.error = 'সমস্যা হয়েছে: ' + (e.message || e.code); }
+      } finally { phoneModal.value.loading = false; }
     };
 
     const fetchTurnovers = async (uid) => {
@@ -700,9 +681,7 @@ createApp({
       activeTurnovers.value = [];
       completedTurnovers.value = [];
       try {
-        const snap = await getDocs(
-          query(collection(db, 'turnovers'), where('userId', '==', uid))
-        );
+        const snap = await getDocs(query(collection(db, 'turnovers'), where('userId', '==', uid)));
         snap.forEach(d => {
           const item = { id: d.id, ...d.data() };
           if (d.data().status === 'completed') completedTurnovers.value.push(item);
@@ -714,9 +693,7 @@ createApp({
     const fetchStats = async (uid) => {
       if (!uid) return;
       try {
-        const snap = await getDocs(
-          query(collection(db, 'orders'), where('userId', '==', uid))
-        );
+        const snap = await getDocs(query(collection(db, 'orders'), where('userId', '==', uid)));
         let spent = 0, count = 0, weekly = 0;
         const oneWeekAgo = new Date();
         oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
@@ -774,56 +751,55 @@ createApp({
       if (!phone || phone.length < 11) { tm.error = 'সঠিক ফোন নম্বর দিন (১১ ডিজিট)।'; return; }
       if (!amount || amount < 10)      { tm.error = 'সর্বনিম্ন ৳10 Transfer করুন।'; return; }
       if (amount > userBalance.value)  { tm.error = 'আপনার ব্যালেন্স পর্যাপ্ত নয়।'; return; }
-
       const senderUid = auth.currentUser?.uid || localStorage.getItem('userId');
-      if (userPhone.value && userPhone.value === phone) {
-        tm.error = 'নিজের নম্বরে Transfer করা যাবে না।'; return;
-      }
+      if (userPhone.value && userPhone.value === phone) { tm.error = 'নিজের নম্বরে Transfer করা যাবে না।'; return; }
       tm.loading = true;
       try {
         const allSnap = await getDocs(collection(db, 'users'));
         const receiverDoc = allSnap.docs.find(d => d.data().phone === phone);
-        if (!receiverDoc) {
-          tm.error = 'এই ফোন নম্বর দিয়ে কোনো একাউন্ট পাওয়া যায়নি।';
-          tm.loading = false;
-          return;
-        }
+        if (!receiverDoc) { tm.error = 'এই ফোন নম্বর দিয়ে কোনো একাউন্ট পাওয়া যায়নি।'; tm.loading = false; return; }
         const receiverId = receiverDoc.id;
-        if (receiverId === senderUid) {
-          tm.error = 'নিজেকে Transfer করা যাবে না।';
-          tm.loading = false;
-          return;
-        }
+        if (receiverId === senderUid) { tm.error = 'নিজেকে Transfer করা যাবে না।'; tm.loading = false; return; }
+
         await runTransaction(db, async (t) => {
-          const sRef = doc(db,'users',senderUid);
-          const rRef = doc(db,'users',receiverId);
+          const sRef = doc(db, 'users', senderUid);
+          const rRef = doc(db, 'users', receiverId);
           const sDoc = await t.get(sRef);
           if (sDoc.data().balance < amount) throw new Error('Low Balance');
           t.update(sRef, { balance: sDoc.data().balance - amount });
           t.update(rRef, { balance: increment(amount) });
         });
+
         const turnoverAmt = Math.ceil(amount * 0.5);
         await Promise.all([
-          addDoc(collection(db,'transfers'), {
+          addDoc(collection(db, 'transfers'), {
             senderUid, receiverPhone: phone, receiverUid: receiverId,
             amount, status: 'completed', createdAt: serverTimestamp()
           }),
-          addDoc(collection(db,'turnovers'), {
+          addDoc(collection(db, 'turnovers'), {
             userId: senderUid, type: 'transfer',
             label: `Transfer Turnover (৳${turnoverAmt})`,
             required: turnoverAmt, done: 0, status: 'active', createdAt: serverTimestamp()
           }),
-          addDoc(collection(db,'balanceLogs'), {
+          addDoc(collection(db, 'turnovers'), {
+            userId: receiverId, type: 'transfer_received',
+            label: `Transfer Received Turnover (৳${turnoverAmt})`,
+            required: turnoverAmt, done: 0, status: 'active', createdAt: serverTimestamp()
+          }),
+          addDoc(collection(db, 'balanceLogs'), {
             userId: senderUid, type: 'transfer_out', amount: -amount,
             note: `Transfer to ${phone}`, createdAt: serverTimestamp()
           }),
-          addDoc(collection(db,'balanceLogs'), {
+          addDoc(collection(db, 'balanceLogs'), {
             userId: receiverId, type: 'transfer_in', amount,
-            note: `Transfer from ${userPhone.value || senderUid.substring(0,8)}`, createdAt: serverTimestamp()
+            note: `Transfer from ${userPhone.value || senderUid.substring(0, 8)}`,
+            createdAt: serverTimestamp()
           }),
         ]);
+
         tm.success = `✅ ৳${amount} সফলভাবে ${phone} নম্বরে Transfer হয়েছে!`;
-        tm.receiverPhone = ''; tm.amount = '';
+        tm.receiverPhone = '';
+        tm.amount = '';
         await fetchTurnovers(senderUid);
       } catch(e) {
         tm.error = e.message === 'Low Balance' ? 'ব্যালেন্স পর্যাপ্ত নয়।' : 'Transfer ব্যর্থ হয়েছে।';
@@ -834,7 +810,7 @@ createApp({
       if (!confirm('আপনি কি নিশ্চিত লগআউট করতে চান?')) return;
       const uid = auth.currentUser?.uid || localStorage.getItem('userId');
       if (uid) {
-        await updateDoc(doc(db,'users',uid), {
+        await updateDoc(doc(db, 'users', uid), {
           isOnline: false, lastSeen: serverTimestamp()
         }).catch(() => {});
       }
@@ -850,31 +826,43 @@ createApp({
       userAvatar.value  = data.photoURL || 'https://i.pravatar.cc/150?img=12';
       const rawPhone = data.hasOwnProperty('phone') ? data.phone : null;
       userPhone.value = (rawPhone && typeof rawPhone === 'string' && rawPhone.trim() !== '')
-        ? rawPhone.trim()
-        : '';
+        ? rawPhone.trim() : '';
+    };
+
+    let liveNavUrl = '';
+    const goLive = async () => {
+      if (liveNavUrl) { window.location.href = liveNavUrl; return; }
+      try {
+        const snap = await getDoc(doc(db, 'settings', 'live'));
+        const url = snap.exists() ? snap.data().url || '' : '';
+        liveNavUrl = url;
+        if (url) window.location.href = url;
+        else showToast('⚠️ এখন লাইভ নেই');
+      } catch(e) { showToast('⚠️ লোড হয়নি, আবার চেষ্টা করুন'); }
     };
 
     onMounted(() => {
-      // ✅ Scroll listener — nav hide/show
+      // ✅ FIX 2: onMounted এর ভেতরে live URL preload — async IIFE দিয়ে
+      (async () => {
+        try {
+          const s = await getDoc(doc(db, 'settings', 'live'));
+          if (s.exists()) liveNavUrl = s.data().url || '';
+        } catch(_) {}
+      })();
+
       let lastScrollY = 0;
       const scrollEl = document.getElementById('accountScroll');
       if (scrollEl) {
         scrollEl.addEventListener('scroll', () => {
           const cy = scrollEl.scrollTop;
-          if (cy > lastScrollY + 8 && cy > 50) {
-            navHidden.value = true;
-          } else if (cy < lastScrollY - 8 || cy < 10) {
-            navHidden.value = false;
-          }
+          if (cy > lastScrollY + 8 && cy > 50) navHidden.value = true;
+          else if (cy < lastScrollY - 8 || cy < 10) navHidden.value = false;
           lastScrollY = cy;
         }, { passive: true });
       }
 
       onAuthStateChanged(auth, (user) => {
-        if (!user) {
-          window.location.href = 'login.html';
-          return;
-        }
+        if (!user) { window.location.href = 'login.html'; return; }
 
         localStorage.setItem('userId', user.uid);
         userUID.value = user.uid.substring(0, 12).toUpperCase();
@@ -889,20 +877,18 @@ createApp({
         }).catch(() => {});
 
         onSnapshot(doc(db, 'users', user.uid), (snap) => {
-          if (snap.exists()) {
-            applyUserData(snap.data(), user);
-          } else {
+          if (snap.exists()) applyUserData(snap.data(), user);
+          else {
             userName.value  = user.displayName || '';
             userEmail.value = user.email       || '';
             userPhone.value = '';
           }
           dataLoaded.value = true;
-        }, async (err) => {
+        }, async () => {
           try {
             const snap = await getDoc(doc(db, 'users', user.uid));
-            if (snap.exists()) {
-              applyUserData(snap.data(), user);
-            } else {
+            if (snap.exists()) applyUserData(snap.data(), user);
+            else {
               userName.value  = user.displayName || '';
               userEmail.value = user.email       || '';
               userPhone.value = '';
@@ -928,7 +914,7 @@ createApp({
       transferModal, submitTransfer,
       phoneModal, savePhone,
       accountMenu, handleLogout, copyUID, showToast,
-      navHidden,
+      navHidden, goLive,
     };
   }
 }).mount('#app');
