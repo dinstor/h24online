@@ -586,27 +586,23 @@
             </div>
           </div>
 
-          <!-- Step 3: Round (Single-select — radio style) -->
+          <!-- Step 3: Round — Dropdown (compact, অটো pre-selected) -->
           <div style="margin-bottom:14px;">
             <div class="step-label">
               <span class="step-num" style="background:#f97316;">3</span> Round সিলেক্ট করুন
-              <span style="margin-left:auto;font-size:10px;color:rgba(255,255,255,0.25);">একটি সিলেক্ট করুন</span>
+              <span style="margin-left:auto;font-size:10px;color:rgba(255,255,255,0.25);">অটো সিলেক্ট হয়েছে</span>
             </div>
-            <div class="multi-chip-wrap">
-              <div v-for="r in rounds" :key="r.label"
-                class="round-chip"
-                :class="{ active: purchaseModal.selectedRound === r.label }"
-                @click="purchaseModal.selectedRound = r.label">
-                <span class="round-radio">
-                  <span v-if="purchaseModal.selectedRound === r.label" style="width:5px;height:5px;border-radius:50%;background:#fff;display:block;"></span>
-                </span>
-                {{ r.label }}
-              </div>
+            <div class="styled-select-wrap">
+              <select v-model="purchaseModal.selectedRound" class="styled-select">
+                <option value="" disabled>— Round বেছে নিন —</option>
+                <option v-for="r in rounds" :key="r.label" :value="r.label">{{ r.label }}</option>
+              </select>
+              <i class="fa-solid fa-chevron-down styled-select-icon"></i>
             </div>
-            <div v-if="purchaseModal.selectedRound" style="margin-top:6px;display:flex;align-items:center;gap:6px;background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.2);border-radius:10px;padding:8px 12px;">
-              <i class="fa-solid fa-circle-check" style="color:#f97316;font-size:13px;"></i>
+            <div v-if="purchaseModal.selectedRound" style="margin-top:7px;display:flex;align-items:center;gap:6px;background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.18);border-radius:10px;padding:8px 12px;">
+              <i class="fa-solid fa-clock" style="color:#f97316;font-size:12px;"></i>
               <span style="font-size:12px;font-weight:700;color:#fb923c;">{{ purchaseModal.selectedRound }}</span>
-              <span @click="purchaseModal.selectedRound=''" style="margin-left:auto;cursor:pointer;color:rgba(251,146,60,0.5);font-size:11px;">✕</span>
+              <span style="margin-left:auto;font-size:10px;color:rgba(249,115,22,0.5);font-weight:600;">✓ Selected</span>
             </div>
           </div>
 
@@ -1223,8 +1219,9 @@ createApp({
       const totalPrice=bsm.selectedAmt*bsm.selectedSheets.length;
       const roundLabel=bsCurrentRound.value.label;
       const roundTime=bsCurrentRound.value.time;
+      const roundFull=roundLabel+(roundTime?' - '+roundTime:'');
       if(userBalance.value<totalPrice){showPopup('error','Low Balance',`৳${totalPrice} প্রয়োজন কিন্তু আপনার ব্যালেন্স ৳${Number(userBalance.value).toFixed(2)}।`,'Deposit');return;}
-      showPopup('confirm','Confirm Booking',`${roundLabel} Round (${roundTime})\nSheet: ${bsm.selectedSheets.join(', ')}\nমোট: ৳${totalPrice}`,'Confirm',async()=>{
+      showPopup('confirm','Confirm Booking',`${roundFull}\nSheet: ${bsm.selectedSheets.join(', ')}\nমোট: ৳${totalPrice}`,'Confirm',async()=>{
         popup.value.show=false;bsm.booking=true;
         try{
           await runTransaction(db,async(t)=>{
@@ -1232,10 +1229,53 @@ createApp({
             const uDoc=await t.get(uRef);
             if((uDoc.data().balance||0)<totalPrice)throw new Error('Low Balance');
             t.update(uRef,{balance:uDoc.data().balance-totalPrice});
-            t.set(doc(collection(db,'sheetBookings')),{userId:uid,roundLabel,roundTime,sheets:[...bsm.selectedSheets],amountPerSheet:bsm.selectedAmt,totalAmount:totalPrice,status:'pending',createdAt:serverTimestamp()});
+            // sheetBookings — একটা document সব sheets সহ
+            t.set(doc(collection(db,'sheetBookings')),{
+              userId:uid,
+              userName:userData.value?.name||userData.value?.displayName||authDisplayName.value||'User',
+              userPhone:userData.value?.phone||'',
+              roundLabel,roundTime,roundFull,
+              sheets:[...bsm.selectedSheets],
+              amountPerSheet:bsm.selectedAmt,
+              totalAmount:totalPrice,
+              status:'pending',
+              paymentMethod:'wallet',
+              productName:'Sheet Booking',
+              category:'sheet',
+              createdAt:serverTimestamp(),
+              updatedAt:serverTimestamp(),
+            });
+            // orders — প্রতিটি sheet আলাদা order হিসেবে save (order history + admin app)
+            for(const sh of bsm.selectedSheets){
+              t.set(doc(collection(db,'orders')),{
+                userId:uid,
+                userName:userData.value?.name||userData.value?.displayName||authDisplayName.value||'User',
+                userPhone:userData.value?.phone||'',
+                productId:'sheet_booking',
+                productName:'Sheet Booking',
+                productImage:'',
+                category:'sheet',
+                packageName:`Sheet ${sh}`,
+                packagePrice:bsm.selectedAmt,
+                price:bsm.selectedAmt,
+                quantity:1,
+                totalPrice:bsm.selectedAmt,
+                playerId:sh,
+                sheetNo:sh,
+                sheetInfo:sh,
+                selectedRound:roundFull,
+                roundInfo:roundFull,
+                roundLabel:roundFull,
+                status:'pending',
+                paymentMethod:'wallet',
+                isSheetBooking:true,
+                createdAt:serverTimestamp(),
+                updatedAt:serverTimestamp(),
+              });
+            }
           });
           bsm.show=false;
-          showPopup('success','বুকিং সফল! 🎉',`${roundLabel} Round-এ ${bsm.selectedSheets.length}টি Sheet বুক হয়েছে।\nমোট: ৳${totalPrice}`,'OK');
+          showPopup('success','বুকিং সফল! 🎉',`${roundLabel} Round-এ ${bsm.selectedSheets.length}টি Sheet বুক হয়েছে।\nমোট: ৳${totalPrice}`,'Orders');
         }catch(e){
           if(e.message==='Low Balance')showPopup('error','Low Balance','ব্যালেন্স পর্যাপ্ত নয়।','Deposit');
           else showPopup('error','Error','বুকিং হয়নি। আবার চেষ্টা করুন।');
@@ -1335,11 +1375,31 @@ createApp({
       const orderCount=pm.selectedSheets.length;
 
       const makeOrderData=(sheetLabel,roundLabel)=>({
-        userId:uid,packageName:pack.name,price:pack.price,quantity:1,totalPrice:pack.price,
-        playerId:sheetLabel,sheetInfo:sheetLabel,
-        selectedRound:roundLabel,roundInfo:roundLabel,
-        productName:pm.product.name,category:pm.product.category,
-        createdAt:serverTimestamp()
+        // ── User info ──
+        userId:uid,
+        userName:userData.value?.name||userData.value?.displayName||authDisplayName.value||'User',
+        userPhone:userData.value?.phone||'',
+        // ── Product info ──
+        productId:pm.product.id||'',
+        productName:pm.product.name||'',
+        productImage:pm.product.image||'',
+        category:pm.product.category||'',
+        // ── Package info ──
+        packageName:pack.name,
+        packagePrice:pack.price,
+        price:pack.price,
+        quantity:1,
+        totalPrice:pack.price,
+        // ── Sheet & Round ──
+        playerId:sheetLabel,
+        sheetNo:sheetLabel,
+        sheetInfo:sheetLabel,
+        selectedRound:roundLabel,
+        roundInfo:roundLabel,
+        roundLabel:roundLabel,
+        // ── Meta ──
+        createdAt:serverTimestamp(),
+        updatedAt:serverTimestamp(),
       });
 
       if(pm.payMethod==='wallet'){
